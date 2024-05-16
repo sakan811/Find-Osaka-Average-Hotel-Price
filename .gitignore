@@ -160,3 +160,4 @@ cython_debug/
 #.idea/
 /avg_japan_hotel_price.db
 /*.xlsx
+/japan_avg_hotel_price.pbix
