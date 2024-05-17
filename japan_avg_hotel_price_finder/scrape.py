@@ -1,3 +1,19 @@
+#    Copyright 2024 Sakan Nirattisaykul
+#
+#    Licensed under the Apache License, Version 2.0 (the "License");
+#    you may not use this file except in compliance with the License.
+#    You may obtain a copy of the License at
+#
+#        http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS,
+#    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#    See the License for the specific language governing permissions and
+#    limitations under the License.
+
+
+import datetime
 import re
 import time
 
@@ -239,7 +255,8 @@ def start_scraping_process(city: str,
     :param num_rooms: Number of rooms.
     :param group_children: Number of children.
     :param selected_currency: Currency name.
-    :return: Panda DataFrame (Optional)
+    :return: None.
+            Return a Pandas DataFrame when testing only.
     """
     logger.info("Starting web-scraping...")
 
@@ -257,7 +274,12 @@ def start_scraping_process(city: str,
     df = pd.DataFrame(data)
 
     df['City'] = city
+
+    # Hotel data of the given date
     df['Date'] = check_in
+
+    # Date which the data was collected
+    df['AsOf'] = datetime.date.today()
 
     df_filtered = transform_data(df)
 

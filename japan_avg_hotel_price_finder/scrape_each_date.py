@@ -1,3 +1,18 @@
+#    Copyright 2024 Sakan Nirattisaykul
+#
+#    Licensed under the Apache License, Version 2.0 (the "License");
+#    you may not use this file except in compliance with the License.
+#    You may obtain a copy of the License at
+#
+#        http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS,
+#    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#    See the License for the specific language governing permissions and
+#    limitations under the License.
+
+
 import calendar
 from datetime import datetime, timedelta
 
@@ -18,14 +33,16 @@ class ScrapeEachDate:
 
     def scrape_until_month_end(self, start_day: int, month: int, year: int, nights: int) -> None | pd.DataFrame:
         """
-        Scrape data starting from the start date to the end of the same month.
+        Scrape hotel data (hotel name, room price, review score) for a specified number of nights,
+        starting from a given date until the end of the same month.
 
-        :param start_day: Start day.
-        :param month: Month of the start day.
-        :param year: Year of the start day.
-        :param nights: Number of nights for the room price of the scraped property data.
-                        For example, nights=3 means scraping for 3-night room price data of each property.
-        :return: Pandas DataFrame (Optional).
+        :param start_day: The day of the month from which to start scraping.
+        :param month: The month for which data is to be scraped.
+        :param year: The year for which data is to be scraped.
+        :param nights: The number of consecutive nights for each hotel stay to be included in the data.
+                   For example, if nights=3, the scraper will collect price data for a 3-night stay at each hotel.
+        :return: None.
+                Return a Pandas DataFrame when testing only.
         """
         logger.info(f'Scraping data from {start_day}-{calendar.month_name[month]}-{year} '
                     f'to the end of {calendar.month_name[month]}-{year}...')
