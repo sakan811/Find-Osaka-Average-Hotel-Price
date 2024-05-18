@@ -13,6 +13,7 @@
 #    limitations under the License.
 import calendar
 import threading
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 
 import pandas as pd
@@ -34,7 +35,7 @@ class ThreadScrape(ScrapeEachDate):
         # Determine the total number of days in the specified month
         total_days = calendar.monthrange(self.year, self.month)[1]
 
-        # Define a list to store the results from each thread
+        # Define a list to store the result DataFrame from each thread
         results = []
 
         # Define a function to perform scraping for each date
@@ -56,19 +57,14 @@ class ThreadScrape(ScrapeEachDate):
             # Append the result to the 'results' list
             results.append(df)
 
-        # Create a list to hold threads
-        threads = []
+        # Create a thread pool with a maximum of 5 threads
+        with ThreadPoolExecutor(max_workers=5) as executor:
+            # Submit tasks for each date within the specified range
+            futures = [executor.submit(scrape_each_date, day) for day in range(self.start_day, total_days + 1)]
 
-        # Iterate over each date within the specified range
-        for day in range(self.start_day, total_days + 1):
-            # Create a new thread for each date and start it
-            thread = threading.Thread(target=scrape_each_date, args=(day,))
-            thread.start()
-            threads.append(thread)
-
-        # Wait for all threads to complete
-        for thread in threads:
-            thread.join()
+            # Wait for all tasks to complete
+            for future in futures:
+                future.result()
 
         # Concatenate all DataFrames in the 'results' list into a single DataFrame
         df = pd.concat(results, ignore_index=True)

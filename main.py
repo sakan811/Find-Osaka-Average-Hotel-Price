@@ -14,11 +14,10 @@
 
 from loguru import logger
 
-from japan_avg_hotel_price_finder.scrape_each_date import ScrapeEachDate
 from japan_avg_hotel_price_finder.thread_scrape import ThreadScrape
 
 logger.add('japan_avg_hotel_price_month.log',
-           format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {name} | {module} | {function} | {line} | {message}",
+           format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {thread} |  {name} | {module} | {function} | {line} | {message}",
            mode='w')
 
 # Define booking parameters for the hotel search.
@@ -30,12 +29,9 @@ selected_currency = 'USD'
 
 # Specify the start date and duration of stay for data scraping
 start_day = 1
-month = 8
+month = 12
 year = 2024
 nights = 1
-
-# scrape_each_date = ScrapeEachDate(city, group_adults, num_rooms, group_children, selected_currency)
-# scrape_each_date.scrape_until_month_end(start_day, month, year, nights)
 
 thread_scrape = ThreadScrape(city, group_adults, num_rooms, group_children, selected_currency, start_day, month, year,
                              nights)

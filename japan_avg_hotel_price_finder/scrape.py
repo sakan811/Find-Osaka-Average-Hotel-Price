@@ -256,7 +256,7 @@ def start_scraping_process(city: str,
     :param group_children: Number of children.
     :param selected_currency: Currency name.
     :return: None.
-            Return a Pandas DataFrame when testing only.
+            Return a Pandas DataFrame for testing purpose only.
     """
     logger.info("Starting web-scraping...")
 

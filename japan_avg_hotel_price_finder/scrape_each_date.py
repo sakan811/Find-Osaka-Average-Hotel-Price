@@ -42,7 +42,7 @@ class ScrapeEachDate:
         :param nights: The number of consecutive nights for each hotel stay to be included in the data.
                    For example, if nights=3, the scraper will collect price data for a 3-night stay at each hotel.
         :return: None.
-                Return a Pandas DataFrame when testing only.
+                Return a Pandas DataFrame for testing purpose only.
         """
         logger.info(f'Scraping data from {start_day}-{calendar.month_name[month]}-{year} '
                     f'to the end of {calendar.month_name[month]}-{year}...')

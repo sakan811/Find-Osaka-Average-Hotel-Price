@@ -1,6 +1,7 @@
 # Find the Hotel's Average Room Price in Osaka by Date
 
-Collect Osaka hotel property data from Booking.com
+Collect Osa
+ka hotel property data from Booking.com
 
 Data collecting start date: May 16th, 2024.
 
@@ -38,4 +39,8 @@ nights = 1  # Number of nights for the stay.
 
 [scrape_each_date.py](japan_avg_hotel_price_finder%2Fscrape_each_date.py)
 - Scrape data for each date.
+  - Start from the given start date until the end of the same month.
+
+[thread_scrape.py](japan_avg_hotel_price_finder%2Fthread_scrape.py)
+- Scrape data for 5 dates at the same using Thread Pool Execute.
   - Start from the given start date until the end of the same month.

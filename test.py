@@ -27,7 +27,7 @@ def test_full_process() -> None:
     selected_currency = 'USD'
 
     today = datetime.date.today()
-    start_day = today.day
+    start_day = 29
     month = today.month
     year = today.year
     nights = 1
@@ -35,7 +35,7 @@ def test_full_process() -> None:
     scrape_each_date = ScrapeEachDate(city, group_adults, num_rooms, selected_currency, group_children)
     df = scrape_each_date.scrape_until_month_end(start_day, month, year, nights)
 
-    assert df is not None
+    assert not df.empty
 
 
 if __name__ == '__main__':
