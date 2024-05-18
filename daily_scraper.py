@@ -38,4 +38,4 @@ thread_scrape = ThreadScrape(city, group_adults, num_rooms, group_children, sele
                              nights)
 df = thread_scrape.thread_scrape()
 
-df.to_csv(f'osaka_daily_hotel_data_{today}.csv', index=False)
+df.to_csv(f'osaka_daily_hotel_data.csv', index=False)
