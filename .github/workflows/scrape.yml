@@ -2,7 +2,7 @@ name: Scrape
 
 on:
   schedule:
-    - cron: "0 4 * * *"
+    - cron: "0 23 * * *"
   workflow_dispatch:
 
 env:
@@ -10,7 +10,7 @@ env:
 
 jobs:
   scrape-latest:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
       - name: Checkout repo
