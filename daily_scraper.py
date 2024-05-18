@@ -12,6 +12,7 @@
 #    limitations under the License.
 import datetime
 
+import pandas as pd
 from loguru import logger
 
 from japan_avg_hotel_price_finder.thread_scrape import ThreadScrape
@@ -29,13 +30,29 @@ selected_currency = 'USD'
 
 # Specify the start date and duration of stay for data scraping
 today = datetime.date.today()
-start_day = 31
-month = today.month
-year = today.year
+end_date = datetime.date(today.year, 12, 31)
 nights = 1
 
-thread_scrape = ThreadScrape(city, group_adults, num_rooms, group_children, selected_currency, start_day, month, year,
-                             nights)
-df = thread_scrape.thread_scrape()
+# Initialize an empty DataFrame to collect all data
+all_data = pd.DataFrame()
 
-df.to_csv(f'osaka_daily_hotel_data.csv', index=False)
+# Loop from today until the end of the year
+current_date = today
+while current_date <= end_date:
+    start_day = current_date.day
+    month = current_date.month
+    year = current_date.year
+
+    # Initialize and run the scraper
+    thread_scrape = ThreadScrape(city, group_adults, num_rooms, group_children, selected_currency, start_day, month,
+                                 year, nights)
+    df = thread_scrape.thread_scrape()
+
+    # Append the data to the all_data DataFrame
+    all_data = all_data.append(df, ignore_index=True)
+
+    # Move to the next day
+    current_date += datetime.timedelta(days=1)
+
+# Save the collected data to a CSV file
+all_data.to_csv('osaka_daily_hotel_data.csv', index=False)
