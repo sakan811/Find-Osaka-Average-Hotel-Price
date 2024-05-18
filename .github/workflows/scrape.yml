@@ -25,7 +25,8 @@ jobs:
         run: python daily_scraper.py
       - name: Set env vars
         run: |
-          echo "DATE=$(python -c 'import datetime as dt; print(dt.datetime.now().date())')" >> $GITHUB_ENV
+          $DATE = (python -c "import datetime as dt; print(dt.datetime.now().date())")
+          $env:GITHUB_ENV = "DATE=$DATE"
       - name: Send mail
         uses: dawidd6/action-send-mail@v3
         with:
