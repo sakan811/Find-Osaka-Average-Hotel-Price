@@ -44,3 +44,7 @@ nights = 1  # Number of nights for the stay.
 [thread_scrape.py](japan_avg_hotel_price_finder%2Fthread_scrape.py)
 - Scrape data for 5 dates at the same using Thread Pool Execute.
   - Start from the given start date until the end of the same month.
+
+## Daily Hotel Scraper
+[daily_scraper.py](daily_scraper.py)
+- Scrape Osaka hotel data daily using GitHub action.
