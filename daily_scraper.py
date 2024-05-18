@@ -29,7 +29,7 @@ selected_currency = 'USD'
 
 # Specify the start date and duration of stay for data scraping
 today = datetime.date.today()
-start_day = 30
+start_day = 31
 month = today.month
 year = today.year
 nights = 1
