@@ -28,9 +28,25 @@ logger.add('japan_avg_hotel_price_month.log',
 
 class DailyThreadScrape(ThreadScrape):
     def __init__(self, city, group_adults, num_rooms, group_children, selected_currency, start_day, month, year, nights):
+        """
+
+        :param city: City where the hotels are located.
+        :param group_adults: Number of adults.
+        :param num_rooms: Number of rooms.
+        :param group_children: Number of children.
+        :param selected_currency: Currency of the room price.
+        :param start_day: Day of the month to start scraping.
+        :param month: Month to start scraping.
+        :param year: Year to start scraping.
+        :param nights: Number of nights (Length of stay).
+        """
         super().__init__(city, group_adults, num_rooms, group_children, selected_currency, start_day, month, year, nights)
 
-    def thread_scrape(self) -> None | pd.DataFrame:
+    def thread_scrape(self) -> pd.DataFrame:
+        """
+        Scrape hotel data from the start day to the end of the same month using Thread Pool executor.
+        :return: Pandas dataframe containing hotel data.
+        """
         # Determine the total number of days in the specified month
         total_days = calendar.monthrange(self.year, self.month)[1]
 
@@ -38,7 +54,12 @@ class DailyThreadScrape(ThreadScrape):
         results = []
 
         # Define a function to perform scraping for each date
-        def scrape_each_date(day):
+        def scrape_each_date(day) -> None:
+            """
+            Scrape hotel data of the given date.
+            :param day: Day of the month.
+            :return: None
+            """
             current_date = datetime(self.year, self.month, day)
             check_in = current_date.strftime('%Y-%m-%d')
             check_out = (current_date + timedelta(days=self.nights)).strftime('%Y-%m-%d')
@@ -140,6 +161,8 @@ end_date = datetime(today.year, month + 1, 1) - timedelta(days=1)
 nights = 1
 
 start_day = 1
+
+# Can only scrape data from the current date onward
 if month == today.month:
     start_day = today.day
 
@@ -149,23 +172,23 @@ all_data = pd.DataFrame()
 
 # Loop from today until the end of the year
 current_date = datetime(today.year, month, start_day)  # Start from the first day of the current month
-while current_date <= end_date:
-    logger.info(f'Scrape data of {current_date = }')
 
-    start_day = current_date.day
-    month = current_date.month
-    year = current_date.year
+logger.info(f'Scrape data for {calendar.month_name[month]}')
 
-    # Initialize and run the scraper
-    thread_scrape = DailyThreadScrape(city, group_adults, num_rooms, group_children, selected_currency, start_day, month,
-                                 year, nights)
-    df = thread_scrape.thread_scrape()
+start_day = current_date.day
+month = current_date.month
+year = current_date.year
 
-    # Append the data to the all_data DataFrame
-    all_data = pd.concat([all_data, df], ignore_index=True)
+# Initialize and run the scraper
+thread_scrape = DailyThreadScrape(city, group_adults, num_rooms, group_children, selected_currency, start_day, month,
+                             year, nights)
+df = thread_scrape.thread_scrape()
 
-    # Move to the next day
-    current_date += timedelta(days=1)
+# Append the data to the all_data DataFrame
+all_data = pd.concat([all_data, df], ignore_index=True)
+
+# Move to the next day
+current_date += timedelta(days=1)
 
 # Save the collected data to a CSV file
 all_data.to_csv(f'osaka_month_{month}_daily_hotel_data.csv', index=False)
