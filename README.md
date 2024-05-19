@@ -7,7 +7,7 @@ Collect Osaka hotel property data from Booking.com
 
 Data collecting start date: May 16th, 2024.
 
-Data was collected daily using GitHub action and [daily_scraper.py](daily_scraper.py)
+Data was collected daily using GitHub action and [daily_scraper.py](automated_scraper.py)
 
 This script can also be used to scrape data from other cities.
 
@@ -42,7 +42,7 @@ nights = 1  # Number of nights for the stay.
 [scrape.py](japan_avg_hotel_price_finder%2Fscrape.py)
 - Scrape data from Booking.com website.
 
-[scrape_each_date.py](japan_avg_hotel_price_finder%2Fscrape_each_date.py)
+[scrape_until_month_end.py](japan_avg_hotel_price_finder%2Fscrape_until_month_end.py)
 - Scrape data for each date.
   - Start from the given start date until the end of the same month.
 
@@ -50,9 +50,9 @@ nights = 1  # Number of nights for the stay.
 - Scrape data for five dates at the same time using Thread Pool Execute.
   - Start from the given start date until the end of the same month.
 
-### Daily Hotel Scraper
-[daily_scraper.py](daily_scraper.py)
-- Scrape Osaka hotel data daily using GitHub action for all 12 months.
+### Automated Hotel Scraper
+[scrape_until_month_end.py](japan_avg_hotel_price_finder%2Fscrape_until_month_end.py)
+- Scrape Osaka hotel data weekly using GitHub action for all 12 months.
   - Save to CSV for each month.
 - Send CSV via email.
 - Big thanks to https://yasoob.me/posts/github-actions-web-scraper-schedule-tutorial/

@@ -16,7 +16,7 @@ import datetime
 
 import pytest
 
-from japan_avg_hotel_price_finder.scrape_each_date import ScrapeUntilMonthEnd
+from japan_avg_hotel_price_finder.scrape_until_month_end import ScrapeUntilMonthEnd
 
 
 def test_full_process() -> None:

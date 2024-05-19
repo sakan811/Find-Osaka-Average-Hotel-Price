@@ -20,7 +20,7 @@ import pandas as pd
 from loguru import logger
 
 from japan_avg_hotel_price_finder.scrape import start_scraping_process
-from japan_avg_hotel_price_finder.scrape_each_date import ScrapeUntilMonthEnd
+from japan_avg_hotel_price_finder.scrape_until_month_end import ScrapeUntilMonthEnd
 
 
 class ThreadScrape(ScrapeUntilMonthEnd):

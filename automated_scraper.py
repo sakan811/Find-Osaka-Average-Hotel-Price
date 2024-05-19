@@ -27,7 +27,7 @@ logger.add('osaka_hotel_daily_scraper.log',
            mode='w')
 
 
-class DailyThreadScrape(ThreadScrape):
+class AutomatedThreadScrape(ThreadScrape):
     def __init__(self, city, group_adults, num_rooms, group_children, selected_currency, start_day, month, year,
                  nights):
         """
@@ -195,8 +195,8 @@ else:
     year = current_date.year
 
     # Initialize and run the scraper
-    thread_scrape = DailyThreadScrape(city, group_adults, num_rooms, group_children, selected_currency, start_day, month,
-                                      year, nights)
+    thread_scrape = AutomatedThreadScrape(city, group_adults, num_rooms, group_children, selected_currency, start_day, month,
+                                          year, nights)
     df = thread_scrape.thread_scrape()
 
     # Append the data to the all_data DataFrame
