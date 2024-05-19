@@ -21,12 +21,10 @@ jobs:
           python-version: '3.12'
       - name: Install requirements
         run: pip install -r requirements.txt
-      - name: Run Scraper
-        run: python daily_scraper.py
-      - name: Set env vars
-        run: |
-          $DATE = (python -c "import datetime as dt; print(dt.datetime.now().date())")
-          $env:GITHUB_ENV = "DATE=$DATE"
+
+      - name: Run Scraper For May
+        run: python daily_scraper.py --month=5
+
       - name: Send mail
         uses: dawidd6/action-send-mail@v3
         with:
@@ -34,9 +32,129 @@ jobs:
           server_port: 465
           username: ${{secrets.MAIL_USERNAME}}
           password: ${{secrets.MAIL_PASSWORD}}
-          subject: Daily Osaka Hotel Scrape ${{env.DATE}}
+          subject: Daily Osaka Hotel Scrape
           to: ${{secrets.MAIL_USERNAME}}
           from: Automated Email
           ignore_cert: true
           secure: true
-          attachments: osaka_daily_hotel_data.csv
+          attachments: osaka_month_5_daily_hotel_data.csv
+
+      - name: Run Scraper For June
+        run: python daily_scraper.py --month=6
+
+      - name: Send mail
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{secrets.MAIL_USERNAME}}
+          password: ${{secrets.MAIL_PASSWORD}}
+          subject: Daily Osaka Hotel Scrape
+          to: ${{secrets.MAIL_USERNAME}}
+          from: Automated Email
+          ignore_cert: true
+          secure: true
+          attachments: osaka_month_6_daily_hotel_data.csv
+
+      - name: Run Scraper For July
+        run: python daily_scraper.py --month=7
+
+      - name: Send mail
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{secrets.MAIL_USERNAME}}
+          password: ${{secrets.MAIL_PASSWORD}}
+          subject: Daily Osaka Hotel Scrape
+          to: ${{secrets.MAIL_USERNAME}}
+          from: Automated Email
+          ignore_cert: true
+          secure: true
+          attachments: osaka_month_7_daily_hotel_data.csv
+
+      - name: Run Scraper For August
+        run: python daily_scraper.py --month=8
+
+      - name: Send mail
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{secrets.MAIL_USERNAME}}
+          password: ${{secrets.MAIL_PASSWORD}}
+          subject: Daily Osaka Hotel Scrape
+          to: ${{secrets.MAIL_USERNAME}}
+          from: Automated Email
+          ignore_cert: true
+          secure: true
+          attachments: osaka_month_8_daily_hotel_data.csv
+
+      - name: Run Scraper For September
+        run: python daily_scraper.py --month=9
+
+      - name: Send mail
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{secrets.MAIL_USERNAME}}
+          password: ${{secrets.MAIL_PASSWORD}}
+          subject: Daily Osaka Hotel Scrape
+          to: ${{secrets.MAIL_USERNAME}}
+          from: Automated Email
+          ignore_cert: true
+          secure: true
+          attachments: osaka_month_9_daily_hotel_data.csv
+
+      - name: Run Scraper For October
+        run: python daily_scraper.py --month=10
+
+      - name: Send mail
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{secrets.MAIL_USERNAME}}
+          password: ${{secrets.MAIL_PASSWORD}}
+          subject: Daily Osaka Hotel Scrape
+          to: ${{secrets.MAIL_USERNAME}}
+          from: Automated Email
+          ignore_cert: true
+          secure: true
+          attachments: osaka_month_10_daily_hotel_data.csv
+
+      - name: Run Scraper For November
+        run: python daily_scraper.py --month=11
+
+      - name: Send mail
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{secrets.MAIL_USERNAME}}
+          password: ${{secrets.MAIL_PASSWORD}}
+          subject: Daily Osaka Hotel Scrape
+          to: ${{secrets.MAIL_USERNAME}}
+          from: Automated Email
+          ignore_cert: true
+          secure: true
+          attachments: osaka_month_11_daily_hotel_data.csv
+
+      - name: Run Scraper For December
+        run: python daily_scraper.py --month=12
+
+      - name: Send mail
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{secrets.MAIL_USERNAME}}
+          password: ${{secrets.MAIL_PASSWORD}}
+          subject: Daily Osaka Hotel Scrape
+          to: ${{secrets.MAIL_USERNAME}}
+          from: Automated Email
+          ignore_cert: true
+          secure: true
+          attachments: osaka_month_12_daily_hotel_data.csv
+

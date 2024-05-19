@@ -10,6 +10,7 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
+import argparse
 import datetime
 
 import pandas as pd
@@ -28,16 +29,24 @@ num_rooms = '1'
 group_children = '0'
 selected_currency = 'USD'
 
+# Initialize argument parser
+parser = argparse.ArgumentParser(description='Specify the month for data scraping.')
+parser.add_argument('--month', type=int, help='Month to scrape data for (1-12)', required=True)
+args = parser.parse_args()
+
+# Extract the month value from the command line argument
+month = args.month
+
 # Specify the start date and duration of stay for data scraping
 today = datetime.date.today()
-end_date = datetime.date(today.year, 12, 31)
+end_date = datetime.date(today.year, month + 1, 1) - datetime.timedelta(days=1)
 nights = 1
 
 # Initialize an empty DataFrame to collect all data
 all_data = pd.DataFrame()
 
 # Loop from today until the end of the year
-current_date = today
+current_date = datetime.date(today.year, month, 1)  # Start from the first day of the current month
 while current_date <= end_date:
     start_day = current_date.day
     month = current_date.month
@@ -55,4 +64,6 @@ while current_date <= end_date:
     current_date += datetime.timedelta(days=1)
 
 # Save the collected data to a CSV file
-all_data.to_csv('osaka_daily_hotel_data.csv', index=False)
+all_data.to_csv(f'osaka_month_{month}_daily_hotel_data.csv', index=False)
+
+
