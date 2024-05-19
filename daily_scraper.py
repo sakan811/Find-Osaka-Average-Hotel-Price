@@ -58,7 +58,7 @@ while current_date <= end_date:
     df = thread_scrape.thread_scrape()
 
     # Append the data to the all_data DataFrame
-    all_data = all_data.append(df, ignore_index=True)
+    all_data = pd.concat([all_data, df], ignore_index=True)
 
     # Move to the next day
     current_date += datetime.timedelta(days=1)
