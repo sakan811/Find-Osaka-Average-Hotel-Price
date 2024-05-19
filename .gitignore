@@ -162,3 +162,4 @@ cython_debug/
 /*.xlsx
 /japan_avg_hotel_price.pbix
 /.idea
+/daily_file/

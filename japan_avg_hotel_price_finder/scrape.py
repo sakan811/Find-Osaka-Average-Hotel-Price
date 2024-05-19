@@ -174,11 +174,11 @@ def scrape_data_from_box_class(
             logger.debug(f'Review Score: {review_element}')
 
 
-def scrape(url, data) -> None:
+def scrape(url: str, data) -> None:
     """
     Scrape hotel data from the website.
     :param url: Website URL.
-    :param data: Empty Pandas DataFrame.
+    :param data: Empty Dictionary.
     :return: None
     """
     # Configure Chrome options to block image loading and disable automation features
@@ -239,13 +239,14 @@ def transform_data(df: pd.DataFrame) -> pd.DataFrame:
     return df_filtered.sort_values(by='Price/Review')
 
 
-def start_scraping_process(city: str,
-                           check_in: str,
-                           check_out: str,
-                           group_adults: str,
-                           num_rooms: str,
-                           group_children: str,
-                           selected_currency: str) -> None | DataFrame:
+def start_scraping_process(
+        city: str,
+        check_in: str,
+        check_out: str,
+        group_adults: str,
+        num_rooms: str,
+        group_children: str,
+        selected_currency: str) -> None | DataFrame:
     """
     Main function to start the web scraping process.
     :param city: City name.

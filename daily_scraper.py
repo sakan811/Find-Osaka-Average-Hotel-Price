@@ -10,6 +10,7 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
+
 import argparse
 import calendar
 from concurrent.futures import ThreadPoolExecutor
@@ -21,15 +22,16 @@ from loguru import logger
 from japan_avg_hotel_price_finder.scrape import scrape, transform_data
 from japan_avg_hotel_price_finder.thread_scrape import ThreadScrape
 
-logger.add('japan_avg_hotel_price_month.log',
+logger.add('osaka_hotel_daily_scraper.log',
            format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {thread} |  {name} | {module} | {function} | {line} | {message}",
            mode='w')
 
 
 class DailyThreadScrape(ThreadScrape):
-    def __init__(self, city, group_adults, num_rooms, group_children, selected_currency, start_day, month, year, nights):
+    def __init__(self, city, group_adults, num_rooms, group_children, selected_currency, start_day, month, year,
+                 nights):
         """
-
+        Scrape hotel data from the start day to the end of the same month using Thread Pool executor.
         :param city: City where the hotels are located.
         :param group_adults: Number of adults.
         :param num_rooms: Number of rooms.
@@ -40,13 +42,16 @@ class DailyThreadScrape(ThreadScrape):
         :param year: Year to start scraping.
         :param nights: Number of nights (Length of stay).
         """
-        super().__init__(city, group_adults, num_rooms, group_children, selected_currency, start_day, month, year, nights)
+        super().__init__(city, group_adults, num_rooms, group_children, selected_currency, start_day, month, year,
+                         nights)
 
     def thread_scrape(self) -> pd.DataFrame:
         """
         Scrape hotel data from the start day to the end of the same month using Thread Pool executor.
         :return: Pandas dataframe containing hotel data.
         """
+        logger.info('Scraping hotel data using Pool Thread executor...')
+
         # Determine the total number of days in the specified month
         total_days = calendar.monthrange(self.year, self.month)[1]
 
@@ -60,6 +65,8 @@ class DailyThreadScrape(ThreadScrape):
             :param day: Day of the month.
             :return: None
             """
+            logger.info('Scraping each date...')
+
             current_date = datetime(self.year, self.month, day)
             check_in = current_date.strftime('%Y-%m-%d')
             check_out = (current_date + timedelta(days=self.nights)).strftime('%Y-%m-%d')
@@ -157,7 +164,11 @@ month = args.month
 
 # Specify the start date and duration of stay for data scraping
 today = datetime.today()
-end_date = datetime(today.year, month + 1, 1) - timedelta(days=1)
+
+if month == 12:
+    end_date = datetime(today.year + 1, 1, 1) - timedelta(days=1)
+else:
+    end_date = datetime(today.year, month + 1, 1) - timedelta(days=1)
 nights = 1
 
 start_day = 1
@@ -166,30 +177,33 @@ start_day = 1
 if month == today.month:
     start_day = today.day
 
-
 # Initialize an empty DataFrame to collect all data
 all_data = pd.DataFrame()
 
-# Loop from today until the end of the year
-current_date = datetime(today.year, month, start_day)  # Start from the first day of the current month
+# Can only scrape data from the current date onward
+if month < today.month:
+    logger.info(f'{calendar.month_name[month]} has already passed. The current month is {calendar.month_name[today.month]}')
+    all_data.to_csv(f'osaka_month_{month}_daily_hotel_data.csv', index=False)
+else:
+    # Loop from today until the end of the year
+    current_date = datetime(today.year, month, start_day)  # Start from the first day of the current month
 
-logger.info(f'Scrape data for {calendar.month_name[month]}')
+    logger.info(f'Scrape data for {calendar.month_name[month]}')
 
-start_day = current_date.day
-month = current_date.month
-year = current_date.year
+    start_day = current_date.day
+    month = current_date.month
+    year = current_date.year
 
-# Initialize and run the scraper
-thread_scrape = DailyThreadScrape(city, group_adults, num_rooms, group_children, selected_currency, start_day, month,
-                             year, nights)
-df = thread_scrape.thread_scrape()
+    # Initialize and run the scraper
+    thread_scrape = DailyThreadScrape(city, group_adults, num_rooms, group_children, selected_currency, start_day, month,
+                                      year, nights)
+    df = thread_scrape.thread_scrape()
 
-# Append the data to the all_data DataFrame
-all_data = pd.concat([all_data, df], ignore_index=True)
+    # Append the data to the all_data DataFrame
+    all_data = pd.concat([all_data, df], ignore_index=True)
 
-# Move to the next day
-current_date += timedelta(days=1)
+    # Move to the next day
+    current_date += timedelta(days=1)
 
-# Save the collected data to a CSV file
-all_data.to_csv(f'osaka_month_{month}_daily_hotel_data.csv', index=False)
-
+    # Save the collected data to a CSV file
+    all_data.to_csv(f'osaka_month_{month}_daily_hotel_data.csv', index=False)

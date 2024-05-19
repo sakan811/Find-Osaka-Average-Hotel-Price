@@ -1,13 +1,18 @@
 # Find the Hotel's Average Room Price in Osaka by Date
 
-Collect Osa
-ka hotel property data from Booking.com
+Showcase visualizations about the Hotel's Average Room Price in Osaka.
+
+## Project Details
+Collect Osaka hotel property data from Booking.com
 
 Data collecting start date: May 16th, 2024.
 
+Data was collected daily using GitHub action and [daily_scraper.py](daily_scraper.py)
+
 This script can also be used to scrape data from other cities.
 
-## To scrape hotel data
+## Code Base Details
+### To scrape hotel data
 - Go to [main.py](main.py)
 - Set the following booking details parameters to scrape the hotel with specified data 
 ```
@@ -28,7 +33,7 @@ nights = 1  # Number of nights for the stay.
 ```
 - Run the script
 
-## [japan_avg_hotel_price_finder](japan_avg_hotel_price_finder) Package
+### [japan_avg_hotel_price_finder](japan_avg_hotel_price_finder) Package
 [migrate_to_sqlite.py](japan_avg_hotel_price_finder%2Fmigrate_to_sqlite.py)
 - Migrate data to SQLite table using sqlite3 module.
   - Create SQLite database named 'avg_japan_hotel_price.db'
@@ -42,9 +47,12 @@ nights = 1  # Number of nights for the stay.
   - Start from the given start date until the end of the same month.
 
 [thread_scrape.py](japan_avg_hotel_price_finder%2Fthread_scrape.py)
-- Scrape data for 5 dates at the same using Thread Pool Execute.
+- Scrape data for five dates at the same time using Thread Pool Execute.
   - Start from the given start date until the end of the same month.
 
-## Daily Hotel Scraper
+### Daily Hotel Scraper
 [daily_scraper.py](daily_scraper.py)
-- Scrape Osaka hotel data daily using GitHub action.
+- Scrape Osaka hotel data daily using GitHub action for all 12 months.
+  - Save to CSV for each month.
+- Send CSV via email.
+- Big thanks to https://yasoob.me/posts/github-actions-web-scraper-schedule-tutorial/

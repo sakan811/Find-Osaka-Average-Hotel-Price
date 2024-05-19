@@ -16,7 +16,7 @@ import datetime
 
 import pytest
 
-from japan_avg_hotel_price_finder.scrape_each_date import ScrapeEachDate
+from japan_avg_hotel_price_finder.scrape_each_date import ScrapeUntilMonthEnd
 
 
 def test_full_process() -> None:
@@ -27,12 +27,12 @@ def test_full_process() -> None:
     selected_currency = 'USD'
 
     today = datetime.date.today()
-    start_day = 29
+    start_day = 27
     month = today.month
     year = today.year
     nights = 1
 
-    scrape_each_date = ScrapeEachDate(city, group_adults, num_rooms, selected_currency, group_children)
+    scrape_each_date = ScrapeUntilMonthEnd(city, group_adults, num_rooms, selected_currency, group_children)
     df = scrape_each_date.scrape_until_month_end(start_day, month, year, nights)
 
     assert not df.empty

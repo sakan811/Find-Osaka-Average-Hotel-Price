@@ -11,20 +11,42 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
+
 import calendar
-import threading
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 
 import pandas as pd
+from loguru import logger
 
 from japan_avg_hotel_price_finder.scrape import start_scraping_process
-from japan_avg_hotel_price_finder.scrape_each_date import ScrapeEachDate
+from japan_avg_hotel_price_finder.scrape_each_date import ScrapeUntilMonthEnd
 
 
-class ThreadScrape(ScrapeEachDate):
-    def __init__(self, city, group_adults, num_rooms, group_children, selected_currency, start_day, month, year,
-                 nights):
+class ThreadScrape(ScrapeUntilMonthEnd):
+    def __init__(
+            self,
+            city: str,
+            group_adults: str,
+            num_rooms: str,
+            group_children: str,
+            selected_currency: str,
+            start_day: int,
+            month: int,
+            year: int,
+            nights: int):
+        """
+        Initialize this class with hotel booking and date details.
+        :param city: City name where the hotels are located.
+        :param group_adults: Number of adults.
+        :param num_rooms: Number of rooms.
+        :param group_children: Number of children.
+        :param selected_currency: Currency of the room price.
+        :param start_day: Day of the month to start scraping.
+        :param month: Month to start scraping.
+        :param year: Year of the month to start scraping.
+        :param nights: Number of nights (Length of stay).
+        """
         self.start_day = start_day
         self.month = month
         self.year = year
@@ -32,6 +54,13 @@ class ThreadScrape(ScrapeEachDate):
         super().__init__(city, group_adults, num_rooms, group_children, selected_currency)
 
     def thread_scrape(self) -> None | pd.DataFrame:
+        """
+        Scrape hotel data from the start day to the end of the same month using Thread Pool executor.
+        :return: None.
+                Return Pandas dataframe for testing purpose.
+        """
+        logger.info('Scraping hotel data using Thread Pool executor...')
+
         # Determine the total number of days in the specified month
         total_days = calendar.monthrange(self.year, self.month)[1]
 
@@ -39,7 +68,14 @@ class ThreadScrape(ScrapeEachDate):
         results = []
 
         # Define a function to perform scraping for each date
-        def scrape_each_date(day):
+        def scrape_each_date(day: int):
+            """
+            Scrape hotel data of the given date.
+            :param day: Day of the month.
+            :return: None
+            """
+            logger.info('Scraping hotel data of the given date...')
+
             current_date = datetime(self.year, self.month, day)
             check_in = current_date.strftime('%Y-%m-%d')
             check_out = (current_date + timedelta(days=self.nights)).strftime('%Y-%m-%d')

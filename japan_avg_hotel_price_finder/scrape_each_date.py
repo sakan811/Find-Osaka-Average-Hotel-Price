@@ -22,9 +22,22 @@ from loguru import logger
 from japan_avg_hotel_price_finder.scrape import start_scraping_process
 
 
-class ScrapeEachDate:
-    def __init__(self, city, group_adults, num_rooms, group_children, selected_currency):
-
+class ScrapeUntilMonthEnd:
+    def __init__(
+            self,
+            city: str,
+            group_adults: str,
+            num_rooms: str,
+            group_children: str,
+            selected_currency: str):
+        """
+        Initialize this class with hotel booking details.
+        :param city: City where the hotels are located.
+        :param group_adults: Number of adults.
+        :param num_rooms: Number of rooms.
+        :param group_children: Number of children.
+        :param selected_currency: Currency of the room price.
+        """
         self.city = city
         self.group_adults = group_adults
         self.num_rooms = num_rooms
@@ -52,9 +65,9 @@ class ScrapeEachDate:
 
         # To get the last day of the month, we add one month to the first day of the month and then subtract one day
         if month == 12:
-            end_date = datetime(year + 1, 1, 1) - timedelta(days=nights)
+            end_date = datetime(year + 1, 1, 1) - timedelta(days=1)
         else:
-            end_date = datetime(year, month + 1, 1) - timedelta(days=nights)
+            end_date = datetime(year, month + 1, 1) - timedelta(days=1)
 
         df_list = []
 
