@@ -38,6 +38,9 @@ This script can also be used to scrape data from other cities.
   month: int = 12
   year: int = 2024
   nights: int = 1
+  
+  # Set SQLite database name
+  sqlite_name: str = 'test.db'
   ```
 - To scrape using Thread Pool Scraper:
   - Run the following command via command line terminal:
@@ -54,6 +57,7 @@ This script can also be used to scrape data from other cities.
     ```  
     python main.py 
     ```
+- Data is saved to SQLite database.
     
 ### Dataclass
 [set_details.py](set_details.py)

@@ -18,6 +18,8 @@ import sqlite3
 import pandas as pd
 from loguru import logger
 
+from set_details import Details
+
 
 def migrate_data_to_sqlite(df_filtered: pd.DataFrame) -> None:
     """
@@ -27,7 +29,7 @@ def migrate_data_to_sqlite(df_filtered: pd.DataFrame) -> None:
     """
     logger.info('Connecting to SQLite database (or create it if it doesn\'t exist)...')
 
-    db = 'avg_japan_hotel_price.db'
+    db = Details.sqlite_name
     with sqlite3.connect(db) as con:
         query = '''
         CREATE TABLE IF NOT EXISTS HotelPrice (

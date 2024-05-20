@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+
 @dataclass
 class Details:
     """
@@ -24,6 +25,7 @@ class Details:
         nights (int): Number of nights (Length of stay) which defines the room price.
                     For example, nights = 1 means scraping the hotel with room price for 1 night.
                     Only consider this parameter when using Thread Pool or Month End Scraper.
+        sqlite_name (str): Name of SQLite database to store the scraped data.
     """
     # Set booking details.
     city: str = 'Osaka'
@@ -39,3 +41,6 @@ class Details:
     month: int = 12
     year: int = 2024
     nights: int = 1
+
+    # Set SQLite database name
+    sqlite_name: str = 'avg_japan_hotel_price.db'
