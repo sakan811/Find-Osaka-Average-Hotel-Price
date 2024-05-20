@@ -1,4 +1,4 @@
-# Find the Hotel's Average Room Price in Osaka by Date
+# Find the Hotel's Average Room Price in Osaka 
 
 Showcase visualizations about the Hotel's Average Room Price in Osaka.
 
@@ -47,16 +47,20 @@ This script can also be used to scrape data from other cities.
     ```  
     python main.py --thread_pool=True
     ```
+  - Scrape data start from the given start date to the end of the same month.
+    - Scrape five dates at the same time.
 - To scrape using Month End Scraper:
   - Run the following command via command line terminal:
     ```  
     python main.py --month_end=True
     ```
+  - Scrape data start from the given start date to the end of the same month.
 - To scrape using Basic Scraper:
   - Run the following command via command line terminal:
     ```  
     python main.py 
     ```
+  - Scrape data based on the given check-in and check-out date.
 - Data is saved to SQLite database.
     
 ### Dataclass
