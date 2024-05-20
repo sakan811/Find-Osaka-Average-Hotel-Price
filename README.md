@@ -35,7 +35,7 @@ selected_currency = 'USD'  # Currency for the booking prices.
 start_day = 17  # The day of the month to start scraping data.
 month = 5  # The month to start scraping data.
 year = 2024  # The year to start scraping data.
-nights = 1  # Number of nights for the stay.
+nights = 1  # Number of nights for the stay. For example, nights = 1 means scraping the hotel with room price for 1 night.
 ```
 - Run the script
 

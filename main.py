@@ -14,7 +14,8 @@
 
 from loguru import logger
 
-from japan_avg_hotel_price_finder.thread_scrape import ThreadScrape
+from japan_avg_hotel_price_finder.thread_scrape import ThreadScraper
+from japan_avg_hotel_price_finder.hotel_stay import HotelStay
 
 logger.add('japan_avg_hotel_price_month.log',
            format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {thread} |  {name} | {module} | {function} | {line} | {message}",
@@ -33,6 +34,7 @@ month = 12
 year = 2024
 nights = 1
 
-thread_scrape = ThreadScrape(city, group_adults, num_rooms, group_children, selected_currency, start_day, month, year,
-                             nights)
+hotel_stay = HotelStay(city, group_adults, num_rooms, group_children, selected_currency)
+
+thread_scrape = ThreadScraper(hotel_stay, start_day, month, year, nights)
 thread_scrape.thread_scrape()

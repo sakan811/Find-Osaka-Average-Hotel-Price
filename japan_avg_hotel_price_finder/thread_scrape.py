@@ -19,39 +19,28 @@ from datetime import datetime, timedelta
 import pandas as pd
 from loguru import logger
 
-from japan_avg_hotel_price_finder.scrape import start_scraping_process
+from japan_avg_hotel_price_finder.hotel_stay import HotelStay
 from japan_avg_hotel_price_finder.scrape_until_month_end import ScrapeUntilMonthEnd
 
 
-class ThreadScrape(ScrapeUntilMonthEnd):
+class ThreadScraper(ScrapeUntilMonthEnd):
     def __init__(
             self,
-            city: str,
-            group_adults: str,
-            num_rooms: str,
-            group_children: str,
-            selected_currency: str,
+            hotel_stay: HotelStay,
             start_day: int,
             month: int,
             year: int,
             nights: int):
         """
-        Initialize this class with hotel booking and date details.
-        :param city: City name where the hotels are located.
-        :param group_adults: Number of adults.
-        :param num_rooms: Number of rooms.
-        :param group_children: Number of children.
-        :param selected_currency: Currency of the room price.
-        :param start_day: Day of the month to start scraping.
+        Initialize the ThreadScraper class with the following parameters:
+        :param hotel_stay: HotelStay dataclass object.
+        :param start_day: Day to start scraping.
         :param month: Month to start scraping.
-        :param year: Year of the month to start scraping.
-        :param nights: Number of nights (Length of stay).
+        :param year: Year to start scraping.
+        :param nights: Number of nights (Length of stay) which defines the room price.
+                        For example, nights = 1 means scraping the hotel with room price for 1 night.
         """
-        self.start_day = start_day
-        self.month = month
-        self.year = year
-        self.nights = nights
-        super().__init__(city, group_adults, num_rooms, group_children, selected_currency)
+        super().__init__(hotel_stay, start_day, month, year, nights)
 
     def thread_scrape(self) -> None | pd.DataFrame:
         """
@@ -61,8 +50,8 @@ class ThreadScrape(ScrapeUntilMonthEnd):
         """
         logger.info('Scraping hotel data using Thread Pool executor...')
 
-        # Determine the total number of days in the specified month
-        total_days = calendar.monthrange(self.year, self.month)[1]
+        # Determine the last day of the given month
+        last_day: int = calendar.monthrange(self.year, self.month)[1]
 
         # Define a list to store the result DataFrame from each thread
         results = []
@@ -77,18 +66,10 @@ class ThreadScrape(ScrapeUntilMonthEnd):
             logger.info('Scraping hotel data of the given date...')
 
             current_date = datetime(self.year, self.month, day)
-            check_in = current_date.strftime('%Y-%m-%d')
-            check_out = (current_date + timedelta(days=self.nights)).strftime('%Y-%m-%d')
+            check_in: str = current_date.strftime('%Y-%m-%d')
+            check_out: str = (current_date + timedelta(days=self.nights)).strftime('%Y-%m-%d')
 
-            df = start_scraping_process(
-                self.city,
-                check_in,
-                check_out,
-                self.group_adults,
-                self.num_rooms,
-                self.group_children,
-                self.selected_currency
-            )
+            df = self.start_scraping_process(check_in, check_out)
 
             # Append the result to the 'results' list
             results.append(df)
@@ -96,7 +77,7 @@ class ThreadScrape(ScrapeUntilMonthEnd):
         # Create a thread pool with a maximum of 5 threads
         with ThreadPoolExecutor(max_workers=5) as executor:
             # Submit tasks for each date within the specified range
-            futures = [executor.submit(scrape_each_date, day) for day in range(self.start_day, total_days + 1)]
+            futures: list = [executor.submit(scrape_each_date, day) for day in range(self.start_day, last_day + 1)]
 
             # Wait for all tasks to complete
             for future in futures:

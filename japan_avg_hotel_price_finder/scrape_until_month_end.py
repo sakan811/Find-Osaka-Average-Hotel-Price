@@ -19,55 +19,51 @@ from datetime import datetime, timedelta
 import pandas as pd
 from loguru import logger
 
-from japan_avg_hotel_price_finder.scrape import start_scraping_process
+from japan_avg_hotel_price_finder.scrape import Scraper
+from japan_avg_hotel_price_finder.hotel_stay import HotelStay
 
 
-class ScrapeUntilMonthEnd:
+class ScrapeUntilMonthEnd(Scraper):
     def __init__(
             self,
-            city: str,
-            group_adults: str,
-            num_rooms: str,
-            group_children: str,
-            selected_currency: str):
+            hotel_stay: HotelStay,
+            start_day: int,
+            month: int,
+            year: int,
+            nights: int):
         """
-        Initialize this class with hotel booking details.
-        :param city: City where the hotels are located.
-        :param group_adults: Number of adults.
-        :param num_rooms: Number of rooms.
-        :param group_children: Number of children.
-        :param selected_currency: Currency of the room price.
+        Initialize the ScrapeUntilMonthEnd class with the following parameters:
+        :param hotel_stay: HotelStay dataclass object.
+        :param start_day: Day to start scraping.
+        :param month: Month to start scraping.
+        :param year: Year to start scraping.
+        :param nights: Number of nights (Length of stay) which defines the room price.
+                        For example, nights = 1 means scraping the hotel with room price for 1 night.
         """
-        self.city = city
-        self.group_adults = group_adults
-        self.num_rooms = num_rooms
-        self.group_children = group_children
-        self.selected_currency = selected_currency
+        super().__init__(hotel_stay)
+        self.start_day = start_day
+        self.month = month
+        self.year = year
+        self.nights = nights
 
-    def scrape_until_month_end(self, start_day: int, month: int, year: int, nights: int) -> None | pd.DataFrame:
+    def scrape_until_month_end(self) -> None | pd.DataFrame:
         """
-        Scrape hotel data (hotel name, room price, review score) for a specified number of nights,
-        starting from a given date until the end of the same month.
-
-        :param start_day: The day of the month from which to start scraping.
-        :param month: The month for which data is to be scraped.
-        :param year: The year for which data is to be scraped.
-        :param nights: The number of consecutive nights for each hotel stay to be included in the data.
-                   For example, if nights=3, the scraper will collect price data for a 3-night stay at each hotel.
+        Scrape hotel data (hotel name, room price, review score)
+        starting from a given start day until the end of the same month.
         :return: None.
                 Return a Pandas DataFrame for testing purpose only.
         """
-        logger.info(f'Scraping data from {start_day}-{calendar.month_name[month]}-{year} '
-                    f'to the end of {calendar.month_name[month]}-{year}...')
+        logger.info(f'Scraping data from {self.start_day}-{calendar.month_name[self.month]}-{self.year} '
+                    f'to the end of {calendar.month_name[self.month]}-{self.year}...')
 
         # Determine the first and last day of the current month
-        start_date = datetime(year, month, start_day)
+        start_date = datetime(self.year, self.month, self.start_day)
 
         # To get the last day of the month, we add one month to the first day of the month and then subtract one day
-        if month == 12:
-            end_date = datetime(year + 1, 1, 1) - timedelta(days=1)
+        if self.month == 12:
+            end_date = datetime(self.year + 1, 1, 1) - timedelta(days=1)
         else:
-            end_date = datetime(year, month + 1, 1) - timedelta(days=1)
+            end_date = datetime(self.year, self.month + 1, 1) - timedelta(days=1)
 
         df_list = []
 
@@ -75,15 +71,12 @@ class ScrapeUntilMonthEnd:
         current_date = start_date
         while current_date <= end_date:
             check_in = current_date.strftime('%Y-%m-%d')
-            check_out = (current_date + timedelta(days=nights)).strftime('%Y-%m-%d')
-            logger.info(f'Scrape data for {nights} nights. Check-in: {check_in}, Check-out: {check_out}')
+            check_out = (current_date + timedelta(days=self.nights)).strftime('%Y-%m-%d')
+            logger.info(f'Scrape data for {self.nights} nights. Check-in: {check_in}, Check-out: {check_out}')
 
             current_date += timedelta(days=1)
 
-            df = start_scraping_process(
-                    self.city, check_in, check_out, self.group_adults, self.num_rooms,
-                    self.group_children, self.selected_currency
-                )
+            df = self.start_scraping_process(check_in, check_out)
 
             df_list.append(df)
 

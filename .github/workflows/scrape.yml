@@ -32,7 +32,7 @@ jobs:
           server_port: 465
           username: ${{secrets.MAIL_USERNAME}}
           password: ${{secrets.MAIL_PASSWORD}}
-          subject: Daily Osaka Hotel Scrape January
+          subject: Weekly Osaka Hotel Scrape January
           to: ${{secrets.MAIL_USERNAME}}
           from: Automated Email
           ignore_cert: true
@@ -49,7 +49,7 @@ jobs:
           server_port: 465
           username: ${{secrets.MAIL_USERNAME}}
           password: ${{secrets.MAIL_PASSWORD}}
-          subject: Daily Osaka Hotel Scrape February
+          subject: Weekly Osaka Hotel Scrape February
           to: ${{secrets.MAIL_USERNAME}}
           from: Automated Email
           ignore_cert: true
@@ -66,7 +66,7 @@ jobs:
           server_port: 465
           username: ${{secrets.MAIL_USERNAME}}
           password: ${{secrets.MAIL_PASSWORD}}
-          subject: Daily Osaka Hotel Scrape March
+          subject: Weekly Osaka Hotel Scrape March
           to: ${{secrets.MAIL_USERNAME}}
           from: Automated Email
           ignore_cert: true
@@ -83,7 +83,7 @@ jobs:
           server_port: 465
           username: ${{secrets.MAIL_USERNAME}}
           password: ${{secrets.MAIL_PASSWORD}}
-          subject: Daily Osaka Hotel Scrape April
+          subject: Weekly Osaka Hotel Scrape April
           to: ${{secrets.MAIL_USERNAME}}
           from: Automated Email
           ignore_cert: true
@@ -100,7 +100,7 @@ jobs:
           server_port: 465
           username: ${{secrets.MAIL_USERNAME}}
           password: ${{secrets.MAIL_PASSWORD}}
-          subject: Daily Osaka Hotel Scrape May
+          subject: Weekly Osaka Hotel Scrape May
           to: ${{secrets.MAIL_USERNAME}}
           from: Automated Email
           ignore_cert: true
@@ -117,7 +117,7 @@ jobs:
           server_port: 465
           username: ${{secrets.MAIL_USERNAME}}
           password: ${{secrets.MAIL_PASSWORD}}
-          subject: Daily Osaka Hotel Scrape June
+          subject: Weekly Osaka Hotel Scrape June
           to: ${{secrets.MAIL_USERNAME}}
           from: Automated Email
           ignore_cert: true
@@ -134,7 +134,7 @@ jobs:
           server_port: 465
           username: ${{secrets.MAIL_USERNAME}}
           password: ${{secrets.MAIL_PASSWORD}}
-          subject: Daily Osaka Hotel Scrape July
+          subject: Weekly Osaka Hotel Scrape July
           to: ${{secrets.MAIL_USERNAME}}
           from: Automated Email
           ignore_cert: true
@@ -151,7 +151,7 @@ jobs:
           server_port: 465
           username: ${{secrets.MAIL_USERNAME}}
           password: ${{secrets.MAIL_PASSWORD}}
-          subject: Daily Osaka Hotel Scrape August
+          subject: Weekly Osaka Hotel Scrape August
           to: ${{secrets.MAIL_USERNAME}}
           from: Automated Email
           ignore_cert: true
@@ -168,7 +168,7 @@ jobs:
           server_port: 465
           username: ${{secrets.MAIL_USERNAME}}
           password: ${{secrets.MAIL_PASSWORD}}
-          subject: Daily Osaka Hotel Scrape September
+          subject: Weekly Osaka Hotel Scrape September
           to: ${{secrets.MAIL_USERNAME}}
           from: Automated Email
           ignore_cert: true
@@ -185,7 +185,7 @@ jobs:
           server_port: 465
           username: ${{secrets.MAIL_USERNAME}}
           password: ${{secrets.MAIL_PASSWORD}}
-          subject: Daily Osaka Hotel Scrape October
+          subject: Weekly Osaka Hotel Scrape October
           to: ${{secrets.MAIL_USERNAME}}
           from: Automated Email
           ignore_cert: true
@@ -202,7 +202,7 @@ jobs:
           server_port: 465
           username: ${{secrets.MAIL_USERNAME}}
           password: ${{secrets.MAIL_PASSWORD}}
-          subject: Daily Osaka Hotel Scrape November
+          subject: Weekly Osaka Hotel Scrape November
           to: ${{secrets.MAIL_USERNAME}}
           from: Automated Email
           ignore_cert: true
@@ -219,7 +219,7 @@ jobs:
           server_port: 465
           username: ${{secrets.MAIL_USERNAME}}
           password: ${{secrets.MAIL_PASSWORD}}
-          subject: Daily Osaka Hotel Scrape December
+          subject: Weekly Osaka Hotel Scrape December
           to: ${{secrets.MAIL_USERNAME}}
           from: Automated Email
           ignore_cert: true
