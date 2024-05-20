@@ -21,14 +21,14 @@ from loguru import logger
 from pandas import DataFrame
 
 from set_details import Details
-from japan_avg_hotel_price_finder.thread_scrape import ThreadScraper
+from japan_avg_hotel_price_finder.thread_scrape import ThreadPoolScraper
 
 logger.add('osaka_hotel_weekly_scraper.log',
            format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {thread} |  {name} | {module} | {function} | {line} | {message}",
            mode='w')
 
 
-class AutomatedThreadScraper(ThreadScraper):
+class AutomatedThreadPoolScraper(ThreadPoolScraper):
     def __init__(self, details: Details):
         """
         Scrape hotel data from the start day to the end of the same month using Thread Pool executor.
@@ -151,7 +151,7 @@ def automated_scraper_main(month: int, details: Details) -> None | DataFrame:
         logger.info(f'Scraping data for {calendar.month_name[month]}...')
 
         # Initialize and run the scraper
-        automated_scraper = AutomatedThreadScraper(details)
+        automated_scraper = AutomatedThreadPoolScraper(details)
         df = automated_scraper.thread_scrape()
 
         # Append the data to the all_data DataFrame
@@ -166,9 +166,9 @@ def automated_scraper_main(month: int, details: Details) -> None | DataFrame:
 if __name__ == '__main__':
     # Define booking parameters for the hotel search.
     city = 'Osaka'
-    group_adults = '1'
-    num_rooms = '1'
-    group_children = '0'
+    group_adults = 1
+    num_rooms = 1
+    group_children = 0
     selected_currency = 'USD'
 
     today = datetime.today()

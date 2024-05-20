@@ -11,13 +11,14 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
+
 import argparse
 
 from loguru import logger
 
-from japan_avg_hotel_price_finder.scrape import Scraper
-from japan_avg_hotel_price_finder.thread_scrape import ThreadScraper
-from japan_avg_hotel_price_finder.scrape_until_month_end import ScrapeUntilMonthEnd
+from japan_avg_hotel_price_finder.scrape import BasicScraper
+from japan_avg_hotel_price_finder.thread_scrape import ThreadPoolScraper
+from japan_avg_hotel_price_finder.scrape_until_month_end import MonthEndBasicScraper
 from set_details import Details
 
 logger.add('japan_avg_hotel_price_month.log',
@@ -28,24 +29,26 @@ logger.add('japan_avg_hotel_price_month.log',
 parser = argparse.ArgumentParser(description='Parser that control which kind of scraper to use.')
 parser.add_argument('--thread_pool', type=bool, default=False, help='Use thread pool')
 parser.add_argument('--month_end', type=bool, default=False, help='Scrape until month end')
-parser.add_argument('--check_in', type=str, default=False, help='Check-in date')
-parser.add_argument('--check_out', type=str, default=False, help='Check-out date')
+parser.add_argument('--scraper', type=bool, default=True, help='Use basic scraper')
 args = parser.parse_args()
 
 details = Details()
 
-check_in = args.check_in
-check_out = args.check_out
-
 if args.thread_pool:
-    thread_scrape = ThreadScraper(details)
+    logger.info('Using thread pool scraper')
+    thread_scrape = ThreadPoolScraper(details)
     thread_scrape.thread_scrape()
 elif args.month_end:
-    month_end = ScrapeUntilMonthEnd(details)
+    logger.info('Using month end scraper')
+    month_end = MonthEndBasicScraper(details)
     month_end.scrape_until_month_end()
-else:
-    scraper = Scraper(details)
+elif args.scraper:
+    logger.info('Using basic scraper')
+    check_in = details.check_in
+    check_out = details.check_out
+    scraper = BasicScraper(details)
     scraper.start_scraping_process(check_in, check_out)
+
 
 
 

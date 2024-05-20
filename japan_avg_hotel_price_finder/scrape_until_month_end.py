@@ -19,11 +19,11 @@ from datetime import datetime, timedelta
 import pandas as pd
 from loguru import logger
 
-from japan_avg_hotel_price_finder.scrape import Scraper
+from japan_avg_hotel_price_finder.scrape import BasicScraper
 from set_details import Details
 
 
-class ScrapeUntilMonthEnd(Scraper):
+class MonthEndBasicScraper(BasicScraper):
     def __init__(self, details: Details):
         """
         Initialize the ScrapeUntilMonthEnd class with the following parameters:

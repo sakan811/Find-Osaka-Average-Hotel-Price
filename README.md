@@ -18,49 +18,48 @@ Data was collected daily using GitHub action and [daily_scraper.py](automated_sc
 This script can also be used to scrape data from other cities.
 
 ## Code Base Details
-### To scrape hotel data using Thread Pool Execute
-- Go to [main.py](main.py)
-- Set the following booking details parameters to scrape the hotel with specified data 
-```
-# Define booking parameters for the hotel search.
-city = 'Osaka'  # Specify the city for the hotel search.
-group_adults = '1'  # Number of adults per room.
-num_rooms = '1'  # Number of rooms to book.
-group_children = '0'  # Number of children per room.
-selected_currency = 'USD'  # Currency for the booking prices.
-```
-- Set the following date and length of stay parameters to scrape the hotel with specified data
-```
-# Specify the start date and duration of stay for data scraping
-start_day = 17  # The day of the month to start scraping data.
-month = 5  # The month to start scraping data.
-year = 2024  # The year to start scraping data.
-nights = 1  # Number of nights for the stay. For example, nights = 1 means scraping the hotel with room price for 1 night.
-```
-- Run the script
-
-### To scrape hotel data from the start date to the end of the same month
-- Go to [main.py](main.py)
-- Set the following booking details parameters to scrape the hotel with specified data 
-```
-# Define booking parameters for the hotel search.
-city = 'Osaka'  # Specify the city for the hotel search.
-group_adults = '1'  # Number of adults per room.
-num_rooms = '1'  # Number of rooms to book.
-group_children = '0'  # Number of children per room.
-selected_currency = 'USD'  # Currency for the booking prices.
-```
-- Set the following date and length of stay parameters to scrape the hotel with specified data
-```
-# Specify the start date and duration of stay for data scraping
-start_day = 17  # The day of the month to start scraping data.
-month = 5  # The month to start scraping data.
-year = 2024  # The year to start scraping data.
-nights = 1  # Number of nights for the stay. For example, nights = 1 means scraping the hotel with room price for 1 night.
-```
-- Run the script
-
-
+### To scrape hotel data
+- Go to [set_details.py](set_details.py)
+- Set the parameters of the 'Details' dataclass as needed.
+  - Example:
+  ```
+  # Set booking details.
+  city: str = 'Osaka'
+  check_in: str = '2024-12-01'
+  check_out: str = '2024-12-12'
+  group_adults: int = 1
+  num_rooms: int = 1
+  group_children: int = 0
+  selected_currency: str = 'USD'
+  
+  # Optional
+  # Set the start date and number of nights when using Thread Pool Scraper or Month End Scraper
+  start_day: int = 1
+  month: int = 12
+  year: int = 2024
+  nights: int = 1
+  ```
+- To scrape using Thread Pool Scraper:
+  - Run the following command via command line terminal:
+    ```  
+    python main.py --thread_pool=True
+    ```
+- To scrape using Month End Scraper:
+  - Run the following command via command line terminal:
+    ```  
+    python main.py --month_end=True
+    ```
+- To scrape using Basic Scraper:
+  - Run the following command via command line terminal:
+    ```  
+    python main.py 
+    ```
+    
+### Dataclass
+[set_details.py](set_details.py)
+- Dataclass that stores booking details, date, and length of stay.
+  - Provide which kind of hotel data to scrape.
+  
 ### [japan_avg_hotel_price_finder](japan_avg_hotel_price_finder) Package
 [migrate_to_sqlite.py](japan_avg_hotel_price_finder%2Fmigrate_to_sqlite.py)
 - Migrate data to SQLite table using sqlite3 module.
@@ -77,9 +76,6 @@ nights = 1  # Number of nights for the stay. For example, nights = 1 means scrap
 [thread_scrape.py](japan_avg_hotel_price_finder%2Fthread_scrape.py)
 - Scrape data for five dates at the same time using Thread Pool Execute.
   - Start from the given start date until the end of the same month.
-
-[hotel_stay.py](japan_avg_hotel_price_finder%2Fhotel_stay.py)
-- A data class that stores the hotel-stay details.
 
 ### Automated Hotel Scraper
 [automated_scraper.py](automated_scraper.py)

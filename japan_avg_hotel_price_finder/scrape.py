@@ -32,7 +32,7 @@ from japan_avg_hotel_price_finder.migrate_to_sqlite import migrate_data_to_sqlit
 from set_details import Details
 
 
-class Scraper:
+class BasicScraper:
     def __init__(self, details: Details):
         """
         Initialize the Scraper class with the following parameter:
@@ -254,7 +254,7 @@ class Scraper:
         :return: None.
                 Return a Pandas DataFrame for testing purpose only.
         """
-        logger.info("Starting web-scraping...")
+        logger.info(f"Starting web-scraping... Period: {check_in} to {check_out}")
 
         # Create a DataFrame to store the data
         data = {'Hotel': [], 'Price': [], 'Review': []}
@@ -281,7 +281,7 @@ class Scraper:
         df['Date'] = check_in
 
         # Date which the data was collected
-        df['AsOf'] = datetime.date.today()
+        df['AsOf'] = datetime.datetime.now()
 
         df_filtered = self._transform_data(df)
 

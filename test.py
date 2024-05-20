@@ -18,9 +18,9 @@ import pytest
 
 from automated_scraper import automated_scraper_main
 from set_details import Details
-from japan_avg_hotel_price_finder.scrape import Scraper
-from japan_avg_hotel_price_finder.scrape_until_month_end import ScrapeUntilMonthEnd
-from japan_avg_hotel_price_finder.thread_scrape import ThreadScraper
+from japan_avg_hotel_price_finder.scrape import BasicScraper
+from japan_avg_hotel_price_finder.scrape_until_month_end import MonthEndBasicScraper
+from japan_avg_hotel_price_finder.thread_scrape import ThreadPoolScraper
 
 
 def test_thread_scraper() -> None:
@@ -43,7 +43,7 @@ def test_thread_scraper() -> None:
         start_day=start_day, month=month, year=year, nights=nights
     )
 
-    thread_scrape = ThreadScraper(hotel_stay)
+    thread_scrape = ThreadPoolScraper(hotel_stay)
     df = thread_scrape.thread_scrape()
 
     target_date_range: list[str] = [datetime.date(year, month, day).strftime('%Y-%m-%d') for day in
@@ -74,7 +74,7 @@ def test_until_month_end_scraper() -> None:
         start_day=start_day, month=month, year=year, nights=nights
     )
 
-    month_end = ScrapeUntilMonthEnd(hotel_stay)
+    month_end = MonthEndBasicScraper(hotel_stay)
     df = month_end.scrape_until_month_end()
 
     target_date_range: list[str] = [datetime.date(year, month, day).strftime('%Y-%m-%d')
@@ -106,7 +106,7 @@ def test_scraper() -> None:
         month=month, year=year,
     )
 
-    scraper = Scraper(hotel_stay)
+    scraper = BasicScraper(hotel_stay)
     df = scraper.start_scraping_process(check_in, check_out)
 
     assert not df.empty

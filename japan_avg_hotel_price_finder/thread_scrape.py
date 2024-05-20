@@ -20,13 +20,13 @@ import pandas as pd
 from loguru import logger
 
 from set_details import Details
-from japan_avg_hotel_price_finder.scrape_until_month_end import ScrapeUntilMonthEnd
+from japan_avg_hotel_price_finder.scrape_until_month_end import MonthEndBasicScraper
 
 
-class ThreadScraper(ScrapeUntilMonthEnd):
+class ThreadPoolScraper(MonthEndBasicScraper):
     def __init__(self, details: Details):
         """
-        Initialize the ThreadScraper class with the following parameters:
+        Initialize the ThreadPoolScraper class with the following parameters:
         :param details: Details dataclass object.
         """
         super().__init__(details)
