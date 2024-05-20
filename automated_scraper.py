@@ -137,6 +137,8 @@ def automated_scraper_main(month: int, details: Details) -> None | DataFrame:
     # Initialize an empty DataFrame to collect all data
     all_data = pd.DataFrame()
 
+    today = datetime.today()
+
     # Can only scrape data from the current date onward
     if month < today.month:
         logger.info(
