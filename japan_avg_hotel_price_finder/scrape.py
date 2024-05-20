@@ -29,16 +29,16 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 from japan_avg_hotel_price_finder.migrate_to_sqlite import migrate_data_to_sqlite
-from japan_avg_hotel_price_finder.hotel_stay import HotelStay
+from set_details import Details
 
 
 class Scraper:
-    def __init__(self, hotel_stay: HotelStay):
+    def __init__(self, details: Details):
         """
         Initialize the Scraper class with the following parameter:
-        :param  hotel_stay: HotelStay dataclass object
+        :param  details: Details dataclass object
         """
-        self.hotel_stay = hotel_stay
+        self.details = details
 
     @staticmethod
     def _click_pop_up_ad(wait: WebDriverWait, driver: WebDriver) -> None:
@@ -259,11 +259,11 @@ class Scraper:
         # Create a DataFrame to store the data
         data = {'Hotel': [], 'Price': [], 'Review': []}
 
-        city = self.hotel_stay.city
-        group_adults = self.hotel_stay.group_adults
-        num_rooms = self.hotel_stay.num_rooms
-        group_children = self.hotel_stay.group_children
-        selected_currency = self.hotel_stay.selected_currency
+        city = self.details.city
+        group_adults = self.details.group_adults
+        num_rooms = self.details.num_rooms
+        group_children = self.details.group_children
+        selected_currency = self.details.selected_currency
 
         url = (f'https://www.booking.com/searchresults.en-gb.html?ss={city}&checkin'
                f'={check_in}&checkout={check_out}&group_adults={group_adults}'

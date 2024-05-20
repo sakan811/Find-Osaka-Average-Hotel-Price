@@ -20,7 +20,7 @@ import pandas as pd
 from loguru import logger
 from pandas import DataFrame
 
-from japan_avg_hotel_price_finder.hotel_stay import HotelStay
+from set_details import Details
 from japan_avg_hotel_price_finder.thread_scrape import ThreadScraper
 
 logger.add('osaka_hotel_weekly_scraper.log',
@@ -29,16 +29,12 @@ logger.add('osaka_hotel_weekly_scraper.log',
 
 
 class AutomatedThreadScraper(ThreadScraper):
-    def __init__(self, hotel_stay, start_day, month, year, nights):
+    def __init__(self, details: Details):
         """
         Scrape hotel data from the start day to the end of the same month using Thread Pool executor.
-        :param hotel_stay: HotelStay dataclass object.
-        :param start_day: Day of the month to start scraping.
-        :param month: Month to start scraping.
-        :param year: Year to start scraping.
-        :param nights: Number of nights (Length of stay).
+        :param details: Details data class object.
         """
-        super().__init__(hotel_stay, start_day, month, year, nights)
+        super().__init__(details)
 
     def thread_scrape(self) -> pd.DataFrame:
         """
@@ -47,8 +43,10 @@ class AutomatedThreadScraper(ThreadScraper):
         """
         logger.info('Scraping hotel data using Pool Thread executor...')
 
+        start_day = self.details.start_day
+
         # Determine the last day of the given month
-        last_day: int = calendar.monthrange(self.year, self.month)[1]
+        last_day: int = calendar.monthrange(self.details.year, self.details.month)[1]
 
         # Define a list to store the result DataFrame from each thread
         results = []
@@ -62,9 +60,9 @@ class AutomatedThreadScraper(ThreadScraper):
             """
             logger.info('Scraping each date...')
 
-            current_date = datetime(self.year, self.month, day)
+            current_date = datetime(self.details.year, self.details.month, day)
             check_in = current_date.strftime('%Y-%m-%d')
-            check_out = (current_date + timedelta(days=self.nights)).strftime('%Y-%m-%d')
+            check_out = (current_date + timedelta(days=self.details.nights)).strftime('%Y-%m-%d')
 
             df = self.start_weekly_scraping_process(check_in, check_out)
 
@@ -74,7 +72,7 @@ class AutomatedThreadScraper(ThreadScraper):
         # Create a thread pool with a maximum of 5 threads
         with ThreadPoolExecutor(max_workers=5) as executor:
             # Submit tasks for each date within the specified range
-            futures = [executor.submit(scrape_each_date, day) for day in range(self.start_day, last_day + 1)]
+            futures = [executor.submit(scrape_each_date, day) for day in range(start_day, last_day + 1)]
 
             # Wait for all tasks to complete
             for future in futures:
@@ -101,6 +99,8 @@ class AutomatedThreadScraper(ThreadScraper):
         # Create a DataFrame to store the data
         data = {'Hotel': [], 'Price': [], 'Review': []}
 
+        city = self.details.city
+
         url = (f'https://www.booking.com/searchresults.en-gb.html?ss={city}&checkin'
                f'={check_in}&checkout={check_out}&group_adults={group_adults}'
                f'&no_rooms={num_rooms}&group_children={group_children}'
@@ -124,23 +124,15 @@ class AutomatedThreadScraper(ThreadScraper):
         return df_filtered
 
 
-def automated_scraper_main(month: int, hotel_stay: HotelStay) -> None | DataFrame:
+def automated_scraper_main(month: int, details: Details) -> None | DataFrame:
     """
     Automated scraper main function.
     :param month: Month to start scraping.
-    :param hotel_stay: HotelStay dataclass object.
+    :param details: HotelStay dataclass object.
     :return: None
             Return a Pandas DataFrame for testing purpose only.
     """
-    # Specify the start date and duration of stay for data scraping
-    today = datetime.today()
-
-    nights = 1
-    start_day = 1
-
-    # Can only scrape data from the current date onward
-    if month == today.month:
-        start_day = today.day
+    details.month = month
 
     # Initialize an empty DataFrame to collect all data
     all_data = pd.DataFrame()
@@ -152,16 +144,14 @@ def automated_scraper_main(month: int, hotel_stay: HotelStay) -> None | DataFram
         )
         all_data.to_csv(f'osaka_month_{month}_daily_hotel_data.csv', index=False)
     else:
+        # Can only scrape data from the today onward
+        if month == today.month:
+            details.start_day = today.day
+
         logger.info(f'Scraping data for {calendar.month_name[month]}...')
 
-        current_date = datetime(today.year, month, start_day)
-
-        start_day = current_date.day
-        month = current_date.month
-        year = current_date.year
-
         # Initialize and run the scraper
-        automated_scraper = AutomatedThreadScraper(hotel_stay, start_day, month, year, nights)
+        automated_scraper = AutomatedThreadScraper(details)
         df = automated_scraper.thread_scrape()
 
         # Append the data to the all_data DataFrame
@@ -181,7 +171,14 @@ if __name__ == '__main__':
     group_children = '0'
     selected_currency = 'USD'
 
-    hotel_stay = HotelStay(city, group_adults, num_rooms, group_children, selected_currency)
+    today = datetime.today()
+    start_day: int = 1
+    year: int = today.year
+
+    details = Details(
+        city=city, group_adults=group_adults, num_rooms=num_rooms, group_children=group_children,
+        selected_currency=selected_currency, start_day=start_day, year=year
+    )
 
     # Initialize argument parser
     parser = argparse.ArgumentParser(description='Specify the month for data scraping.')
@@ -191,4 +188,4 @@ if __name__ == '__main__':
     # Extract the month value from the command line argument
     month = args.month
 
-    automated_scraper_main(month, hotel_stay)
+    automated_scraper_main(month, details)

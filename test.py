@@ -17,7 +17,7 @@ import datetime
 import pytest
 
 from automated_scraper import automated_scraper_main
-from japan_avg_hotel_price_finder.hotel_stay import HotelStay
+from set_details import Details
 from japan_avg_hotel_price_finder.scrape import Scraper
 from japan_avg_hotel_price_finder.scrape_until_month_end import ScrapeUntilMonthEnd
 from japan_avg_hotel_price_finder.thread_scrape import ThreadScraper
@@ -37,9 +37,13 @@ def test_thread_scraper() -> None:
     last_day: int = calendar.monthrange(year, month)[1]
     nights = 1
 
-    hotel_stay = HotelStay(city, group_adults, num_rooms, group_children, selected_currency)
+    hotel_stay = Details(
+        city=city, group_adults=group_adults, num_rooms=num_rooms,
+        group_children=group_children, selected_currency=selected_currency,
+        start_day=start_day, month=month, year=year, nights=nights
+    )
 
-    thread_scrape = ThreadScraper(hotel_stay, start_day, month, year, nights)
+    thread_scrape = ThreadScraper(hotel_stay)
     df = thread_scrape.thread_scrape()
 
     target_date_range: list[str] = [datetime.date(year, month, day).strftime('%Y-%m-%d') for day in
@@ -64,9 +68,13 @@ def test_until_month_end_scraper() -> None:
     last_day: int = calendar.monthrange(year, month)[1]
     nights = 1
 
-    hotel_stay = HotelStay(city, group_adults, num_rooms, group_children, selected_currency)
+    hotel_stay = Details(
+        city=city, group_adults=group_adults, num_rooms=num_rooms,
+        group_children=group_children, selected_currency=selected_currency,
+        start_day=start_day, month=month, year=year, nights=nights
+    )
 
-    month_end = ScrapeUntilMonthEnd(hotel_stay, start_day, month, year, nights)
+    month_end = ScrapeUntilMonthEnd(hotel_stay)
     df = month_end.scrape_until_month_end()
 
     target_date_range: list[str] = [datetime.date(year, month, day).strftime('%Y-%m-%d')
@@ -92,7 +100,11 @@ def test_scraper() -> None:
     check_out = datetime.date(year, month, today.day) + datetime.timedelta(days=1)
     check_out = check_out.strftime('%Y-%m-%d')
 
-    hotel_stay = HotelStay(city, group_adults, num_rooms, group_children, selected_currency)
+    hotel_stay = Details(
+        city=city, group_adults=group_adults, num_rooms=num_rooms,
+        group_children=group_children, selected_currency=selected_currency,
+        month=month, year=year,
+    )
 
     scraper = Scraper(hotel_stay)
     df = scraper.start_scraping_process(check_in, check_out)
@@ -107,13 +119,18 @@ def test_weekly_scraper() -> None:
     group_children = '0'
     selected_currency = 'USD'
 
-    hotel_stay = HotelStay(city, group_adults, num_rooms, group_children, selected_currency)
-
     today = datetime.date.today()
     start_day = today.day
     last_day = calendar.monthrange(today.year, today.month)[1]
     month = today.month
     year = today.year
+
+    hotel_stay = Details(
+        city=city, group_adults=group_adults, num_rooms=num_rooms,
+        group_children=group_children, selected_currency=selected_currency,
+        start_day=start_day, month=month, year=year
+    )
+
     df = automated_scraper_main(month, hotel_stay)
 
     target_date_range: list[str] = [datetime.date(year, month, day).strftime('%Y-%m-%d')

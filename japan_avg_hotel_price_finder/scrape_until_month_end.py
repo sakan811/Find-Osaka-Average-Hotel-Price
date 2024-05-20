@@ -20,31 +20,20 @@ import pandas as pd
 from loguru import logger
 
 from japan_avg_hotel_price_finder.scrape import Scraper
-from japan_avg_hotel_price_finder.hotel_stay import HotelStay
+from set_details import Details
 
 
 class ScrapeUntilMonthEnd(Scraper):
-    def __init__(
-            self,
-            hotel_stay: HotelStay,
-            start_day: int,
-            month: int,
-            year: int,
-            nights: int):
+    def __init__(self, details: Details):
         """
         Initialize the ScrapeUntilMonthEnd class with the following parameters:
-        :param hotel_stay: HotelStay dataclass object.
-        :param start_day: Day to start scraping.
-        :param month: Month to start scraping.
-        :param year: Year to start scraping.
-        :param nights: Number of nights (Length of stay) which defines the room price.
-                        For example, nights = 1 means scraping the hotel with room price for 1 night.
+        :param details: HotelStay dataclass object.
         """
-        super().__init__(hotel_stay)
-        self.start_day = start_day
-        self.month = month
-        self.year = year
-        self.nights = nights
+        super().__init__(details)
+        self.start_day = details.start_day
+        self.month = details.month
+        self.year = details.year
+        self.nights = details.nights
 
     def scrape_until_month_end(self) -> None | pd.DataFrame:
         """

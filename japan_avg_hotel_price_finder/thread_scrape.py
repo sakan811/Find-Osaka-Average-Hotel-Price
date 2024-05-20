@@ -19,28 +19,17 @@ from datetime import datetime, timedelta
 import pandas as pd
 from loguru import logger
 
-from japan_avg_hotel_price_finder.hotel_stay import HotelStay
+from set_details import Details
 from japan_avg_hotel_price_finder.scrape_until_month_end import ScrapeUntilMonthEnd
 
 
 class ThreadScraper(ScrapeUntilMonthEnd):
-    def __init__(
-            self,
-            hotel_stay: HotelStay,
-            start_day: int,
-            month: int,
-            year: int,
-            nights: int):
+    def __init__(self, details: Details):
         """
         Initialize the ThreadScraper class with the following parameters:
-        :param hotel_stay: HotelStay dataclass object.
-        :param start_day: Day to start scraping.
-        :param month: Month to start scraping.
-        :param year: Year to start scraping.
-        :param nights: Number of nights (Length of stay) which defines the room price.
-                        For example, nights = 1 means scraping the hotel with room price for 1 night.
+        :param details: Details dataclass object.
         """
-        super().__init__(hotel_stay, start_day, month, year, nights)
+        super().__init__(details)
 
     def thread_scrape(self) -> None | pd.DataFrame:
         """
