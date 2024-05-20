@@ -31,7 +31,11 @@ def test_thread_scraper() -> None:
     group_children = 0
     selected_currency = 'USD'
 
-    today = datetime.date.today()
+    # Define the timezone
+    city_timezone = pytz.timezone('Asia/Tokyo')
+
+    # Get the current date in the specified timezone
+    today = datetime.datetime.now(city_timezone).date()
     start_day = 27
     month = today.month
     year = today.year
@@ -67,7 +71,12 @@ def test_until_month_end_scraper() -> None:
     group_children = 0
     selected_currency = 'USD'
 
-    today = datetime.date.today()
+    # Define the timezone
+    city_timezone = pytz.timezone('Asia/Tokyo')
+
+    # Get the current date in the specified timezone
+    today = datetime.datetime.now(city_timezone).date()
+
     start_day = 27
     month = today.month
     year = today.year
@@ -104,7 +113,11 @@ def test_scraper() -> None:
     group_children = 0
     selected_currency = 'USD'
 
-    today = datetime.date.today()
+    # Define the timezone
+    city_timezone = pytz.timezone('Asia/Tokyo')
+
+    # Get the current date in the specified timezone
+    today = datetime.datetime.now(city_timezone).date()
     month = today.month
     year = today.year
     check_in = datetime.date(year, month, today.day).strftime('%Y-%m-%d')
@@ -132,7 +145,7 @@ def test_weekly_scraper() -> None:
     group_children = 0
     selected_currency = 'USD'
 
-    # Define the timezone for the city you are scraping data for
+    # Define the timezone
     city_timezone = pytz.timezone('Asia/Tokyo')
 
     # Get the current date in the specified timezone
