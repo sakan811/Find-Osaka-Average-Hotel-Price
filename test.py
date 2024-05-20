@@ -15,6 +15,7 @@ import calendar
 import datetime
 
 import pytest
+import pytz
 
 from automated_scraper import automated_scraper_main
 from set_details import Details
@@ -131,7 +132,11 @@ def test_weekly_scraper() -> None:
     group_children = 0
     selected_currency = 'USD'
 
-    today = datetime.date.today()
+    # Define the timezone for the city you are scraping data for
+    city_timezone = pytz.timezone('Asia/Tokyo')
+
+    # Get the current date in the specified timezone
+    today = datetime.datetime.now(city_timezone).date()
     start_day = today.day
     last_day = calendar.monthrange(today.year, today.month)[1]
     month = today.month
@@ -147,8 +152,11 @@ def test_weekly_scraper() -> None:
 
     df = automated_scraper_main(month, hotel_stay)
 
-    target_date_range: list[str] = [datetime.date(year, month, day).strftime('%Y-%m-%d')
-                                    for day in range(start_day, last_day + 1)]
+    # Create the target date range in the specified timezone
+    target_date_range: list[str] = [
+        datetime.datetime(year, month, day, tzinfo=city_timezone).strftime('%Y-%m-%d')
+        for day in range(start_day, last_day + 1)
+    ]
 
     unique_dates: list[str] = list(df['Date'].unique())
 
