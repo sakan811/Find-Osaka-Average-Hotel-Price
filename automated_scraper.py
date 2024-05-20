@@ -100,6 +100,10 @@ class AutomatedThreadPoolScraper(ThreadPoolScraper):
         data = {'Hotel': [], 'Price': [], 'Review': []}
 
         city = self.details.city
+        group_adults = self.details.group_adults
+        group_children = self.details.group_children
+        num_rooms = self.details.num_rooms
+        selected_currency = self.details.selected_currency
 
         url = (f'https://www.booking.com/searchresults.en-gb.html?ss={city}&checkin'
                f'={check_in}&checkout={check_out}&group_adults={group_adults}'
