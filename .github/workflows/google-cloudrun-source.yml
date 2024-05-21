@@ -52,9 +52,9 @@ on:
   workflow_dispatch:
 
 env:
-  PROJECT_ID: YOUR_PROJECT_ID # TODO: update Google Cloud project id
-  SERVICE: YOUR_SERVICE_NAME # TODO: update Cloud Run service name
-  REGION: YOUR_SERVICE_REGION # TODO: update Cloud Run service region
+  PROJECT_ID: '${{ secrets.YOUR_PROJECT_ID }}' # TODO: update Google Cloud project id
+  SERVICE: '${{ secrets.YOUR_SERVICE_NAME }}' # TODO: update Cloud Run service name 
+  REGION: '${{ secrets.YOUR_SERVICE_REGION }}' # TODO: update Cloud Run service region
 
 jobs:
   deploy:
