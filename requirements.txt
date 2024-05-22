@@ -3,5 +3,5 @@ beautifulsoup4~=4.12.3
 selenium~=4.20.0
 loguru~=0.7.2
 pytest~=8.2.0
-functions-framework==3.*
 pytz~=2024.1
+requests~=2.32.2
