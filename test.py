@@ -32,7 +32,7 @@ def test_thread_scraper() -> None:
     selected_currency = 'USD'
 
     # Define the timezone
-    city_timezone = pytz.timezone('Asia/Tokyo')
+    city_timezone = pytz.timezone('Asia/Singapore')
 
     # Get the current date in the specified timezone
     today = datetime.datetime.now(city_timezone).date()
@@ -72,7 +72,7 @@ def test_until_month_end_scraper() -> None:
     selected_currency = 'USD'
 
     # Define the timezone
-    city_timezone = pytz.timezone('Asia/Tokyo')
+    city_timezone = pytz.timezone('Asia/Singapore')
 
     # Get the current date in the specified timezone
     today = datetime.datetime.now(city_timezone).date()
@@ -114,7 +114,7 @@ def test_scraper() -> None:
     selected_currency = 'USD'
 
     # Define the timezone
-    city_timezone = pytz.timezone('Asia/Tokyo')
+    city_timezone = pytz.timezone('Asia/Singapore')
 
     # Get the current date in the specified timezone
     today = datetime.datetime.now(city_timezone).date()
@@ -146,7 +146,7 @@ def test_weekly_scraper() -> None:
     selected_currency = 'USD'
 
     # Define the timezone
-    city_timezone = pytz.timezone('Asia/Tokyo')
+    city_timezone = pytz.timezone('Asia/Singapore')
 
     # Get the current date in the specified timezone
     today = datetime.datetime.now(city_timezone).date()
