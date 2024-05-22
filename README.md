@@ -13,11 +13,11 @@ Collect Osaka hotel property data from Booking.com
 
 Data collecting start date: May 16th, 2024.
 
-Data was collected daily using GitHub action and [daily_scraper.py](automated_scraper.py)
+Data was collected weekly using GitHub action with [automated_scraper.py](automated_scraper.py)
 
 This script can also be used to scrape data from other cities.
 
-## Code Base Details
+## Code Base Details on 'Master' branch
 ### To scrape hotel data
 - Go to [set_details.py](set_details.py)
 - Set the parameters of the 'Details' dataclass as needed.
