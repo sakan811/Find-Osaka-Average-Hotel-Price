@@ -39,6 +39,11 @@ class BasicScraper:
         :param  details: Details dataclass object
         """
         self.details = details
+        self.hotel_class = 'f6431b446c.a15b38c233'
+        self.price_class = 'f6431b446c.fbfd7c1165.e84eb96b1f'
+        self.review_class = 'a3b8729ab1.d86cee9b25'
+        self.box_class = 'c066246e13'
+
 
     @staticmethod
     def _click_pop_up_ad(wait: WebDriverWait, driver: WebDriver) -> None:
@@ -217,10 +222,10 @@ class BasicScraper:
         logger.info('Parse the HTML content with BeautifulSoup')
         soup = bs4.BeautifulSoup(html, 'html.parser')
 
-        hotel_class = 'f6431b446c.a15b38c233'
-        price_class = 'f6431b446c.fbfd7c1165.e84eb96b1f'
-        review_class = 'a3b8729ab1.d86cee9b25'
-        box_class = 'c066246e13'
+        hotel_class = self.hotel_class
+        price_class = self.price_class
+        review_class = self.review_class
+        box_class = self.box_class
 
         self._scrape_data_from_box_class(soup, box_class, hotel_class, price_class, review_class, data)
 
