@@ -29,7 +29,7 @@ class Details:
     """
     # Set booking details.
     city: str = 'Osaka'
-    check_in: str = '2024-12-01'
+    check_in: str = '2024-12-11'
     check_out: str = '2024-12-12'
     group_adults: int = 1
     num_rooms: int = 1

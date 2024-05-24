@@ -43,7 +43,7 @@ class BasicScraper:
         self.price_class = 'f6431b446c.fbfd7c1165.e84eb96b1f'
         self.review_class = 'a3b8729ab1.d86cee9b25'
         self.box_class = 'c066246e13'
-
+        self.dataframe = {'Hotel': [], 'Price': [], 'Review': []}
 
     @staticmethod
     def _click_pop_up_ad(wait: WebDriverWait, driver: WebDriver) -> None:
@@ -94,10 +94,6 @@ class BasicScraper:
         except NoSuchElementException as e:
             logger.error(e)
             logger.error(f'{load_more_result_css_selector} not found. Keep scrolling.')
-        except StaleElementReferenceException as e:
-            logger.error(e)
-            logger.error(f'{load_more_result_css_selector} is no longer valid '
-                         f'because it has been modified or removed from the DOM.')
         except Exception as e:
             logger.error(e)
             logger.error(f'{load_more_result_css_selector} failed due to {e}')
@@ -138,14 +134,13 @@ class BasicScraper:
 
             self._click_load_more_result_button(driver)
 
-    @staticmethod
     def _scrape_data_from_box_class(
+            self,
             soup: bs4.BeautifulSoup,
             box_class: str,
             hotel_class: str,
             price_class: str,
-            review_class: str,
-            data: pd.DataFrame) -> None:
+            review_class: str) -> None:
         """
         Scrape data from box class.
         :param soup: bs4.BeautifulSoup object.
@@ -153,7 +148,6 @@ class BasicScraper:
         :param hotel_class: Class name of the hotel name data.
         :param price_class: Class name of the price data.
         :param review_class: Class name of the review score data.
-        :param data: Pandas dataframe.
         :return: None
         """
         logger.info("Scraping data from box class...")
@@ -167,31 +161,44 @@ class BasicScraper:
             price_element = box_element.select(f'.{price_class}')
             review_element = box_element.select(f'.{review_class}')
 
-            # Check if all elements are presented before extracting data
-            if hotel_element and price_element and review_element:
-                hotel_name = hotel_element[0].text
-                price = re.sub(r'[^0-9]', '', price_element[0].text)
-                review_score = review_element[0].text.split()[1]
+            self._append_to_dataframe(hotel_element, price_element, review_element)
 
-                data['Hotel'].append(hotel_name)
-                data['Price'].append(price)
-                data['Review'].append(review_score)
+    def _append_to_dataframe(
+            self,
+            hotel_element: bs4.ResultSet,
+            price_element: bs4.ResultSet,
+            review_element: bs4.ResultSet) -> None:
+        """
+        Append data to dataframe.
+        :param hotel_element: Hotel data element from the HTML source.
+        :param price_element: Price data element from the HTML source.
+        :param review_element: Review score data element from the HTML source.
+        :return: None
+        """
+        # Check if all elements are presented before extracting data
+        if hotel_element and price_element and review_element:
+            hotel_name = hotel_element[0].text
+            price = re.sub(r'[^0-9]', '', price_element[0].text)
+            review_score = review_element[0].text.split()[1]
 
-                logger.info(f'All elements are presented.')
-                logger.debug(f'Hotel: {hotel_element}')
-                logger.debug(f'Price: {price_element}')
-                logger.debug(f'Review Score: {review_element}')
-            else:
-                logger.warning(f'Not all elements are presented.')
-                logger.debug(f'Hotel: {hotel_element}')
-                logger.debug(f'Price: {price_element}')
-                logger.debug(f'Review Score: {review_element}')
+            self.dataframe['Hotel'].append(hotel_name)
+            self.dataframe['Price'].append(price)
+            self.dataframe['Review'].append(review_score)
 
-    def _scrape(self, url: str, data) -> None:
+            logger.info(f'All elements are presented.')
+            logger.debug(f'Hotel: {hotel_element}')
+            logger.debug(f'Price: {price_element}')
+            logger.debug(f'Review Score: {review_element}')
+        else:
+            logger.warning(f'Not all elements are presented.')
+            logger.debug(f'Hotel: {hotel_element}')
+            logger.debug(f'Price: {price_element}')
+            logger.debug(f'Review Score: {review_element}')
+
+    def _scrape(self, url: str) -> None:
         """
         Scrape hotel data from the website.
         :param url: Website URL.
-        :param data: Empty Dictionary.
         :return: None
         """
         # Configure Chrome options to block image loading and disable automation features
@@ -227,7 +234,7 @@ class BasicScraper:
         review_class = self.review_class
         box_class = self.box_class
 
-        self._scrape_data_from_box_class(soup, box_class, hotel_class, price_class, review_class, data)
+        self._scrape_data_from_box_class(soup, box_class, hotel_class, price_class, review_class)
 
     @staticmethod
     def _transform_data(df: pd.DataFrame) -> pd.DataFrame:
@@ -261,9 +268,6 @@ class BasicScraper:
         """
         logger.info(f"Starting web-scraping... Period: {check_in} to {check_out}")
 
-        # Create a DataFrame to store the data
-        data = {'Hotel': [], 'Price': [], 'Review': []}
-
         city = self.details.city
         group_adults = self.details.group_adults
         num_rooms = self.details.num_rooms
@@ -275,10 +279,10 @@ class BasicScraper:
                f'&no_rooms={num_rooms}&group_children={group_children}'
                f'&selected_currency={selected_currency}&nflt=ht_id%3D204')
 
-        self._scrape(url, data)
+        self._scrape(url)
 
         # Create a DataFrame from the collected data
-        df = pd.DataFrame(data)
+        df = pd.DataFrame(self.dataframe)
 
         df['City'] = city
 
