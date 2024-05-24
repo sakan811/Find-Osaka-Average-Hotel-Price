@@ -2,6 +2,10 @@
 
 Showcase visualizations about the Hotel's Average Room Price in Osaka.
 
+## Status
+[![CodeQL](https://github.com/sakan811/Find-Osaka-Average-Hotel-Price/actions/workflows/codeql.yml/badge.svg)](https://github.com/sakan811/Find-Osaka-Average-Hotel-Price/actions/workflows/codeql.yml)  
+[![Python application](https://github.com/sakan811/Find-Osaka-Average-Hotel-Price/actions/workflows/python-app.yml/badge.svg)](https://github.com/sakan811/Find-Osaka-Average-Hotel-Price/actions/workflows/python-app.yml)
+
 ## Visualizations
 Data as of May 19, 2024
 
@@ -17,7 +21,7 @@ Data was collected weekly using GitHub action with [automated_scraper.py](automa
 
 This script can also be used to scrape data from other cities.
 
-## Code Base Details on 'Master' branch
+## Code Base Details 
 ### To scrape hotel data
 - Go to [set_details.py](set_details.py)
 - Set the parameters of the 'Details' dataclass as needed.
