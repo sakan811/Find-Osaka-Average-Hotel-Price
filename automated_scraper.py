@@ -96,9 +96,6 @@ class AutomatedThreadPoolScraper(ThreadPoolScraper):
         """
         logger.info("Starting web-scraping...")
 
-        # Create a DataFrame to store the data
-        data = {'Hotel': [], 'Price': [], 'Review': []}
-
         city = self.details.city
         group_adults = self.details.group_adults
         group_children = self.details.group_children
@@ -110,10 +107,10 @@ class AutomatedThreadPoolScraper(ThreadPoolScraper):
                f'&no_rooms={num_rooms}&group_children={group_children}'
                f'&selected_currency={selected_currency}&nflt=ht_id%3D204')
 
-        self._scrape(url, data)
+        self._scrape(url)
 
         # Create a DataFrame from the collected data
-        df = pd.DataFrame(data)
+        df = pd.DataFrame(self.dataframe)
 
         df['City'] = city
 
