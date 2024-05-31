@@ -33,6 +33,45 @@ from japan_avg_hotel_price_finder.migrate_to_sqlite import migrate_data_to_sqlit
 from set_details import Details
 
 
+def append_to_dataframe(
+        dataframe: pd.DataFrame,
+        hotel_element: bs4.ResultSet,
+        price_element: bs4.ResultSet,
+        review_element: bs4.ResultSet) -> DataFrame:
+    """
+    Append data to dataframe.
+    :param dataframe: Pandas DataFrame to store data.
+    :param hotel_element: Hotel data element from the HTML source.
+    :param price_element: Price data element from the HTML source.
+    :param review_element: Review score data element from the HTML source.
+    :return: Pandas DataFrame
+    """
+    # Check if all elements are presented before extracting data
+    if hotel_element and price_element and review_element:
+        hotel_name = hotel_element[0].text
+        price = re.sub(r'[^0-9]', '', price_element[0].text)
+        review_score = review_element[0].text.split()[1]
+
+        if hotel_name and price and review_score:
+            dataframe['Hotel'].append(hotel_name)
+            dataframe['Price'].append(price)
+            dataframe['Review'].append(review_score)
+
+            logger.info('All elements are presented.')
+        else:
+            logger.warning('Data extraction did not work properly.')
+            logger.debug(f'{hotel_name = }')
+            logger.debug(f'{hotel_element = }')
+            logger.debug(f'{price = }')
+            logger.debug(f'{price_element = }')
+            logger.debug(f'{review_score = }')
+            logger.debug(f'{review_element = }')
+    else:
+        logger.warning(f'Not all elements are presented.')
+
+    return dataframe
+
+
 class BasicScraper:
     def __init__(self, details: Details):
         """
@@ -45,7 +84,6 @@ class BasicScraper:
         self.review_class = 'a3b8729ab1.d86cee9b25'
         self.box_class = 'c066246e13'
         self.dataframe = {'Hotel': [], 'Price': [], 'Review': []}
-        self.lock = threading.Lock()
 
     @staticmethod
     def _click_pop_up_ad(wait: WebDriverWait, driver: WebDriver) -> None:
@@ -142,7 +180,7 @@ class BasicScraper:
             box_class: str,
             hotel_class: str,
             price_class: str,
-            review_class: str) -> None:
+            review_class: str) -> pd.DataFrame:
         """
         Scrape data from box class.
         :param soup: bs4.BeautifulSoup object.
@@ -150,12 +188,14 @@ class BasicScraper:
         :param hotel_class: Class name of the hotel name data.
         :param price_class: Class name of the price data.
         :param review_class: Class name of the review score data.
-        :return: None
+        :return: Pandas DataFrame.
         """
         logger.info("Scraping data from box class...")
 
         # Find the box elements
         box_elements = soup.select(f'.{box_class}')
+
+        dataframe = self.dataframe
 
         for box_element in box_elements:
             # Find the elements within the box element
@@ -163,49 +203,15 @@ class BasicScraper:
             price_element = box_element.select(f'.{price_class}')
             review_element = box_element.select(f'.{review_class}')
 
-            self._append_to_dataframe(hotel_element, price_element, review_element)
+            dataframe = append_to_dataframe(dataframe, hotel_element, price_element, review_element)
 
-    def _append_to_dataframe(
-            self,
-            hotel_element: bs4.ResultSet,
-            price_element: bs4.ResultSet,
-            review_element: bs4.ResultSet) -> None:
-        """
-        Append data to dataframe.
-        :param hotel_element: Hotel data element from the HTML source.
-        :param price_element: Price data element from the HTML source.
-        :param review_element: Review score data element from the HTML source.
-        :return: None
-        """
-        # Check if all elements are presented before extracting data
-        if hotel_element and price_element and review_element:
-            hotel_name = hotel_element[0].text
-            price = re.sub(r'[^0-9]', '', price_element[0].text)
-            review_score = review_element[0].text.split()[1]
+        return dataframe
 
-            if hotel_name and price and review_score:
-                with self.lock:
-                    self.dataframe['Hotel'].append(hotel_name)
-                    self.dataframe['Price'].append(price)
-                    self.dataframe['Review'].append(review_score)
-
-                logger.info('All elements are presented.')
-            else:
-                logger.warning('Data extraction did not work properly.')
-                logger.debug(f'{hotel_name = }')
-                logger.debug(f'{hotel_element = }')
-                logger.debug(f'{price = }')
-                logger.debug(f'{price_element = }')
-                logger.debug(f'{review_score = }')
-                logger.debug(f'{review_element = }')
-        else:
-            logger.warning(f'Not all elements are presented.')
-
-    def _scrape(self, url: str) -> None:
+    def _scrape(self, url: str) -> pd.DataFrame:
         """
         Scrape hotel data from the website.
         :param url: Website URL.
-        :return: None
+        :return: Pandas Dataframe.
         """
         # Configure Chrome options to block image loading and disable automation features
         options = webdriver.ChromeOptions()
@@ -240,7 +246,7 @@ class BasicScraper:
         review_class = self.review_class
         box_class = self.box_class
 
-        self._scrape_data_from_box_class(soup, box_class, hotel_class, price_class, review_class)
+        return self._scrape_data_from_box_class(soup, box_class, hotel_class, price_class, review_class)
 
     @staticmethod
     def _transform_data(df: pd.DataFrame) -> pd.DataFrame:
@@ -285,22 +291,12 @@ class BasicScraper:
                f'&no_rooms={num_rooms}&group_children={group_children}'
                f'&selected_currency={selected_currency}&nflt=ht_id%3D204')
 
-        self._scrape(url)
+        dataframe = self._scrape(url)
 
         df_filtered = None
         # Create a DataFrame from the collected data
         try:
-            # Before creating the DataFrame, ensure all columns are of equal length
-            lengths = {key: len(value) for key, value in self.dataframe.items()}
-            logger.debug(f'Final lengths before DataFrame creation: {lengths}')
-
-            max_length = max(lengths.values())
-            for key in self.dataframe:
-                if len(self.dataframe[key]) < max_length:
-                    logger.debug(f'Filling column {key} with None to match length {max_length}')
-                    self.dataframe[key].extend([None] * (max_length - len(self.dataframe[key])))
-
-            df = pd.DataFrame(self.dataframe)
+            df = pd.DataFrame(dataframe)
             df['City'] = city
 
             # Hotel data of the given date
