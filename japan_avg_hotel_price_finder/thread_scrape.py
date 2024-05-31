@@ -13,6 +13,7 @@
 #    limitations under the License.
 
 import calendar
+import threading
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 
@@ -30,6 +31,7 @@ class ThreadPoolScraper(MonthEndBasicScraper):
         :param details: Details dataclass object.
         """
         super().__init__(details)
+        self.lock = threading.Lock()
 
     def thread_scrape(self) -> None | pd.DataFrame:
         """
