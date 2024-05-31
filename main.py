@@ -13,6 +13,7 @@
 #    limitations under the License.
 
 import argparse
+import datetime
 
 from loguru import logger
 
@@ -32,7 +33,31 @@ parser.add_argument('--month_end', type=bool, default=False, help='Scrape until 
 parser.add_argument('--scraper', type=bool, default=True, help='Use basic scraper')
 args = parser.parse_args()
 
-details = Details()
+# Set booking details.
+city: str = 'Osaka'
+check_in: str = '2024-12-11'
+check_out: str = '2024-12-12'
+group_adults: int = 1
+num_rooms: int = 1
+group_children: int = 0
+selected_currency: str = 'USD'
+
+# Set the start date and number of nights when using Thread Pool Scraper or Month End Scraper
+start_day: int = 1
+month: int = 6
+year: int = 2024
+nights: int = 1
+
+# Set SQLite database name
+sqlite_name: str = 'avg_japan_hotel_price.db'
+
+details = Details(
+    city=city, check_in=check_in, check_out=check_out, group_adults=group_adults,
+    num_rooms=num_rooms, group_children=group_children, selected_currency=selected_currency,
+    start_day=start_day, month=month, year=year, nights=nights,
+    sqlite_name=sqlite_name
+)
+
 
 if args.thread_pool:
     logger.info('Using thread pool scraper')

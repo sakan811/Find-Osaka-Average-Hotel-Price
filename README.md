@@ -29,8 +29,11 @@ This script can also be used to scrape data from other cities.
   ```
   # Set booking details.
   city: str = 'Osaka'
+  
+  # Check-in and Check-out are used only when using the Basic Scraper
   check_in: str = '2024-12-01'
   check_out: str = '2024-12-12'
+  
   group_adults: int = 1
   num_rooms: int = 1
   group_children: int = 0
