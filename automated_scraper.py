@@ -107,22 +107,26 @@ class AutomatedThreadPoolScraper(ThreadPoolScraper):
                f'&no_rooms={num_rooms}&group_children={group_children}'
                f'&selected_currency={selected_currency}&nflt=ht_id%3D204')
 
-        self._scrape(url)
+        dataframe = self._scrape(url)
 
+        df_filtered = None
         # Create a DataFrame from the collected data
-        df = pd.DataFrame(self.dataframe)
+        try:
+            df = pd.DataFrame(dataframe)
+            df['City'] = city
 
-        df['City'] = city
+            # Hotel data of the given date
+            df['Date'] = check_in
 
-        # Hotel data of the given date
-        df['Date'] = check_in
+            # Date which the data was collected
+            df['AsOf'] = datetime.now()
 
-        # Date which the data was collected
-        df['AsOf'] = datetime.today()
-
-        df_filtered = self._transform_data(df)
-
-        return df_filtered
+            df_filtered = self._transform_data(df)
+        except ValueError as e:
+            logger.error(e)
+            logger.error(f'Error when creating a DataFrame for {check_in} to {check_out} data')
+        finally:
+            return df_filtered
 
 
 def automated_scraper_main(month: int, details: Details) -> None | DataFrame:
