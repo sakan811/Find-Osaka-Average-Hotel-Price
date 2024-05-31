@@ -13,13 +13,12 @@
 #    limitations under the License.
 
 import argparse
-import datetime
 
 from loguru import logger
 
 from japan_avg_hotel_price_finder.scrape import BasicScraper
-from japan_avg_hotel_price_finder.thread_scrape import ThreadPoolScraper
 from japan_avg_hotel_price_finder.scrape_until_month_end import MonthEndBasicScraper
+from japan_avg_hotel_price_finder.thread_scrape import ThreadPoolScraper
 from set_details import Details
 
 logger.add('japan_avg_hotel_price_month.log',
