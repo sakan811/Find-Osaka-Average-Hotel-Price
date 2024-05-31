@@ -29,8 +29,8 @@ class Details:
     """
     # Set booking details.
     city: str = 'Osaka'
-    check_in: str = '2024-08-22'
-    check_out: str = '2024-08-23'
+    check_in: str = '2024-12-28'
+    check_out: str = '2024-12-29'
     group_adults: int = 1
     num_rooms: int = 1
     group_children: int = 0
@@ -38,7 +38,7 @@ class Details:
 
     # Set the start date and number of nights when using Thread Pool Scraper or Month End Scraper
     start_day: int = 1
-    month: int = 10
+    month: int = 12
     year: int = 2024
     nights: int = 1
 

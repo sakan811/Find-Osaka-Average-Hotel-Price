@@ -15,6 +15,7 @@
 
 import datetime
 import re
+import threading
 import time
 
 import bs4
@@ -44,6 +45,7 @@ class BasicScraper:
         self.review_class = 'a3b8729ab1.d86cee9b25'
         self.box_class = 'c066246e13'
         self.dataframe = {'Hotel': [], 'Price': [], 'Review': []}
+        self.lock = threading.Lock()
 
     @staticmethod
     def _click_pop_up_ad(wait: WebDriverWait, driver: WebDriver) -> None:
@@ -181,14 +183,15 @@ class BasicScraper:
             price = re.sub(r'[^0-9]', '', price_element[0].text)
             review_score = review_element[0].text.split()[1]
 
-            self.dataframe['Hotel'].append(hotel_name)
-            self.dataframe['Price'].append(price)
-            self.dataframe['Review'].append(review_score)
+            with self.lock:
+                self.dataframe['Hotel'].append(hotel_name)
+                self.dataframe['Price'].append(price)
+                self.dataframe['Review'].append(review_score)
 
-            logger.info(f'All elements are presented.')
-            logger.debug(f'Hotel: {hotel_element}')
-            logger.debug(f'Price: {price_element}')
-            logger.debug(f'Review Score: {review_element}')
+                logger.info('All elements are presented.')
+                logger.debug(f'Hotel: {hotel_element}')
+                logger.debug(f'Price: {price_element}')
+                logger.debug(f'Review Score: {review_element}')
         else:
             logger.warning(f'Not all elements are presented.')
             logger.debug(f'Hotel: {hotel_element}')
@@ -281,22 +284,36 @@ class BasicScraper:
 
         self._scrape(url)
 
+        df_filtered = None
         # Create a DataFrame from the collected data
-        df = pd.DataFrame(self.dataframe)
+        try:
+            # Before creating the DataFrame, ensure all columns are of equal length
+            lengths = {key: len(value) for key, value in self.dataframe.items()}
+            logger.debug(f'Final lengths before DataFrame creation: {lengths}')
 
-        df['City'] = city
+            max_length = max(lengths.values())
+            for key in self.dataframe:
+                if len(self.dataframe[key]) < max_length:
+                    logger.debug(f'Filling column {key} with None to match length {max_length}')
+                    self.dataframe[key].extend([None] * (max_length - len(self.dataframe[key])))
 
-        # Hotel data of the given date
-        df['Date'] = check_in
+            df = pd.DataFrame(self.dataframe)
+            df['City'] = city
 
-        # Date which the data was collected
-        df['AsOf'] = datetime.datetime.now()
+            # Hotel data of the given date
+            df['Date'] = check_in
 
-        df_filtered = self._transform_data(df)
+            # Date which the data was collected
+            df['AsOf'] = datetime.datetime.now()
 
-        migrate_data_to_sqlite(df_filtered)
+            df_filtered = self._transform_data(df)
 
-        return df_filtered
+            migrate_data_to_sqlite(df_filtered)
+        except ValueError as e:
+            logger.error(e)
+            logger.error(f'Error when creating a DataFrame for {check_in} to {check_out} data')
+        finally:
+            return df_filtered
 
 
 if __name__ == '__main__':
