@@ -7,12 +7,7 @@ Showcase visualizations about the Hotel's Average Room Price in Osaka.
 [![Python application](https://github.com/sakan811/Find-Osaka-Average-Hotel-Price/actions/workflows/python-app.yml/badge.svg)](https://github.com/sakan811/Find-Osaka-Average-Hotel-Price/actions/workflows/python-app.yml)
 
 ## Visualizations
-Data as of May 19, 2024
-
 [Power BI](https://app.powerbi.com/view?r=eyJrIjoiOGFiNzQ1Y2UtZTVlOS00MzkyLTlmN2EtMDY2YWVlNzFiNTIyIiwidCI6ImZlMzViMTA3LTdjMmYtNGNjMy1hZDYzLTA2NTY0MzcyMDg3OCIsImMiOjEwfQ%3D%3D)  
-
-[Instagram](https://www.instagram.com/p/C7J1Uy0uuDK/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==)  
-[Facebook](https://www.facebook.com/permalink.php?story_fbid=pfbid0VY15MZY5RAPoE7xW5nHEaLhF9SC1kgt2eyiyg5xRZ35MynJpVA1Yi5fWwhTwa7rzl&id=61553626169836)
 
 ## Project Details
 Collect Osaka hotel property data from Booking.com
