@@ -183,20 +183,15 @@ class BasicScraper:
             price = re.sub(r'[^0-9]', '', price_element[0].text)
             review_score = review_element[0].text.split()[1]
 
-            with self.lock:
-                self.dataframe['Hotel'].append(hotel_name)
-                self.dataframe['Price'].append(price)
-                self.dataframe['Review'].append(review_score)
+            if hotel_name and price and review_score:
+                with self.lock:
+                    self.dataframe['Hotel'].append(hotel_name)
+                    self.dataframe['Price'].append(price)
+                    self.dataframe['Review'].append(review_score)
 
                 logger.info('All elements are presented.')
-                logger.debug(f'Hotel: {hotel_element}')
-                logger.debug(f'Price: {price_element}')
-                logger.debug(f'Review Score: {review_element}')
         else:
             logger.warning(f'Not all elements are presented.')
-            logger.debug(f'Hotel: {hotel_element}')
-            logger.debug(f'Price: {price_element}')
-            logger.debug(f'Review Score: {review_element}')
 
     def _scrape(self, url: str) -> None:
         """

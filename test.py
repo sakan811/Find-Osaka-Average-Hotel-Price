@@ -155,8 +155,8 @@ def test_weekly_scraper() -> None:
     month = today.month
     year = today.year
 
-    sqlite_name = 'test.db'
 
+    sqlite_name = 'test.db'
     hotel_stay = Details(
         city=city, group_adults=group_adults, num_rooms=num_rooms,
         group_children=group_children, selected_currency=selected_currency,
