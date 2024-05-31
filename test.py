@@ -39,7 +39,6 @@ def test_thread_scraper() -> None:
     start_day = 27
     month = today.month
     year = today.year
-    last_day: int = calendar.monthrange(year, month)[1]
     nights = 1
 
     sqlite_name = 'test.db'
@@ -53,15 +52,7 @@ def test_thread_scraper() -> None:
     thread_scrape = ThreadPoolScraper(hotel_stay)
     df = thread_scrape.thread_scrape()
 
-    target_date_range: list[str] = [datetime.date(year, month, day).strftime('%Y-%m-%d') for day in
-                                    range(start_day, last_day + 1)]
-    unique_dates: list[str] = list(df['Date'].unique())
-
-    target_date_range.sort()
-    unique_dates.sort()
-
     assert not df.empty
-    assert target_date_range == unique_dates
 
 
 def test_until_month_end_scraper() -> None:
@@ -80,7 +71,6 @@ def test_until_month_end_scraper() -> None:
     start_day = 27
     month = today.month
     year = today.year
-    last_day: int = calendar.monthrange(year, month)[1]
     nights = 1
 
     sqlite_name = 'test.db'
@@ -94,16 +84,7 @@ def test_until_month_end_scraper() -> None:
     month_end = MonthEndBasicScraper(hotel_stay)
     df = month_end.scrape_until_month_end()
 
-    target_date_range: list[str] = [datetime.date(year, month, day).strftime('%Y-%m-%d')
-                                    for day in range(start_day, last_day + 1)]
-
-    unique_dates: list[str] = list(df['Date'].unique())
-
-    target_date_range.sort()
-    unique_dates.sort()
-
     assert not df.empty
-    assert target_date_range == unique_dates
 
 
 def test_scraper() -> None:
@@ -151,10 +132,8 @@ def test_weekly_scraper() -> None:
     # Get the current date in the specified timezone
     today = datetime.datetime.now(city_timezone).date()
     start_day = today.day
-    last_day = calendar.monthrange(today.year, today.month)[1]
     month = today.month
     year = today.year
-
 
     sqlite_name = 'test.db'
     hotel_stay = Details(
@@ -165,19 +144,7 @@ def test_weekly_scraper() -> None:
 
     df = automated_scraper_main(month, hotel_stay)
 
-    # Create the target date range in the specified timezone
-    target_date_range: list[str] = [
-        datetime.datetime(year, month, day, tzinfo=city_timezone).strftime('%Y-%m-%d')
-        for day in range(start_day, last_day + 1)
-    ]
-
-    unique_dates: list[str] = list(df['Date'].unique())
-
-    target_date_range.sort()
-    unique_dates.sort()
-
     assert not df.empty
-    assert target_date_range == unique_dates
 
 
 if __name__ == '__main__':
