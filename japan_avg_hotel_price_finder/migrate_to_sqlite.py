@@ -33,14 +33,14 @@ def migrate_data_to_sqlite(df_filtered: pd.DataFrame) -> None:
     with sqlite3.connect(db) as con:
         query = '''
         CREATE TABLE IF NOT EXISTS HotelPrice (
-            ID INTEGER PRIMARY KEY AUTOINCREMENT,
-            Hotel TEXT,
-            Price REAL,
-            Review REAL,
-            "Price/Review" REAL,
-            City TEXT,
-            Date TEXT,
-            AsOf TEXT
+            ID INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+            Hotel TEXT NOT NULL,
+            Price REAL NOT NULL,
+            Review REAL NOT NULL,
+            "Price/Review" REAL NOT NULL,
+            City TEXT NOT NULL,
+            Date TEXT NOT NULL,
+            AsOf TEXT NOT NULL
         )
         '''
 
