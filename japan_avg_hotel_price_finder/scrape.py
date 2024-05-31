@@ -190,6 +190,14 @@ class BasicScraper:
                     self.dataframe['Review'].append(review_score)
 
                 logger.info('All elements are presented.')
+            else:
+                logger.warning('Data extraction did not work properly.')
+                logger.debug(f'{hotel_name = }')
+                logger.debug(f'{hotel_element = }')
+                logger.debug(f'{price = }')
+                logger.debug(f'{price_element = }')
+                logger.debug(f'{review_score = }')
+                logger.debug(f'{review_element = }')
         else:
             logger.warning(f'Not all elements are presented.')
 
