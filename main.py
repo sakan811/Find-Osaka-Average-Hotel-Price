@@ -31,9 +31,11 @@ parser.add_argument('--thread_pool', type=bool, default=False, help='Use thread 
 parser.add_argument('--month_end', type=bool, default=False, help='Scrape until month end')
 parser.add_argument('--scraper', type=bool, default=True, help='Use basic scraper')
 parser.add_argument('--to_sqlite', type=bool, default=False, help='Use basic scraper')
+parser.add_argument('--month', type=int, help='Month to scrape data for (1-12)', required=True)
 args = parser.parse_args()
 
-details = Details()
+month = args.month
+details = Details(month=month)
 
 if args.thread_pool:
     logger.info('Using thread pool scraper')

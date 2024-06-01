@@ -23,40 +23,40 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Run Scraper For January
-        run: python automated_scraper.py --month=1
+        run: python main.py --thread_pool=True --month=1
 
       - name: Run Scraper For February
-        run: python automated_scraper.py --month=2
+        run: python main.py --thread_pool=True --month=2
 
       - name: Run Scraper For March
-        run: python automated_scraper.py --month=3
+        run: python main.py --thread_pool=True --month=3
 
       - name: Run Scraper For April
-        run: python automated_scraper.py --month=4
+        run: python main.py --thread_pool=True --month=4
 
       - name: Run Scraper For May
-        run: python automated_scraper.py --month=5
+        run: python main.py --thread_pool=True --month=5
 
       - name: Run Scraper For June
-        run: python automated_scraper.py --month=6
+        run: python main.py --thread_pool=True --month=6
 
       - name: Run Scraper For July
-        run: python automated_scraper.py --month=7
+        run: python main.py --thread_pool=True --month=7
 
       - name: Run Scraper For August
-        run: python automated_scraper.py --month=8
+        run: python main.py --thread_pool=True --month=8
 
       - name: Run Scraper For September
-        run: python automated_scraper.py --month=9
+        run: python main.py --thread_pool=True --month=9
 
       - name: Run Scraper For October
-        run: python automated_scraper.py --month=10
+        run: python main.py --thread_pool=True --month=10
 
       - name: Run Scraper For November
-        run: python automated_scraper.py --month=11
+        run: python main.py --thread_pool=True --month=11
 
       - name: Run Scraper For December
-        run: python automated_scraper.py --month=12
+        run: python main.py --thread_pool=True --month=12
 
       - id: 'auth'
         uses: 'google-github-actions/auth@v2'

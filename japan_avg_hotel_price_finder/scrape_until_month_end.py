@@ -62,7 +62,7 @@ class MonthEndBasicScraper(BasicScraper):
         while current_date <= end_date:
             current_date_has_passed: bool = check_if_current_date_has_passed(self.year, self.month, self.start_day)
             if current_date_has_passed:
-                logger.warning(f'The current day of the month to scrape was passed. Skip this day.')
+                logger.warning(f'The current day of the month to scrape was passed. Skip {self.year}-{self.month}-{self.start_day}.')
             else:
                 check_in = current_date.strftime('%Y-%m-%d')
                 check_out = (current_date + timedelta(days=self.nights)).strftime('%Y-%m-%d')

@@ -75,7 +75,12 @@ This script can also be used to scrape data from other cities.
   ```  
   python main.py --to_sqlite=True
   ```
-    
+- Month to scrape can be specified using ```--month=(month number as int)``` for Thread Pool and Month End Scraper.
+  - For example, to scrape data from June of the current year using Thread Pool Scraper, run the following command line:
+  ```  
+  python main.py --thread_pool=True --month=6
+  ``` 
+
 ### Dataclass
 [set_details.py](set_details.py)
 - Dataclass that stores booking details, date, and length of stay.
@@ -105,4 +110,4 @@ This script can also be used to scrape data from other cities.
 [automated_scraper.py](automated_scraper.py)
 - Scrape Osaka hotel data daily using GitHub action for all 12 months.
   - Save to CSV for each month.
-- Save CSV to Google Cloud Storage
+- Save CSV to Google Cloud Storage.
