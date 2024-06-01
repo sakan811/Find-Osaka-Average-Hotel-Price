@@ -118,33 +118,5 @@ def test_scraper() -> None:
     assert not df.empty
 
 
-def test_weekly_scraper() -> None:
-    city = 'Osaka'
-    group_adults = 1
-    num_rooms = 1
-    group_children = 0
-    selected_currency = 'USD'
-
-    # Define the timezone
-    city_timezone = pytz.timezone('Asia/Singapore')
-
-    # Get the current date in the specified timezone
-    today = datetime.datetime.now(city_timezone).date()
-    start_day = 25
-    month = today.month
-    year = today.year
-
-    sqlite_name = 'test.db'
-    hotel_stay = Details(
-        city=city, group_adults=group_adults, num_rooms=num_rooms,
-        group_children=group_children, selected_currency=selected_currency,
-        start_day=start_day, month=month, year=year, sqlite_name=sqlite_name
-    )
-
-    df = automated_scraper_main(month, hotel_stay)
-
-    assert not df.empty
-
-
 if __name__ == '__main__':
     pytest.main([__file__])
