@@ -30,6 +30,7 @@ parser = argparse.ArgumentParser(description='Parser that control which kind of 
 parser.add_argument('--thread_pool', type=bool, default=False, help='Use thread pool')
 parser.add_argument('--month_end', type=bool, default=False, help='Scrape until month end')
 parser.add_argument('--scraper', type=bool, default=True, help='Use basic scraper')
+parser.add_argument('--to_sqlite', type=bool, default=False, help='Use basic scraper')
 args = parser.parse_args()
 
 details = Details()
@@ -37,17 +38,32 @@ details = Details()
 if args.thread_pool:
     logger.info('Using thread pool scraper')
     thread_scrape = ThreadPoolScraper(details)
-    thread_scrape.thread_scrape()
+    to_sqlite = args.to_sqlite
+    if to_sqlite:
+        thread_scrape.thread_scrape(to_sqlite)
+    else:
+        df = thread_scrape.thread_scrape()
+        df.to_csv('japan_avg_hotel_price.csv', index=False)
 elif args.month_end:
     logger.info('Using month end scraper')
     month_end = MonthEndBasicScraper(details)
-    month_end.scrape_until_month_end()
+    to_sqlite = args.to_sqlite
+    if to_sqlite:
+        month_end.scrape_until_month_end(to_sqlite)
+    else:
+        df = month_end.scrape_until_month_end()
+        df.to_csv('japan_avg_hotel_price.csv', index=False)
 elif args.scraper:
     logger.info('Using basic scraper')
     check_in = details.check_in
     check_out = details.check_out
+    to_sqlite = args.to_sqlite
     scraper = BasicScraper(details)
-    scraper.start_scraping_process(check_in, check_out)
+    if to_sqlite:
+        scraper.start_scraping_process(check_in, check_out, to_sqlite)
+    else:
+        df = scraper.start_scraping_process(check_in, check_out)
+        df.to_csv('japan_avg_hotel_price.csv', index=False)
 
 
 

@@ -35,12 +35,12 @@ class MonthEndBasicScraper(BasicScraper):
         self.year = details.year
         self.nights = details.nights
 
-    def scrape_until_month_end(self) -> None | pd.DataFrame:
+    def scrape_until_month_end(self, to_sqlite: bool = False) -> None | pd.DataFrame:
         """
         Scrape hotel data (hotel name, room price, review score)
         starting from a given start day until the end of the same month.
-        :return: None.
-                Return a Pandas DataFrame for testing purpose only.
+        :param to_sqlite: If True, save the scraped data to a SQLite database, else save to CSV.
+        :return: None or a Pandas DataFrame.
         """
         logger.info(f'Scraping data from {self.start_day}-{calendar.month_name[self.month]}-{self.year} '
                     f'to the end of {calendar.month_name[self.month]}-{self.year}...')
@@ -65,7 +65,7 @@ class MonthEndBasicScraper(BasicScraper):
 
             current_date += timedelta(days=1)
 
-            df = self.start_scraping_process(check_in, check_out)
+            df = self.start_scraping_process(check_in, check_out, to_sqlite)
 
             df_list.append(df)
 

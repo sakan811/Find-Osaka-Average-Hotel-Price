@@ -69,7 +69,11 @@ This script can also be used to scrape data from other cities.
     python main.py 
     ```
   - Scrape data based on the given check-in and check-out date.
-- Data is saved to SQLite database.
+- Data is saved to CSV by default.
+  - Add ```--to_sqlite=True``` to save data to SQLite database.
+  ```  
+  python main.py --to_sqlite=True
+  ```
     
 ### Dataclass
 [set_details.py](set_details.py)

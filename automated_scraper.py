@@ -20,6 +20,7 @@ import pandas as pd
 from loguru import logger
 from pandas import DataFrame
 
+from japan_avg_hotel_price_finder.scrape import transform_data
 from set_details import Details
 from japan_avg_hotel_price_finder.thread_scrape import ThreadPoolScraper
 
@@ -121,7 +122,7 @@ class AutomatedThreadPoolScraper(ThreadPoolScraper):
             # Date which the data was collected
             df['AsOf'] = datetime.now()
 
-            df_filtered = _transform_data(df)
+            df_filtered = transform_data(df)
         except ValueError as e:
             logger.error(e)
             logger.error(f'Error when creating a DataFrame for {check_in} to {check_out} data')

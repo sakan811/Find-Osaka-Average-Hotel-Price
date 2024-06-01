@@ -32,11 +32,11 @@ class ThreadPoolScraper(MonthEndBasicScraper):
         """
         super().__init__(details)
 
-    def thread_scrape(self) -> None | pd.DataFrame:
+    def thread_scrape(self, to_sqlite: bool = False) -> None | pd.DataFrame:
         """
         Scrape hotel data from the start day to the end of the same month using Thread Pool executor.
-        :return: None.
-                Return Pandas dataframe for testing purpose.
+        :param to_sqlite: If True, save the scraped data to a SQLite database, else save it to CSV
+        :return: None or a Pandas dataframe.
         """
         logger.info('Scraping hotel data using Thread Pool executor...')
 
@@ -59,7 +59,7 @@ class ThreadPoolScraper(MonthEndBasicScraper):
             check_in: str = current_date.strftime('%Y-%m-%d')
             check_out: str = (current_date + timedelta(days=self.nights)).strftime('%Y-%m-%d')
 
-            df = self.start_scraping_process(check_in, check_out)
+            df = self.start_scraping_process(check_in, check_out, to_sqlite)
 
             # Append the result to the 'results' list
             results.append(df)

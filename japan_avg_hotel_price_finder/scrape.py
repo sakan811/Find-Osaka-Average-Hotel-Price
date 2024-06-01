@@ -274,13 +274,13 @@ class BasicScraper:
 
         return self._find_hotel_data_from_box_class(soup)
 
-    def start_scraping_process(self, check_in: str, check_out: str) -> None | DataFrame:
+    def start_scraping_process(self, check_in: str, check_out: str, to_sqlite: bool = False) -> None | DataFrame:
         """
         Main function to start the web scraping process.
         :param check_in: Check-in date.
         :param check_out: Check-out date.
-        :return: None.
-                Return a Pandas DataFrame for testing purpose only.
+        :param to_sqlite: If True, save the scraped data to a SQLite database, else save to CSV.
+        :return: None or Pandas DataFrame.
         """
         logger.info(f"Starting web-scraping... Period: {check_in} to {check_out}")
 
@@ -312,12 +312,14 @@ class BasicScraper:
             df['AsOf'] = datetime.datetime.now()
 
             df_filtered = transform_data(df)
-
-            migrate_data_to_sqlite(df_filtered)
         except ValueError as e:
             logger.error(e)
             logger.error(f'Error when creating a DataFrame for {check_in} to {check_out} data')
         finally:
+            if to_sqlite:
+                migrate_data_to_sqlite(df_filtered)
+            else:
+                df_filtered.to_csv(f'{city}_hotel_data_{check_in}_to_{check_out}.csv', index=False)
             return df_filtered
 
 
