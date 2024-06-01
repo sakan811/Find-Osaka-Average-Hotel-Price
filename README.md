@@ -95,7 +95,6 @@ This script can also be used to scrape data from other cities.
 
 ### Automated Hotel Scraper
 [automated_scraper.py](automated_scraper.py)
-- Scrape Osaka hotel data weekly using GitHub action for all 12 months.
+- Scrape Osaka hotel data daily using GitHub action for all 12 months.
   - Save to CSV for each month.
-- Send CSV via email.
-- Big thanks to https://yasoob.me/posts/github-actions-web-scraper-schedule-tutorial/
+- Save CSV to Google Cloud Storage

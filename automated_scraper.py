@@ -121,7 +121,7 @@ class AutomatedThreadPoolScraper(ThreadPoolScraper):
             # Date which the data was collected
             df['AsOf'] = datetime.now()
 
-            df_filtered = self._transform_data(df)
+            df_filtered = _transform_data(df)
         except ValueError as e:
             logger.error(e)
             logger.error(f'Error when creating a DataFrame for {check_in} to {check_out} data')

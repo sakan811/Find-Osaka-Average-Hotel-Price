@@ -15,7 +15,6 @@
 
 import datetime
 import re
-import threading
 import time
 
 import bs4
@@ -23,28 +22,28 @@ import pandas as pd
 from loguru import logger
 from pandas import DataFrame
 from selenium import webdriver
-from selenium.common import NoSuchElementException, TimeoutException, StaleElementReferenceException
+from selenium.common import NoSuchElementException, TimeoutException
 from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.wait import WebDriverWait
 
 from japan_avg_hotel_price_finder.migrate_to_sqlite import migrate_data_to_sqlite
 from set_details import Details
 
 
-def append_to_dataframe(
-        dataframe: pd.DataFrame,
+def append_to_hotel_dict(
+        hotel_data_dict: dict,
         hotel_element: bs4.ResultSet,
         price_element: bs4.ResultSet,
-        review_element: bs4.ResultSet) -> DataFrame:
+        review_element: bs4.ResultSet) -> dict:
     """
     Append data to dataframe.
-    :param dataframe: Pandas DataFrame to store data.
+    :param hotel_data_dict: Dictionary to store hotel data.
     :param hotel_element: Hotel data element from the HTML source.
     :param price_element: Price data element from the HTML source.
     :param review_element: Review score data element from the HTML source.
-    :return: Pandas DataFrame
+    :return: Dictionary with hotel data added.
     """
     # Check if all elements are presented before extracting data
     if hotel_element and price_element and review_element:
@@ -53,9 +52,9 @@ def append_to_dataframe(
         review_score = review_element[0].text.split()[1]
 
         if hotel_name and price and review_score:
-            dataframe['Hotel'].append(hotel_name)
-            dataframe['Price'].append(price)
-            dataframe['Review'].append(review_score)
+            hotel_data_dict['Hotel'].append(hotel_name)
+            hotel_data_dict['Price'].append(price)
+            hotel_data_dict['Review'].append(review_score)
 
             logger.info('All elements are presented.')
         else:
@@ -69,7 +68,119 @@ def append_to_dataframe(
     else:
         logger.warning(f'Not all elements are presented.')
 
-    return dataframe
+    return hotel_data_dict
+
+
+def transform_data(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Transform scraped hotel data.
+    :param df: Pandas dataframe.
+    :return: Pandas dataframe.
+    """
+    logger.info("Transforming data...")
+
+    # Remove duplicate rows from the DataFrame based on 'Hotel' column
+    df_filtered = df.drop_duplicates(subset='Hotel')
+
+    # Convert 'Price' and 'Review' columns to numeric using .loc
+    df_filtered.loc[:, 'Price'] = pd.to_numeric(df['Price'], errors='coerce')
+    df_filtered.loc[:, 'Review'] = pd.to_numeric(df['Review'], errors='coerce')
+
+    # Add a new column for the ratio of Price to Review using .loc
+    df_filtered.loc[:, 'Price/Review'] = df_filtered['Price'] / df_filtered['Review']
+
+    # Sort the DataFrame based on the 'Price/Review' column
+    return df_filtered.sort_values(by='Price/Review')
+
+
+def click_pop_up_ad(wait: WebDriverWait, driver: WebDriver) -> None:
+    """
+    Click pop-up ad.
+    :param driver: Selenium WebDriver.
+    :param wait: Selenium WebDriverWait object.
+    :return: None
+    """
+    logger.info("Clicking pop-up ad...")
+
+    ads_css_selector = ('#b2searchresultsPage > div.b9720ed41e.cdf0a9297c > div > div > div > div.dd5dccd82f > '
+                        'div.ffd93a9ecb.dc19f70f85.eb67815534 > div > button')
+    try:
+        time.sleep(2)
+        ads = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ads_css_selector)))
+        ads.click()
+    except NoSuchElementException as e:
+        logger.error(e)
+        logger.error(f'{ads_css_selector} not found')
+    except TimeoutException as e:
+        logger.error(e)
+        logger.error(f'{ads_css_selector} timed out')
+        driver.refresh()
+        logger.info('Refreshed page')
+    except Exception as e:
+        logger.error(e)
+        logger.error(f'{ads_css_selector} failed due to {e}')
+    else:
+        logger.info('Clicked the pop-up ads successfully')
+
+
+def click_load_more_result_button(driver: WebDriver) -> None:
+    """
+    Click 'load more result' button to load more hotels.
+    :param driver: Selenium WebDriver.
+    :return: None
+    """
+    logger.info("Clicking 'load more result' button...")
+
+    load_more_result_css_selector = ('#bodyconstraint-inner > div:nth-child(8) > div > div.af5895d4b2 > '
+                                     'div.df7e6ba27d > div.bcbf33c5c3 > div.dcf496a7b9.bb2746aad9 > '
+                                     'div.d4924c9e74 > div.c82435a4b8.f581fde0b8 > button')
+
+    try:
+        load_more_button = driver.find_element(By.CSS_SELECTOR, load_more_result_css_selector)
+        load_more_button.click()
+    except NoSuchElementException as e:
+        logger.error(e)
+        logger.error(f'{load_more_result_css_selector} not found. Keep scrolling.')
+    except Exception as e:
+        logger.error(e)
+        logger.error(f'{load_more_result_css_selector} failed due to {e}')
+    else:
+        logger.info(f'{load_more_result_css_selector} clicked successfully')
+
+
+def scroll_down_until_page_bottom(driver: WebDriver) -> None:
+    """
+    Scroll down and click 'Load more result' button if present.
+
+    Scroll down until reach the bottom of the page.
+    :param driver: Selenium WebDriver.
+    :return: None
+    """
+    logger.info("Scrolling down until the bottom of the page...")
+    logger.info("Click 'Load more result' button if present.")
+    while True:
+        # Get current height
+        current_height = driver.execute_script("return window.scrollY")
+        logger.debug(f'{current_height = }')
+
+        # Scroll down to the bottom
+        driver.execute_script("window.scrollBy(0, 2000);")
+
+        # Wait for some time to load more content (adjust as needed)
+        time.sleep(1)
+
+        # Get current height
+        new_height = driver.execute_script("return window.scrollY")
+        logger.debug(f'{new_height = }')
+
+        # If the new height is the same as the last height, then the bottom is reached
+        if current_height == new_height:
+            logger.info("Reached the bottom of the page.")
+            break
+
+        time.sleep(2)
+
+        click_load_more_result_button(driver)
 
 
 class BasicScraper:
@@ -83,135 +194,55 @@ class BasicScraper:
         self.price_class = 'f6431b446c.fbfd7c1165.e84eb96b1f'
         self.review_class = 'a3b8729ab1.d86cee9b25'
         self.box_class = 'c066246e13'
-        self.dataframe = {'Hotel': [], 'Price': [], 'Review': []}
+        self.hotel_data_dict = {'Hotel': [], 'Price': [], 'Review': []}
 
-    @staticmethod
-    def _click_pop_up_ad(wait: WebDriverWait, driver: WebDriver) -> None:
+    def _find_box_elements(self, soup) -> bs4.ResultSet:
         """
-        Click pop-up ad.
-        :param driver: Selenium WebDriver.
-        :param wait: Selenium WebDriverWait object.
-        :return: None
-        """
-        logger.info("Clicking pop-up ad...")
-
-        ads_css_selector = ('#b2searchresultsPage > div.b9720ed41e.cdf0a9297c > div > div > div > div.dd5dccd82f > '
-                            'div.ffd93a9ecb.dc19f70f85.eb67815534 > div > button')
-        try:
-            time.sleep(2)
-            ads = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ads_css_selector)))
-            ads.click()
-        except NoSuchElementException as e:
-            logger.error(e)
-            logger.error(f'{ads_css_selector} not found')
-        except TimeoutException as e:
-            logger.error(e)
-            logger.error(f'{ads_css_selector} timed out')
-            driver.refresh()
-            logger.info('Refreshed page')
-        except Exception as e:
-            logger.error(e)
-            logger.error(f'{ads_css_selector} failed due to {e}')
-        else:
-            logger.info('Clicked the pop-up ads successfully')
-
-    @staticmethod
-    def _click_load_more_result_button(driver: WebDriver) -> None:
-        """
-        Click 'load more result' button to load more hotels.
-        :param driver: Selenium WebDriver.
-        :return: None
-        """
-        logger.info("Clicking 'load more result' button...")
-
-        load_more_result_css_selector = ('#bodyconstraint-inner > div:nth-child(8) > div > div.af5895d4b2 > '
-                                         'div.df7e6ba27d > div.bcbf33c5c3 > div.dcf496a7b9.bb2746aad9 > '
-                                         'div.d4924c9e74 > div.c82435a4b8.f581fde0b8 > button')
-
-        try:
-            load_more_button = driver.find_element(By.CSS_SELECTOR, load_more_result_css_selector)
-            load_more_button.click()
-        except NoSuchElementException as e:
-            logger.error(e)
-            logger.error(f'{load_more_result_css_selector} not found. Keep scrolling.')
-        except Exception as e:
-            logger.error(e)
-            logger.error(f'{load_more_result_css_selector} failed due to {e}')
-        else:
-            logger.info(f'{load_more_result_css_selector} clicked successfully')
-
-    def _scroll_down_until_page_bottom(self, driver: WebDriver) -> None:
-        """
-        Scroll down and click 'Load more result' button if present.
-
-        Scroll down until reach the bottom of the page.
-        :param driver: Selenium WebDriver.
-        :return: None
-        """
-        logger.info("Scrolling down until the bottom of the page...")
-        logger.info("Click 'Load more result' button if present.")
-        while True:
-            # Get current height
-            current_height = driver.execute_script("return window.scrollY")
-            logger.debug(f'{current_height = }')
-
-            # Scroll down to the bottom
-            driver.execute_script("window.scrollBy(0, 2000);")
-
-            # Wait for some time to load more content (adjust as needed)
-            time.sleep(1)
-
-            # Get current height
-            new_height = driver.execute_script("return window.scrollY")
-            logger.debug(f'{new_height = }')
-
-            # If the new height is the same as the last height, then the bottom is reached
-            if current_height == new_height:
-                logger.info("Reached the bottom of the page.")
-                break
-
-            time.sleep(2)
-
-            self._click_load_more_result_button(driver)
-
-    def _scrape_data_from_box_class(
-            self,
-            soup: bs4.BeautifulSoup,
-            box_class: str,
-            hotel_class: str,
-            price_class: str,
-            review_class: str) -> pd.DataFrame:
-        """
-        Scrape data from box class.
+        Find box elements from box class.
         :param soup: bs4.BeautifulSoup object.
-        :param box_class: Class name of the box that contains the hotel data.
-        :param hotel_class: Class name of the hotel name data.
-        :param price_class: Class name of the price data.
-        :param review_class: Class name of the review score data.
-        :return: Pandas DataFrame.
+        :return: bs4.ResultSet
         """
-        logger.info("Scraping data from box class...")
+        logger.info("Find the box elements")
+        box_elements = soup.select(f'.{self.box_class}')
+        return box_elements
 
-        # Find the box elements
-        box_elements = soup.select(f'.{box_class}')
+    def _find_hotel_data_from_box_class(self, soup: bs4.BeautifulSoup) -> dict:
+        """
+        Find hotel data from box class.
+        :param soup: bs4.BeautifulSoup object.
+        :return: Dictionary with hotel data.
+        """
+        logger.info("Finding hotel data from box class...")
 
-        dataframe = self.dataframe
+        box_elements: bs4.ResultSet = self._find_box_elements(soup)
 
+        hotel_data_dict = self.hotel_data_dict
+
+        hotel_data_dict = self._find_data_in_box_elements(box_elements, hotel_data_dict)
+
+        return hotel_data_dict
+
+    def _find_data_in_box_elements(self, box_elements: bs4.ResultSet, hotel_data_dict: dict) -> dict:
+        """
+        Find data in box elements.
+        :param box_elements: Box elements.
+        :param hotel_data_dict: Dictionary storing hotel data.
+        :return: Dictionary with hotel data.
+        """
+        logger.info("Find the elements within the box element")
         for box_element in box_elements:
-            # Find the elements within the box element
-            hotel_element = box_element.select(f'.{hotel_class}')
-            price_element = box_element.select(f'.{price_class}')
-            review_element = box_element.select(f'.{review_class}')
+            hotel_element = box_element.select(f'.{self.hotel_class}')
+            price_element = box_element.select(f'.{self.price_class}')
+            review_element = box_element.select(f'.{self.review_class}')
 
-            dataframe = append_to_dataframe(dataframe, hotel_element, price_element, review_element)
+            hotel_data_dict = append_to_hotel_dict(hotel_data_dict, hotel_element, price_element, review_element)
+        return hotel_data_dict
 
-        return dataframe
-
-    def _scrape(self, url: str) -> pd.DataFrame:
+    def _scrape(self, url: str) -> dict:
         """
         Scrape hotel data from the website.
         :param url: Website URL.
-        :return: Pandas Dataframe.
+        :return: Dictionary with hotel data.
         """
         # Configure Chrome options to block image loading and disable automation features
         options = webdriver.ChromeOptions()
@@ -228,9 +259,9 @@ class BasicScraper:
 
         wait = WebDriverWait(driver, 5)
 
-        self._click_pop_up_ad(wait, driver)
+        click_pop_up_ad(wait, driver)
 
-        self._scroll_down_until_page_bottom(driver)
+        scroll_down_until_page_bottom(driver)
 
         logger.info('Get the page source after the page has loaded')
         html = driver.page_source
@@ -241,34 +272,7 @@ class BasicScraper:
         logger.info('Parse the HTML content with BeautifulSoup')
         soup = bs4.BeautifulSoup(html, 'html.parser')
 
-        hotel_class = self.hotel_class
-        price_class = self.price_class
-        review_class = self.review_class
-        box_class = self.box_class
-
-        return self._scrape_data_from_box_class(soup, box_class, hotel_class, price_class, review_class)
-
-    @staticmethod
-    def _transform_data(df: pd.DataFrame) -> pd.DataFrame:
-        """
-        Transform scraped hotel data.
-        :param df: Pandas dataframe.
-        :return: Pandas dataframe.
-        """
-        logger.info("Transforming data...")
-
-        # Remove duplicate rows from the DataFrame based on 'Hotel' column
-        df_filtered = df.drop_duplicates(subset='Hotel')
-
-        # Convert 'Price' and 'Review' columns to numeric using .loc
-        df_filtered.loc[:, 'Price'] = pd.to_numeric(df['Price'], errors='coerce')
-        df_filtered.loc[:, 'Review'] = pd.to_numeric(df['Review'], errors='coerce')
-
-        # Add a new column for the ratio of Price to Review using .loc
-        df_filtered.loc[:, 'Price/Review'] = df_filtered['Price'] / df_filtered['Review']
-
-        # Sort the DataFrame based on the 'Price/Review' column
-        return df_filtered.sort_values(by='Price/Review')
+        return self._find_hotel_data_from_box_class(soup)
 
     def start_scraping_process(self, check_in: str, check_out: str) -> None | DataFrame:
         """
@@ -291,21 +295,23 @@ class BasicScraper:
                f'&no_rooms={num_rooms}&group_children={group_children}'
                f'&selected_currency={selected_currency}&nflt=ht_id%3D204')
 
-        dataframe = self._scrape(url)
+        hotel_data_dict = self._scrape(url)
 
         df_filtered = None
-        # Create a DataFrame from the collected data
+        logger.info("Create a DataFrame from the collected data")
         try:
-            df = pd.DataFrame(dataframe)
+            df = pd.DataFrame(hotel_data_dict)
+
+            logger.info("Add City column to DataFrame")
             df['City'] = city
 
-            # Hotel data of the given date
+            logger.info("Add Date column to DataFrame")
             df['Date'] = check_in
 
-            # Date which the data was collected
+            logger.info("Add AsOf column to DataFrame")
             df['AsOf'] = datetime.datetime.now()
 
-            df_filtered = self._transform_data(df)
+            df_filtered = transform_data(df)
 
             migrate_data_to_sqlite(df_filtered)
         except ValueError as e:
