@@ -16,7 +16,6 @@ import datetime
 import pytest
 import pytz
 
-from automated_scraper import automated_scraper_main
 from japan_avg_hotel_price_finder.scrape import BasicScraper
 from japan_avg_hotel_price_finder.scrape_until_month_end import MonthEndBasicScraper
 from japan_avg_hotel_price_finder.thread_scrape import ThreadPoolScraper
