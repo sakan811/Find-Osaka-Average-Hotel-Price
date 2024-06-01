@@ -55,14 +55,18 @@ class ThreadPoolScraper(MonthEndBasicScraper):
             """
             logger.info('Scraping hotel data of the given date...')
 
+            current_day = datetime.today().day
             current_date = datetime(self.year, self.month, day)
-            check_in: str = current_date.strftime('%Y-%m-%d')
-            check_out: str = (current_date + timedelta(days=self.nights)).strftime('%Y-%m-%d')
+            if current_date.day < current_day:
+                logger.warning(f'The current day of the month to scrape was passed. Skip this day.')
+            else:
+                check_in: str = current_date.strftime('%Y-%m-%d')
+                check_out: str = (current_date + timedelta(days=self.nights)).strftime('%Y-%m-%d')
 
-            df = self.start_scraping_process(check_in, check_out, to_sqlite)
+                df = self.start_scraping_process(check_in, check_out, to_sqlite)
 
-            # Append the result to the 'results' list
-            results.append(df)
+                # Append the result to the 'results' list
+                results.append(df)
 
         # Create a thread pool with a maximum of 5 threads
         with ThreadPoolExecutor(max_workers=5) as executor:
