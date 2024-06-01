@@ -14,6 +14,7 @@
 
 
 import datetime
+import os
 import re
 import time
 
@@ -317,9 +318,20 @@ class BasicScraper:
             logger.error(f'Error when creating a DataFrame for {check_in} to {check_out} data')
         finally:
             if to_sqlite:
+                logger.info('Save data to SQLite database')
                 migrate_data_to_sqlite(df_filtered)
             else:
-                df_filtered.to_csv(f'{city}_hotel_data_{check_in}_to_{check_out}.csv', index=False)
+                logger.info('Save data to CSV')
+                save_dir = 'scraped_hotel_data_csv'
+
+                if not os.path.exists(save_dir):
+                    logger.info(f'Create {save_dir} directory')
+                    os.makedirs(save_dir)
+
+                file_path = os.path.join(save_dir, f'{city}_hotel_data_{check_in}_to_{check_out}.csv')
+                df_filtered.to_csv(file_path, index=False)
+
+            logger.info('Return data as DataFrame')
             return df_filtered
 
 

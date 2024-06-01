@@ -20,6 +20,7 @@ from datetime import datetime, timedelta
 import pandas as pd
 from loguru import logger
 
+from japan_avg_hotel_price_finder.utils import check_if_current_date_has_passed
 from set_details import Details
 from japan_avg_hotel_price_finder.scrape_until_month_end import MonthEndBasicScraper
 
@@ -55,9 +56,10 @@ class ThreadPoolScraper(MonthEndBasicScraper):
             """
             logger.info('Scraping hotel data of the given date...')
 
-            current_day = datetime.today().day
+            current_date_has_passed: bool = check_if_current_date_has_passed(self.year, self.month, day)
+
             current_date = datetime(self.year, self.month, day)
-            if current_date.day < current_day:
+            if current_date_has_passed:
                 logger.warning(f'The current day of the month to scrape was passed. Skip this day.')
             else:
                 check_in: str = current_date.strftime('%Y-%m-%d')

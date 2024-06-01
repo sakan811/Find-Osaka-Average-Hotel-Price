@@ -97,6 +97,9 @@ This script can also be used to scrape data from other cities.
 - Scrape data for five dates at the same time using Thread Pool Execute.
   - Start from the given start date until the end of the same month.
 
+[utils.py](japan_avg_hotel_price_finder%2Futils.py)
+- Contain utility functions.
+
 ### Automated Hotel Scraper
 [automated_scraper.py](automated_scraper.py)
 - Scrape Osaka hotel data daily using GitHub action for all 12 months.

@@ -43,7 +43,6 @@ if args.thread_pool:
         thread_scrape.thread_scrape(to_sqlite)
     else:
         df = thread_scrape.thread_scrape()
-        df.to_csv('japan_avg_hotel_price.csv', index=False)
 elif args.month_end:
     logger.info('Using month end scraper')
     month_end = MonthEndBasicScraper(details)
@@ -52,7 +51,6 @@ elif args.month_end:
         month_end.scrape_until_month_end(to_sqlite)
     else:
         df = month_end.scrape_until_month_end()
-        df.to_csv('japan_avg_hotel_price.csv', index=False)
 elif args.scraper:
     logger.info('Using basic scraper')
     check_in = details.check_in
@@ -63,7 +61,6 @@ elif args.scraper:
         scraper.start_scraping_process(check_in, check_out, to_sqlite)
     else:
         df = scraper.start_scraping_process(check_in, check_out)
-        df.to_csv('japan_avg_hotel_price.csv', index=False)
 
 
 
