@@ -11,17 +11,16 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
-import calendar
 import datetime
 
 import pytest
 import pytz
 
 from automated_scraper import automated_scraper_main
-from set_details import Details
 from japan_avg_hotel_price_finder.scrape import BasicScraper
 from japan_avg_hotel_price_finder.scrape_until_month_end import MonthEndBasicScraper
 from japan_avg_hotel_price_finder.thread_scrape import ThreadPoolScraper
+from set_details import Details
 
 
 def test_thread_scraper() -> None:
@@ -101,8 +100,8 @@ def test_scraper() -> None:
     today = datetime.datetime.now(city_timezone).date()
     month = today.month
     year = today.year
-    check_in = datetime.date(year, month, today.day).strftime('%Y-%m-%d')
-    check_out = datetime.date(year, month, today.day) + datetime.timedelta(days=1)
+    check_in = datetime.date(year, month, 25).strftime('%Y-%m-%d')
+    check_out = datetime.date(year, month, 25) + datetime.timedelta(days=1)
     check_out = check_out.strftime('%Y-%m-%d')
 
     sqlite_name = 'test.db'
@@ -131,7 +130,7 @@ def test_weekly_scraper() -> None:
 
     # Get the current date in the specified timezone
     today = datetime.datetime.now(city_timezone).date()
-    start_day = today.day
+    start_day = 25
     month = today.month
     year = today.year
 
