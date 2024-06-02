@@ -57,25 +57,30 @@ class MonthEndBasicScraper(BasicScraper):
 
         df_list = []
 
-        logger.info('Loop through each day of the month')
-        current_date = start_date
-        while current_date <= end_date:
-            current_date_has_passed: bool = check_if_current_date_has_passed(self.year, self.month, self.start_day)
-            if current_date_has_passed:
-                logger.warning(f'The current day of the month to scrape was passed. Skip {self.year}-{self.month}-{self.start_day}.')
-            else:
-                check_in = current_date.strftime('%Y-%m-%d')
-                check_out = (current_date + timedelta(days=self.nights)).strftime('%Y-%m-%d')
-                logger.info(f'Scrape data for {self.nights} nights. Check-in: {check_in}, Check-out: {check_out}')
+        today = datetime.today()
+        if self.month < today.month:
+            month_name = calendar.month_name[self.month]
+            logger.warning(f'The current month to scrape has passed. Skip {month_name} {self.year}.')
+        else:
+            logger.info('Loop through each day of the month')
+            current_date = start_date
+            while current_date <= end_date:
+                current_date_has_passed: bool = check_if_current_date_has_passed(self.year, self.month, self.start_day)
+                if current_date_has_passed:
+                    logger.warning(f'The current day of the month to scrape was passed. Skip {self.year}-{self.month}-{self.start_day}.')
+                else:
+                    check_in = current_date.strftime('%Y-%m-%d')
+                    check_out = (current_date + timedelta(days=self.nights)).strftime('%Y-%m-%d')
+                    logger.info(f'Scrape data for {self.nights} nights. Check-in: {check_in}, Check-out: {check_out}')
 
-                current_date += timedelta(days=1)
+                    current_date += timedelta(days=1)
 
-                df = self.start_scraping_process(check_in, check_out, to_sqlite)
+                    df = self.start_scraping_process(check_in, check_out, to_sqlite)
 
-                df_list.append(df)
+                    df_list.append(df)
 
-        combined_df = pd.concat(df_list, ignore_index=True)
-        return combined_df
+            combined_df = pd.concat(df_list, ignore_index=True)
+            return combined_df
 
 
 if __name__ == '__main__':

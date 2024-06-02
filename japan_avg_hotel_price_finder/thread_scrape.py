@@ -47,42 +47,47 @@ class ThreadPoolScraper(MonthEndBasicScraper):
         # Define a list to store the result DataFrame from each thread
         results = []
 
-        # Define a function to perform scraping for each date
-        def scrape_each_date(day: int) -> None:
-            """
-            Scrape hotel data of the given date.
-            :param day: Day of the month.
-            :return: None
-            """
-            logger.info('Scraping hotel data of the given date...')
+        today = datetime.today()
+        if self.month < today.month:
+            month_name = calendar.month_name[self.month]
+            logger.warning(f'The current month to scrape has passed. Skip {month_name} {self.year}.')
+        else:
+            # Define a function to perform scraping for each date
+            def scrape_each_date(day: int) -> None:
+                """
+                Scrape hotel data of the given date.
+                :param day: Day of the month.
+                :return: None
+                """
+                logger.info('Scraping hotel data of the given date...')
 
-            current_date_has_passed: bool = check_if_current_date_has_passed(self.year, self.month, day)
+                current_date_has_passed: bool = check_if_current_date_has_passed(self.year, self.month, day)
 
-            current_date = datetime(self.year, self.month, day)
-            if current_date_has_passed:
-                logger.warning(f'The current day of the month to scrape was passed. Skip {self.year}-{self.month}-{day}.')
-            else:
-                check_in: str = current_date.strftime('%Y-%m-%d')
-                check_out: str = (current_date + timedelta(days=self.nights)).strftime('%Y-%m-%d')
+                current_date = datetime(self.year, self.month, day)
+                if current_date_has_passed:
+                    logger.warning(f'The current day of the month to scrape was passed. Skip {self.year}-{self.month}-{day}.')
+                else:
+                    check_in: str = current_date.strftime('%Y-%m-%d')
+                    check_out: str = (current_date + timedelta(days=self.nights)).strftime('%Y-%m-%d')
 
-                df = self.start_scraping_process(check_in, check_out, to_sqlite)
+                    df = self.start_scraping_process(check_in, check_out, to_sqlite)
 
-                # Append the result to the 'results' list
-                results.append(df)
+                    # Append the result to the 'results' list
+                    results.append(df)
 
-        # Create a thread pool with a maximum of 5 threads
-        with ThreadPoolExecutor(max_workers=5) as executor:
-            # Submit tasks for each date within the specified range
-            futures: list = [executor.submit(scrape_each_date, day) for day in range(self.start_day, last_day + 1)]
+            # Create a thread pool with a maximum of 5 threads
+            with ThreadPoolExecutor(max_workers=5) as executor:
+                # Submit tasks for each date within the specified range
+                futures: list = [executor.submit(scrape_each_date, day) for day in range(self.start_day, last_day + 1)]
 
-            # Wait for all tasks to complete
-            for future in futures:
-                future.result()
+                # Wait for all tasks to complete
+                for future in futures:
+                    future.result()
 
-        # Concatenate all DataFrames in the 'results' list into a single DataFrame
-        df = pd.concat(results, ignore_index=True)
+            # Concatenate all DataFrames in the 'results' list into a single DataFrame
+            df = pd.concat(results, ignore_index=True)
 
-        return df
+            return df
 
 
 if __name__ == '__main__':
