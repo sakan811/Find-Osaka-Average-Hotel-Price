@@ -316,7 +316,8 @@ class BasicScraper:
         except ValueError as e:
             logger.error(e)
             logger.error(f'Error when creating a DataFrame for {check_in} to {check_out} data')
-        finally:
+
+        if df_filtered is not None:
             if to_sqlite:
                 logger.info('Save data to SQLite database')
                 migrate_data_to_sqlite(df_filtered)
@@ -331,8 +332,8 @@ class BasicScraper:
                 file_path = os.path.join(save_dir, f'{city}_hotel_data_{check_in}_to_{check_out}.csv')
                 df_filtered.to_csv(file_path, index=False)
 
-            logger.info('Return data as DataFrame')
-            return df_filtered
+        logger.info('Return data as DataFrame')
+        return df_filtered
 
 
 if __name__ == '__main__':
