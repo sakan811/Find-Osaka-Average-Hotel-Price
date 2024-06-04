@@ -22,7 +22,7 @@ from japan_avg_hotel_price_finder.thread_scrape import ThreadPoolScraper
 from set_details import Details
 
 logger.add('japan_avg_hotel_price_month.log',
-           format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {thread} |  {name} | {module} | {function} | {line} | {message}",
+           format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {name} | {module} | {function} | {line} | {message}",
            mode='w')
 
 # Initialize argument parser
@@ -37,7 +37,9 @@ args = parser.parse_args()
 month = args.month
 details = Details(month=month)
 
-if args.thread_pool:
+if args.thread_pool and args.month_end:
+    logger.warning('Cannot use both --thread_pool and --month_end at the same time. Please use one of them at a time.')
+elif args.thread_pool:
     logger.info('Using thread pool scraper')
     thread_scrape = ThreadPoolScraper(details)
     to_sqlite = args.to_sqlite

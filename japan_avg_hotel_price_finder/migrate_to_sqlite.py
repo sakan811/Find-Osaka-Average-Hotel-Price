@@ -46,22 +46,32 @@ def migrate_data_to_sqlite(df_filtered: pd.DataFrame) -> None:
 
         con.execute(query)
 
-        data_type = {
-            'Hotel': 'text primary key',
-            'Price': 'real',
-            'Review': 'real',
-            'Price/Review': 'real',
-            'City': 'text',
-            'Date': 'text',
-            'AsOf': 'text'
-        }
+        hotel_price_dtype: dict = get_hotel_price_dtype()
 
         # Save the DataFrame to a table named 'HotelPrice'
-        df_filtered.to_sql('HotelPrice', con=con, if_exists='append', index=False, dtype=data_type)
+        df_filtered.to_sql('HotelPrice', con=con, if_exists='append', index=False, dtype=hotel_price_dtype)
 
         logger.info(f'Data has been saved to {db}')
 
         create_average_room_price_by_date_view(db)
+
+
+def get_hotel_price_dtype() -> dict:
+    """
+    Get HotelPrice datatype.
+    :return: HotelPrice datatype.
+    """
+    logger.info('Get HotelPrice datatype...')
+    hotel_price_dtype = {
+        'Hotel': 'text not null primary key',
+        'Price': 'real not null',
+        'Review': 'real not null',
+        'Price/Review': 'real not null',
+        'City': 'text not null',
+        'Date': 'text not null',
+        'AsOf': 'text not null'
+    }
+    return hotel_price_dtype
 
 
 def create_average_room_price_by_date_view(db: str) -> None:
