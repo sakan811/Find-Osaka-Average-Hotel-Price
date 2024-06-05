@@ -181,6 +181,36 @@ def scroll_down_until_page_bottom(driver: WebDriver) -> None:
         click_load_more_result_button(driver)
 
 
+def create_df_from_scraped_data(check_in, check_out, city, hotel_data_dict) -> pd.DataFrame:
+    """
+    Create a DataFrame from the collected data.
+    :param check_in: The check-in date.
+    :param check_out: The check-out date.
+    :param city: City where the hotels are located.
+    :param hotel_data_dict: Dictionary with hotel data.
+    :returns: Pandas DataFrame with hotel data
+    """
+    logger.info("Create a DataFrame from the collected data")
+    df = None
+    try:
+        df = pd.DataFrame(hotel_data_dict)
+
+        logger.info("Add City column to DataFrame")
+        df['City'] = city
+
+        logger.info("Add Date column to DataFrame")
+        df['Date'] = check_in
+
+        logger.info("Add AsOf column to DataFrame")
+        df['AsOf'] = datetime.datetime.now()
+
+        df = transform_data(df)
+    except ValueError as e:
+        logger.error(e)
+        logger.error(f'Error when creating a DataFrame for {check_in} to {check_out} data')
+    return df
+
+
 class BasicScraper:
     def __init__(self, details: Details):
         """
@@ -299,29 +329,12 @@ class BasicScraper:
 
         hotel_data_dict = self._scrape(url)
 
-        df_filtered = None
-        logger.info("Create a DataFrame from the collected data")
-        try:
-            df = pd.DataFrame(hotel_data_dict)
-
-            logger.info("Add City column to DataFrame")
-            df['City'] = city
-
-            logger.info("Add Date column to DataFrame")
-            df['Date'] = check_in
-
-            logger.info("Add AsOf column to DataFrame")
-            df['AsOf'] = datetime.datetime.now()
-
-            df_filtered = transform_data(df)
-        except ValueError as e:
-            logger.error(e)
-            logger.error(f'Error when creating a DataFrame for {check_in} to {check_out} data')
+        df_filtered = create_df_from_scraped_data(check_in, check_out, city, hotel_data_dict)
 
         if df_filtered is not None:
             if to_sqlite:
                 logger.info('Save data to SQLite database')
-                migrate_data_to_sqlite(df_filtered)
+                migrate_data_to_sqlite(df_filtered, self.details)
             else:
                 logger.info('Save data to CSV')
                 save_dir = 'scraped_hotel_data_csv'

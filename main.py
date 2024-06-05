@@ -19,6 +19,8 @@ from loguru import logger
 from japan_avg_hotel_price_finder.scrape import BasicScraper
 from japan_avg_hotel_price_finder.scrape_until_month_end import MonthEndBasicScraper
 from japan_avg_hotel_price_finder.thread_scrape import ThreadPoolScraper
+from japan_avg_hotel_price_finder.utils import find_missing_dates_in_db, scrape_missing_dates, \
+    check_csv_if_all_date_was_scraped, check_db_if_all_date_was_scraped
 from set_details import Details
 
 logger.add('japan_avg_hotel_price_month.log',
@@ -48,16 +50,20 @@ elif args.thread_pool:
     to_sqlite = args.to_sqlite
     if to_sqlite:
         thread_scrape.thread_scrape(to_sqlite)
+        check_db_if_all_date_was_scraped(details.sqlite_name)
     else:
         df = thread_scrape.thread_scrape()
+        check_csv_if_all_date_was_scraped()
 elif args.month_end:
     logger.info('Using month end scraper')
     month_end = MonthEndBasicScraper(details)
     to_sqlite = args.to_sqlite
     if to_sqlite:
         month_end.scrape_until_month_end(to_sqlite)
+        check_db_if_all_date_was_scraped(details.sqlite_name)
     else:
         df = month_end.scrape_until_month_end()
+        check_csv_if_all_date_was_scraped()
 elif args.scraper:
     logger.info('Using basic scraper')
     check_in = details.check_in

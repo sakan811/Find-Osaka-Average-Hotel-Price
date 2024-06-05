@@ -71,7 +71,8 @@ This script can also be used to scrape data from other cities.
     ```
   - Scrape data based on the given check-in and check-out date.
 - Data is saved to CSV by default.
-  - Add ```--to_sqlite=True``` to save data to SQLite database.
+  - CSV is saved to 'scraped_hotel_data_csv' folder. 
+- Add ```--to_sqlite=True``` to save data to SQLite database.
   ```  
   python main.py --to_sqlite=True
   ```

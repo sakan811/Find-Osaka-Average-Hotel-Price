@@ -172,3 +172,4 @@ cython_debug/
 /avg_japan_hotel_price_test.db
 /load_to_sqlite.py
 /*.json
+/*.csv

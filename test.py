@@ -12,14 +12,22 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 import datetime
+import sqlite3
+from calendar import monthrange
 
 import pytest
 import pytz
+from loguru import logger
 
 from japan_avg_hotel_price_finder.scrape import BasicScraper
 from japan_avg_hotel_price_finder.scrape_until_month_end import MonthEndBasicScraper
 from japan_avg_hotel_price_finder.thread_scrape import ThreadPoolScraper
+from japan_avg_hotel_price_finder.utils import check_db_if_all_date_was_scraped, get_count_of_date_by_mth_asof_today_query
 from set_details import Details
+
+logger.add('test.log',
+           format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {name} | {module} | {function} | {line} | {message}",
+           mode='w')
 
 
 def test_thread_scraper() -> None:
@@ -180,5 +188,44 @@ def test_scraper() -> None:
     assert not df.empty
 
 
+def test_check_if_all_date_was_scraped() -> None:
+    city = 'Osaka'
+    group_adults = 1
+    num_rooms = 1
+    group_children = 0
+    selected_currency = 'USD'
+
+    # Define the timezone
+    city_timezone = pytz.timezone('Asia/Singapore')
+
+    # Get the current date in the specified timezone
+    today = datetime.datetime.now(city_timezone).date()
+    month = today.month + 1
+    year = today.year
+    check_in = datetime.date(year, month, 25).strftime('%Y-%m-%d')
+    check_out = datetime.date(year, month, 25) + datetime.timedelta(days=1)
+    check_out = check_out.strftime('%Y-%m-%d')
+
+    sqlite_name = 'check_test.db'
+
+    hotel_stay = Details(
+        city=city, group_adults=group_adults, num_rooms=num_rooms,
+        group_children=group_children, selected_currency=selected_currency,
+        month=month, year=year, sqlite_name=sqlite_name
+    )
+
+    scraper = BasicScraper(hotel_stay)
+    scraper.start_scraping_process(check_in, check_out, to_sqlite=True)
+    check_db_if_all_date_was_scraped(sqlite_name)
+
+    with sqlite3.connect(sqlite_name) as conn:
+        query = get_count_of_date_by_mth_asof_today_query()
+        result = conn.execute(query).fetchall()
+        days_in_month = monthrange(year, month)[1]
+        for row in result:
+            assert len(row[0]) == days_in_month
+
+
 if __name__ == '__main__':
-    pytest.main([__file__])
+    # pytest.main([__file__])
+    test_check_if_all_date_was_scraped()

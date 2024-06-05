@@ -21,15 +21,16 @@ from loguru import logger
 from set_details import Details
 
 
-def migrate_data_to_sqlite(df_filtered: pd.DataFrame) -> None:
+def migrate_data_to_sqlite(df_filtered: pd.DataFrame, details: Details) -> None:
     """
     Migrate hotel data to sqlite database.
     :param df_filtered: pandas dataframe.
+    :param details: Details dataclass object.
     :return: None
     """
     logger.info('Connecting to SQLite database (or create it if it doesn\'t exist)...')
 
-    db = Details.sqlite_name
+    db = details.sqlite_name
     with sqlite3.connect(db) as con:
         query = '''
         CREATE TABLE IF NOT EXISTS HotelPrice (
