@@ -201,7 +201,7 @@ def test_check_if_all_date_was_scraped() -> None:
     # Get the current date in the specified timezone
     today = datetime.datetime.now(city_timezone).date()
 
-    start_day = 15
+    start_day = today.day
     month = today.month
     year = today.year
     nights = 1
@@ -223,7 +223,8 @@ def test_check_if_all_date_was_scraped() -> None:
         result = conn.execute(query).fetchall()
         days_in_month = monthrange(year, month)[1]
         for row in result:
-            assert row[1] == days_in_month
+            days_left_in_current_month = days_in_month - start_day + 1
+            assert row[1] == days_left_in_current_month
 
 
 if __name__ == '__main__':
