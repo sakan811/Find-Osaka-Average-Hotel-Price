@@ -3,7 +3,6 @@ import os
 import sqlite3
 from calendar import monthrange
 import datetime
-from typing import LiteralString
 
 import pandas as pd
 from loguru import logger
@@ -220,7 +219,12 @@ def get_dates_of_each_month_asof_today_query():
     return query
 
 
-def find_csv_files(directory) -> list[LiteralString | str | bytes]:
+def find_csv_files(directory) -> list:
+    """
+    Find CSV files in the given directory.
+    :param directory: Directory to find CSV files.
+    :returns: List of CSV files.
+    """
     csv_files = []
 
     logger.info("Find all .csv files in the directory and its subdirectories")
