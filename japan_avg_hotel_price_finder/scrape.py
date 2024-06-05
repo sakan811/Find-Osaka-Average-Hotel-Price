@@ -56,8 +56,6 @@ def append_to_hotel_dict(
             hotel_data_dict['Hotel'].append(hotel_name)
             hotel_data_dict['Price'].append(price)
             hotel_data_dict['Review'].append(review_score)
-
-            logger.info('All elements are presented.')
         else:
             logger.warning('Data extraction did not work properly.')
             logger.debug(f'{hotel_name = }')
@@ -115,13 +113,12 @@ def click_pop_up_ad(wait: WebDriverWait, driver: WebDriver) -> None:
     except TimeoutException as e:
         logger.error(e)
         logger.error(f'{ads_css_selector} timed out')
-        driver.refresh()
-        logger.info('Refreshed page')
+        logger.error(f'Moving on.')
     except Exception as e:
         logger.error(e)
         logger.error(f'{ads_css_selector} failed due to {e}')
     else:
-        logger.info('Clicked the pop-up ads successfully')
+        logger.debug('Clicked the pop-up ads successfully')
 
 
 def click_load_more_result_button(driver: WebDriver) -> None:
@@ -130,7 +127,7 @@ def click_load_more_result_button(driver: WebDriver) -> None:
     :param driver: Selenium WebDriver.
     :return: None
     """
-    logger.info("Clicking 'load more result' button...")
+    logger.info("Click 'load more result' button.")
 
     load_more_result_css_selector = ('#bodyconstraint-inner > div:nth-child(8) > div > div.af5895d4b2 > '
                                      'div.df7e6ba27d > div.bcbf33c5c3 > div.dcf496a7b9.bb2746aad9 > '
@@ -146,7 +143,7 @@ def click_load_more_result_button(driver: WebDriver) -> None:
         logger.error(e)
         logger.error(f'{load_more_result_css_selector} failed due to {e}')
     else:
-        logger.info(f'{load_more_result_css_selector} clicked successfully')
+        logger.debug(f'{load_more_result_css_selector} clicked successfully')
 
 
 def scroll_down_until_page_bottom(driver: WebDriver) -> None:
@@ -158,7 +155,6 @@ def scroll_down_until_page_bottom(driver: WebDriver) -> None:
     :return: None
     """
     logger.info("Scrolling down until the bottom of the page...")
-    logger.info("Click 'Load more result' button if present.")
     while True:
         # Get current height
         current_height = driver.execute_script("return window.scrollY")
@@ -181,6 +177,7 @@ def scroll_down_until_page_bottom(driver: WebDriver) -> None:
 
         time.sleep(2)
 
+        # Click 'load more result' button if present
         click_load_more_result_button(driver)
 
 
@@ -230,12 +227,13 @@ class BasicScraper:
         :param hotel_data_dict: Dictionary storing hotel data.
         :return: Dictionary with hotel data.
         """
-        logger.info("Find the elements within the box element")
+        logger.info("Finding the elements within the box element...")
         for box_element in box_elements:
             hotel_element = box_element.select(f'.{self.hotel_class}')
             price_element = box_element.select(f'.{self.price_class}')
             review_element = box_element.select(f'.{self.review_class}')
 
+            logger.debug("Append data to hotel data dictionary")
             hotel_data_dict = append_to_hotel_dict(hotel_data_dict, hotel_element, price_element, review_element)
         return hotel_data_dict
 
