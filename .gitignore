@@ -173,3 +173,4 @@ cython_debug/
 /load_to_sqlite.py
 /*.json
 /*.csv
+/*.db
