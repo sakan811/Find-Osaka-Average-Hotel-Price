@@ -223,7 +223,7 @@ def test_check_if_all_date_was_scraped() -> None:
         result = conn.execute(query).fetchall()
         days_in_month = monthrange(year, month)[1]
         for row in result:
-            assert len(row[1]) == days_in_month
+            assert row[1] == days_in_month
 
 
 if __name__ == '__main__':
