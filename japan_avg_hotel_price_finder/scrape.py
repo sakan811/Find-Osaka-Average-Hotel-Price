@@ -256,6 +256,9 @@ class BasicScraper:
 
         # Initialize the Chrome driver with the configured options
         driver = webdriver.Chrome(options=options)
+
+        driver.implicitly_wait(5)
+
         driver.get(url)
 
         wait = WebDriverWait(driver, 5)
