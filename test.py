@@ -47,7 +47,7 @@ def test_thread_scraper() -> None:
     year = today.year
     nights = 1
 
-    sqlite_name = 'test.db'
+    sqlite_name = 'test_thread_scraper.db'
 
     hotel_stay = Details(
         city=city, group_adults=group_adults, num_rooms=num_rooms,
@@ -78,7 +78,7 @@ def test_thread_scraper_past_month() -> None:
     year = today.year
     nights = 1
 
-    sqlite_name = 'test.db'
+    sqlite_name = 'test_thread_scraper_past_month.db'
 
     hotel_stay = Details(
         city=city, group_adults=group_adults, num_rooms=num_rooms,
@@ -110,7 +110,7 @@ def test_until_month_end_scraper() -> None:
     year = today.year
     nights = 1
 
-    sqlite_name = 'test.db'
+    sqlite_name = 'test_until_month_end_scraper.db'
 
     hotel_stay = Details(
         city=city, group_adults=group_adults, num_rooms=num_rooms,
@@ -142,7 +142,7 @@ def test_until_month_end_scraper_past_month() -> None:
     year = today.year
     nights = 1
 
-    sqlite_name = 'test.db'
+    sqlite_name = 'test_until_month_end_scraper_past_month.db'
 
     hotel_stay = Details(
         city=city, group_adults=group_adults, num_rooms=num_rooms,
@@ -174,7 +174,7 @@ def test_scraper() -> None:
     check_out = datetime.date(year, month, 25) + datetime.timedelta(days=1)
     check_out = check_out.strftime('%Y-%m-%d')
 
-    sqlite_name = 'test.db'
+    sqlite_name = 'test_scraper.db'
 
     hotel_stay = Details(
         city=city, group_adults=group_adults, num_rooms=num_rooms,
@@ -191,7 +191,7 @@ def test_scraper() -> None:
 def test_check_if_all_date_was_scraped() -> None:
     city = 'Osaka'
     group_adults = 1
-    num_rooms = 1
+    num_rooms = 0
     group_children = 0
     selected_currency = 'USD'
 
@@ -200,22 +200,22 @@ def test_check_if_all_date_was_scraped() -> None:
 
     # Get the current date in the specified timezone
     today = datetime.datetime.now(city_timezone).date()
-    month = today.month + 1
-    year = today.year
-    check_in = datetime.date(year, month, 25).strftime('%Y-%m-%d')
-    check_out = datetime.date(year, month, 25) + datetime.timedelta(days=1)
-    check_out = check_out.strftime('%Y-%m-%d')
 
-    sqlite_name = 'check_test.db'
+    start_day = 15
+    month = today.month
+    year = today.year
+    nights = 1
+
+    sqlite_name = 'test_check_if_all_date_was_scraped.db'
 
     hotel_stay = Details(
         city=city, group_adults=group_adults, num_rooms=num_rooms,
         group_children=group_children, selected_currency=selected_currency,
-        month=month, year=year, sqlite_name=sqlite_name
+        start_day=start_day, month=month, year=year, nights=nights, sqlite_name=sqlite_name
     )
 
-    scraper = BasicScraper(hotel_stay)
-    scraper.start_scraping_process(check_in, check_out, to_sqlite=True)
+    month_end = MonthEndBasicScraper(hotel_stay)
+    month_end.scrape_until_month_end(to_sqlite=True)
     check_db_if_all_date_was_scraped(sqlite_name)
 
     with sqlite3.connect(sqlite_name) as conn:
