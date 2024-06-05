@@ -80,7 +80,7 @@ def check_db_if_all_date_was_scraped(db) -> None:
     """
     logger.info(f"Checking in the SQLite database '{db}' if any date was not scraped today...")
     missing_dates = find_missing_dates_in_db(db)
-    scrape_missing_dates(missing_dates, to_sqlite=True)
+    scrape_missing_dates(db=db, missing_dates=missing_dates, to_sqlite=True)
 
 
 def check_csv_if_all_date_was_scraped() -> None:
@@ -100,7 +100,7 @@ def check_csv_if_all_date_was_scraped() -> None:
             df.to_sql('HotelPrice', con, if_exists='replace', index=False)
 
         missing_dates = find_missing_dates_in_db(temp_db)
-        scrape_missing_dates(missing_dates)
+        scrape_missing_dates(db=temp_db, missing_dates=missing_dates)
     except FileNotFoundError as e:
         logger.error(e)
         logger.error(f"{directory} folder not found.")
@@ -125,9 +125,10 @@ def get_count_of_date_by_mth_asof_today_query():
     return query
 
 
-def scrape_with_basic_scraper(date, to_sqlite: bool = False):
+def scrape_with_basic_scraper(db: str, date, to_sqlite: bool = False):
     """
     Scrape the date with BasicScraper.
+    :param db: SQLite database path.
     :param date: The given date to scrape.
     :param to_sqlite: If True, load the data to the SQLite database, else save to CSV.
                     Set to False as default.
@@ -137,7 +138,7 @@ def scrape_with_basic_scraper(date, to_sqlite: bool = False):
     check_in = date
     check_out_datetime_obj = datetime.datetime.strptime(date, '%Y-%m-%d')
     check_out = (check_out_datetime_obj + datetime.timedelta(days=1)).strftime('%Y-%m-%d')
-    details = Details(check_in=check_in, check_out=check_out)
+    details = Details(check_in=check_in, check_out=check_out, sqlite_name=db)
     scraper = BasicScraper(details)
     scraper.start_scraping_process(details.check_in, details.check_out, to_sqlite)
 
@@ -190,9 +191,10 @@ def find_dates_of_the_month_in_db(con, days_in_month, month, year) -> tuple:
     return dates_in_db, end_date, start_date
 
 
-def scrape_missing_dates(missing_dates: list, to_sqlite: bool = False):
+def scrape_missing_dates(db: str, missing_dates: list, to_sqlite: bool = False):
     """
     Scrape missing dates with BasicScraper.
+    :param db: SQLite database path.
     :param missing_dates: Missing dates.
     :param to_sqlite: If True, load the data to the SQLite database, else save to CSV.
                 Set to False as default.
@@ -200,7 +202,7 @@ def scrape_missing_dates(missing_dates: list, to_sqlite: bool = False):
     """
     if missing_dates:
         for date in missing_dates:
-            scrape_with_basic_scraper(date, to_sqlite)
+            scrape_with_basic_scraper(db, date, to_sqlite)
     else:
         logger.warning("No missing dates to scrape.")
 

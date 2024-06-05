@@ -202,8 +202,14 @@ def test_check_if_all_date_was_scraped() -> None:
     today = datetime.datetime.now(city_timezone).date()
 
     start_day = today.day
-    month = today.month
-    year = today.year
+
+    if today.month == 12:
+        month = 1
+        year = today.year + 1
+    else:
+        month = today.month + 1
+        year = today.year
+
     nights = 1
 
     sqlite_name = 'test_check_if_all_date_was_scraped.db'
@@ -223,8 +229,7 @@ def test_check_if_all_date_was_scraped() -> None:
         result = conn.execute(query).fetchall()
         days_in_month = monthrange(year, month)[1]
         for row in result:
-            days_left_in_current_month = days_in_month - start_day + 1
-            assert row[1] == days_left_in_current_month
+            assert row[1] == days_in_month
 
 
 if __name__ == '__main__':
