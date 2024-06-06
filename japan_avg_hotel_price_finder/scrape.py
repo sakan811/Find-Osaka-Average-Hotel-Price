@@ -289,19 +289,21 @@ class BasicScraper:
         :param url: Website URL.
         :return: Dictionary with hotel data.
         """
-        # Configure Chrome options to block image loading and disable automation features
+        # Configure Chrome options
         options = webdriver.ChromeOptions()
 
+        # Block image loading
         chrome_prefs = {"profile.managed_default_content_settings.images": 2}
         options.add_experimental_option("prefs", chrome_prefs)
+
+        # Maximize Chrome window
+        options.add_argument("start-maximized")
 
         # Disable blink features related to automation control
         options.add_argument('--disable-blink-features=AutomationControlled')
 
         # Initialize the Chrome driver with the configured options
         driver = webdriver.Chrome(options=options)
-
-        driver.implicitly_wait(2)
 
         get_url_with_driver(driver, url)
 
