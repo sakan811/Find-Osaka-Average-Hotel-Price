@@ -79,10 +79,7 @@ class ThreadPoolScraper(MonthEndBasicScraper):
             # Create a thread pool with a maximum of 5 threads
             with ThreadPoolExecutor(max_workers=5) as executor:
                 # Submit tasks for each date within the specified range
-                futures = []
-                for day in range(self.start_day, last_day + 1):
-                    futures.append(executor.submit(scrape_each_date, day))
-                    time.sleep(1)
+                futures = [executor.submit(scrape_each_date, day) for day in range(self.start_day, last_day + 1)]
 
                 # Wait for all tasks to complete
                 for future in futures:
