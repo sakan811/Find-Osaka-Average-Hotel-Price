@@ -357,9 +357,14 @@ class BasicScraper:
                 logger.info('Save data to CSV')
                 save_dir = 'scraped_hotel_data_csv'
 
-                if not os.path.exists(save_dir):
-                    logger.info(f'Create {save_dir} directory')
+                try:
+                    # Attempt to create the directory
                     os.makedirs(save_dir)
+                    logger.info(f'Created {save_dir} directory')
+                except FileExistsError as e:
+                    # If the directory already exists, log a message and continue
+                    logger.error(e)
+                    logger.error(f'{save_dir} directory already exists')
 
                 file_path = os.path.join(save_dir, f'{city}_hotel_data_{check_in}_to_{check_out}.csv')
                 df_filtered.to_csv(file_path, index=False)
