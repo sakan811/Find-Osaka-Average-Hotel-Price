@@ -66,7 +66,7 @@ def append_to_hotel_dict(
             logger.debug(f'{review_score = }')
             logger.debug(f'{review_element = }')
     else:
-        logger.warning(f'Not all elements are presented.')
+        logger.debug(f'Not all elements are presented.')
 
     return hotel_data_dict
 

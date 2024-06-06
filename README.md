@@ -81,6 +81,9 @@ This script can also be used to scrape data from other cities.
   ```  
   python main.py --thread_pool=True --month=6
   ``` 
+  - Be careful with 'start_day' variable in [set_details.py](set_details.py), 
+  as using --month will make the scraper starts from the day specified in 'start_day' variable 
+  in [set_details.py](set_details.py) 
 
 ### Dataclass
 [set_details.py](set_details.py)

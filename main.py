@@ -41,16 +41,15 @@ parser.add_argument('--to_sqlite', type=bool, default=False, help='Use basic scr
 parser.add_argument('--month', type=int, default=False, help='Month to scrape data for (1-12)')
 args = parser.parse_args()
 
-if args.month:
-    month = args.month
-    details = Details(month=month)
-else:
-    details = Details()
+details = Details()
 
 if args.thread_pool and args.month_end:
     logger.warning('Cannot use both --thread_pool and --month_end at the same time. Please use one of them at a time.')
 elif args.thread_pool:
     logger.info('Using thread pool scraper')
+    if args.month:
+        month = args.month
+        details = Details(month=month)
     thread_scrape = ThreadPoolScraper(details)
     to_sqlite = args.to_sqlite
     if to_sqlite:
@@ -61,6 +60,9 @@ elif args.thread_pool:
         check_csv_if_all_date_was_scraped()
 elif args.month_end:
     logger.info('Using month end scraper')
+    if args.month:
+        month = args.month
+        details = Details(month=month)
     month_end = MonthEndBasicScraper(details)
     to_sqlite = args.to_sqlite
     if to_sqlite:

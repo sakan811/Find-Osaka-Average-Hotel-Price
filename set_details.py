@@ -37,7 +37,7 @@ class Details:
     selected_currency: str = 'USD'
 
     # Set the start date and number of nights when using Thread Pool Scraper or Month End Scraper
-    start_day: int = 6
+    start_day: int = 1
     month: int = 6
     year: int = 2024
     nights: int = 1
