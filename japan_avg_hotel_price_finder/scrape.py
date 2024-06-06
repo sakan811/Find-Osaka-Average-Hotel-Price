@@ -56,6 +56,7 @@ def append_to_hotel_dict(
             hotel_data_dict['Hotel'].append(hotel_name)
             hotel_data_dict['Price'].append(price)
             hotel_data_dict['Review'].append(review_score)
+            logger.debug("Appended data to hotel data dictionary successfully")
         else:
             logger.warning('Data extraction did not work properly.')
             logger.debug(f'{hotel_name = }')

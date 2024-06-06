@@ -72,7 +72,7 @@ def find_missing_dates_in_db(sqlite: str) -> list:
     return missing_dates
 
 
-def check_db_if_all_date_was_scraped(db) -> None:
+def check_db_if_all_date_was_scraped(db: str) -> None:
     """
     Check inside the SQLite database if all dates of each month were scraped today.
     :param db: Path to the SQLite database.

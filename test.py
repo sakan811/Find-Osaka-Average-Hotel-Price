@@ -22,12 +22,62 @@ from loguru import logger
 from japan_avg_hotel_price_finder.scrape import BasicScraper
 from japan_avg_hotel_price_finder.scrape_until_month_end import MonthEndBasicScraper
 from japan_avg_hotel_price_finder.thread_scrape import ThreadPoolScraper
-from japan_avg_hotel_price_finder.utils import check_db_if_all_date_was_scraped, get_count_of_date_by_mth_asof_today_query
+from japan_avg_hotel_price_finder.utils import check_db_if_all_date_was_scraped, \
+    get_count_of_date_by_mth_asof_today_query, check_csv_if_all_date_was_scraped, find_csv_files, convert_csv_to_df
 from set_details import Details
 
 logger.add('test.log',
            format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {name} | {module} | {function} | {line} | {message}",
            mode='w')
+
+
+def test_check_if_all_date_was_scraped_csv() -> None:
+    city = 'Osaka'
+    group_adults = 1
+    num_rooms = 0
+    group_children = 0
+    selected_currency = 'USD'
+
+    # Define the timezone
+    city_timezone = pytz.timezone('Asia/Singapore')
+
+    # Get the current date in the specified timezone
+    today = datetime.datetime.now(city_timezone).date()
+
+    start_day = 15
+
+    if today.month == 12:
+        month = 1
+        year = today.year + 1
+    else:
+        month = today.month + 1
+        year = today.year
+
+    nights = 1
+
+    sqlite_name = 'test_check_if_all_date_was_scraped_csv.db'
+
+    hotel_stay = Details(
+        city=city, group_adults=group_adults, num_rooms=num_rooms,
+        group_children=group_children, selected_currency=selected_currency,
+        start_day=start_day, month=month, year=year, nights=nights, sqlite_name=sqlite_name
+    )
+
+    thread_scrape = ThreadPoolScraper(hotel_stay)
+    thread_scrape.thread_scrape(to_sqlite=True)
+    check_csv_if_all_date_was_scraped()
+
+    with sqlite3.connect(sqlite_name) as conn:
+        directory = 'scraped_hotel_data_csv'
+        csv_files: list = find_csv_files(directory)
+        df = convert_csv_to_df(csv_files)
+        df.to_sql('HotelPrice', conn, if_exists='replace', index=False)
+
+        query = get_count_of_date_by_mth_asof_today_query()
+        result = conn.execute(query).fetchall()
+        days_in_month = monthrange(year, month)[1]
+        for row in result:
+            assert row[1] == days_in_month
 
 
 def test_thread_scraper() -> None:
@@ -201,7 +251,7 @@ def test_check_if_all_date_was_scraped() -> None:
     # Get the current date in the specified timezone
     today = datetime.datetime.now(city_timezone).date()
 
-    start_day = today.day
+    start_day = 15
 
     if today.month == 12:
         month = 1
@@ -220,8 +270,8 @@ def test_check_if_all_date_was_scraped() -> None:
         start_day=start_day, month=month, year=year, nights=nights, sqlite_name=sqlite_name
     )
 
-    month_end = MonthEndBasicScraper(hotel_stay)
-    month_end.scrape_until_month_end(to_sqlite=True)
+    thread_scrape = ThreadPoolScraper(hotel_stay)
+    thread_scrape.thread_scrape(to_sqlite=True)
     check_db_if_all_date_was_scraped(sqlite_name)
 
     with sqlite3.connect(sqlite_name) as conn:
