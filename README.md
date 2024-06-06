@@ -19,7 +19,7 @@ Collect Osaka hotel property data from Booking.com
 
 Data collecting start date: May 16th, 2024.
 
-Data was collected weekly using GitHub action with [automated_scraper.py](automated_scraper.py)
+Data was collected daily using GitHub action.
 
 This script can also be used to scrape data from other cities.
 
@@ -30,24 +30,24 @@ This script can also be used to scrape data from other cities.
   - Example:
   ```
   # Set booking details.
-  city: str = 'Osaka'
+  city: str = 'Osaka'  # city where the hotels are located.
   
   # Check-in and Check-out are used only when using the Basic Scraper
   check_in: str = '2024-12-01'
   check_out: str = '2024-12-12'
   
-  group_adults: int = 1
-  num_rooms: int = 1
-  group_children: int = 0
-  selected_currency: str = 'USD'
+  group_adults: int = 1  # number of adults
+  num_rooms: int = 1  # number of rooms
+  group_children: int = 0  # number of children
+  selected_currency: str = 'USD'  # currency of the room price
   
   # Optional
   # Set the start date and number of nights when using Thread Pool Scraper or Month End Scraper
-  start_day: int = 1
-  month: int = 12
-  year: int = 2024
-  nights: int = 1
-  
+  start_day: int = 1  # day to start scraping
+  month: int = 12  # month to start scraping
+  year: int = 2024  # year to start scraping
+  nights: int = 1  # number of night to scrape. this determines the room price of the hotels.
+   
   # Set SQLite database name
   sqlite_name: str = 'test.db'
   ```
