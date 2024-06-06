@@ -93,14 +93,17 @@ def check_csv_if_all_date_was_scraped() -> None:
     temp_db = 'temp_db.db'
     try:
         csv_files: list = find_csv_files(directory)
-        df = convert_csv_to_df(csv_files)
+        if csv_files:
+            df = convert_csv_to_df(csv_files)
 
-        logger.info("Create a temporary SQLite database to insert the data to check if all date was scraped today.")
-        with sqlite3.connect(temp_db) as con:
-            df.to_sql('HotelPrice', con, if_exists='replace', index=False)
+            logger.info("Create a temporary SQLite database to insert the data to check if all date was scraped today.")
+            with sqlite3.connect(temp_db) as con:
+                df.to_sql('HotelPrice', con, if_exists='replace', index=False)
 
-        missing_dates = find_missing_dates_in_db(temp_db)
-        scrape_missing_dates(db=temp_db, missing_dates=missing_dates)
+            missing_dates = find_missing_dates_in_db(temp_db)
+            scrape_missing_dates(db=temp_db, missing_dates=missing_dates)
+        else:
+            logger.warning("No CSV files were found")
     except FileNotFoundError as e:
         logger.error(e)
         logger.error(f"{directory} folder not found.")
