@@ -64,14 +64,15 @@ def test_check_if_all_date_was_scraped_csv() -> None:
     )
 
     thread_scrape = ThreadPoolScraper(hotel_stay)
-    thread_scrape.thread_scrape(to_sqlite=True)
+    thread_scrape.thread_scrape()
     check_csv_if_all_date_was_scraped()
 
     with sqlite3.connect(sqlite_name) as conn:
         directory = 'scraped_hotel_data_csv'
         csv_files: list = find_csv_files(directory)
-        df = convert_csv_to_df(csv_files)
-        df.to_sql('HotelPrice', conn, if_exists='replace', index=False)
+        if csv_files:
+            df = convert_csv_to_df(csv_files)
+            df.to_sql('HotelPrice', conn, if_exists='replace', index=False)
 
         query = get_count_of_date_by_mth_asof_today_query()
         result = conn.execute(query).fetchall()
