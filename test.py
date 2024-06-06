@@ -44,7 +44,7 @@ def test_check_if_all_date_was_scraped_csv() -> None:
     # Get the current date in the specified timezone
     today = datetime.datetime.now(city_timezone).date()
 
-    start_day = 15
+    start_day = 5
 
     if today.month == 12:
         month = 1
