@@ -1,6 +1,7 @@
 import calendar
 import os
 import sqlite3
+import time
 from calendar import monthrange
 import datetime
 
@@ -92,14 +93,15 @@ def check_csv_if_all_date_was_scraped() -> None:
     directory = 'scraped_hotel_data_csv'
     logger.info(f"Checking CSV files in the {directory} directory if all date was scraped today...")
     temp_db = 'temp_db.db'
+    con = None
     try:
         csv_files: list = find_csv_files(directory)
         if csv_files:
             df = convert_csv_to_df(csv_files)
 
             logger.info("Create a temporary SQLite database to insert the data to check if all date was scraped today.")
-            with sqlite3.connect(temp_db) as con:
-                df.to_sql('HotelPrice', con, if_exists='replace', index=False)
+            con = sqlite3.connect(temp_db)
+            df.to_sql('HotelPrice', con, if_exists='replace', index=False)
 
             missing_dates = find_missing_dates_in_db(temp_db)
             scrape_missing_dates(db=temp_db, missing_dates=missing_dates)
@@ -108,11 +110,21 @@ def check_csv_if_all_date_was_scraped() -> None:
     except FileNotFoundError as e:
         logger.error(e)
         logger.error(f"{directory} folder not found.")
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
     finally:
-        logger.info("Delete the temporary SQLite database file")
+        if con:
+            con.close()
+        # Ensure the file is closed and all transactions are complete
+        logger.info("Ensure all transactions are committed and closed.")
         if os.path.exists(temp_db):
-            os.remove(temp_db)
-            logger.info("Temporary database deleted.")
+            # Adding a short delay to ensure the file is released
+            time.sleep(1)
+            try:
+                os.remove(temp_db)
+                logger.info("Temporary database deleted.")
+            except PermissionError:
+                logger.error(f"Could not remove {temp_db}, it is being used by another process.")
 
 
 def get_count_of_date_by_mth_asof_today_query():
