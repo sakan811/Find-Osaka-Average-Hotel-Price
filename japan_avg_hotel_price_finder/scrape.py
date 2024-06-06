@@ -16,14 +16,13 @@
 import datetime
 import os
 import re
-import time
 
 import bs4
 import pandas as pd
 from loguru import logger
 from pandas import DataFrame
 from selenium import webdriver
-from selenium.common import NoSuchElementException, TimeoutException
+from selenium.common import NoSuchElementException, TimeoutException, WebDriverException
 from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
@@ -105,7 +104,6 @@ def click_pop_up_ad(wait: WebDriverWait, driver: WebDriver) -> None:
     ads_css_selector = ('#b2searchresultsPage > div.b9720ed41e.cdf0a9297c > div > div > div > div.dd5dccd82f > '
                         'div.ffd93a9ecb.dc19f70f85.eb67815534 > div > button')
     try:
-        time.sleep(2)
         ads = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ads_css_selector)))
         ads.click()
     except NoSuchElementException as e:
@@ -114,7 +112,8 @@ def click_pop_up_ad(wait: WebDriverWait, driver: WebDriver) -> None:
     except TimeoutException as e:
         logger.error(e)
         logger.error(f'{ads_css_selector} timed out')
-        logger.error(f'Moving on.')
+        logger.error(f'Refresh the page.')
+        driver.refresh()
     except Exception as e:
         logger.error(e)
         logger.error(f'{ads_css_selector} failed due to {e}')
@@ -164,9 +163,6 @@ def scroll_down_until_page_bottom(driver: WebDriver) -> None:
         # Scroll down to the bottom
         driver.execute_script("window.scrollBy(0, 2000);")
 
-        # Wait for some time to load more content (adjust as needed)
-        time.sleep(1)
-
         # Get current height
         new_height = driver.execute_script("return window.scrollY")
         logger.debug(f'{new_height = }')
@@ -175,8 +171,6 @@ def scroll_down_until_page_bottom(driver: WebDriver) -> None:
         if current_height == new_height:
             logger.info("Reached the bottom of the page.")
             break
-
-        time.sleep(2)
 
         # Click 'load more result' button if present
         click_load_more_result_button(driver)
@@ -210,6 +204,27 @@ def create_df_from_scraped_data(check_in, check_out, city, hotel_data_dict) -> p
         logger.error(e)
         logger.error(f'Error when creating a DataFrame for {check_in} to {check_out} data')
     return df
+
+
+def get_url_with_driver(driver: WebDriver, url: str) -> None:
+    """
+    Get the URL with Selenium WebDriver.
+    :param driver: Selenium WebDriver
+    :param url: The target URL.
+    :return: None
+    """
+    logger.info(f"Get the URL: {url}")
+    try:
+        driver.get(url)
+    except TimeoutException as e:
+        logger.error(f'TimeoutException: {url} failed due to {e}')
+    except NoSuchElementException as e:
+        logger.error(f'NoSuchElementException: {url} failed due to {e}')
+    except WebDriverException as e:
+        logger.error(f'WebDriverException: {url} failed due to {e}')
+    except Exception as e:
+        logger.error(e)
+        logger.error(f'{url} failed due to {e}')
 
 
 class BasicScraper:
@@ -288,7 +303,7 @@ class BasicScraper:
 
         driver.implicitly_wait(2)
 
-        driver.get(url)
+        get_url_with_driver(driver, url)
 
         wait = WebDriverWait(driver, 5)
 
