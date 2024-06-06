@@ -267,4 +267,7 @@ def convert_csv_to_df(csv_files: list) -> pd.DataFrame:
         df = pd.read_csv(csv_file)
         df_list.append(df)
 
-    return pd.concat(df_list)
+    if df_list:
+        return pd.concat(df_list)
+
+
