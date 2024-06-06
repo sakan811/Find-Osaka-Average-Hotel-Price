@@ -35,6 +35,7 @@ def find_missing_dates_in_db(sqlite: str) -> list:
     :returns: List of missing dates of each month.
     """
     logger.info("Checking if all date was scraped...")
+    missing_dates = []
     with sqlite3.connect(sqlite) as con:
         query = get_count_of_date_by_mth_asof_today_query()
         result = con.execute(query).fetchall()

@@ -24,7 +24,7 @@ from set_details import Details
 
 logger.add('japan_avg_hotel_price_month.log',
            format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {name} | {module} | {function} | {line} | {message}",
-           mode='w', level="INFO")
+           mode='w', level='INFO')
 
 # Initialize argument parser
 parser = argparse.ArgumentParser(description='Parser that control which kind of scraper to use.')
