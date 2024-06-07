@@ -1,6 +1,7 @@
 import calendar
 import os
 import sqlite3
+import threading
 import time
 from calendar import monthrange
 import datetime
@@ -90,23 +91,25 @@ def check_csv_if_all_date_was_scraped() -> None:
     Check inside the CSV files directory if all dates of each month were scraped today.
     :returns: None
     """
+    lock = threading.Lock()
     directory = 'scraped_hotel_data_csv'
     logger.info(f"Checking CSV files in the {directory} directory if all date was scraped today...")
     temp_db = 'temp_db.db'
     con = None
     try:
-        csv_files: list = find_csv_files(directory)
-        if csv_files:
-            df = convert_csv_to_df(csv_files)
+        with lock:
+            csv_files: list = find_csv_files(directory)
+            if csv_files:
+                df = convert_csv_to_df(csv_files)
 
-            logger.info("Create a temporary SQLite database to insert the data to check if all date was scraped today.")
-            con = sqlite3.connect(temp_db)
-            df.to_sql('HotelPrice', con, if_exists='replace', index=False)
+                logger.info("Create a temporary SQLite database to insert the data to check if all date was scraped today.")
+                con = sqlite3.connect(temp_db)
+                df.to_sql('HotelPrice', con, if_exists='replace', index=False)
 
-            missing_dates = find_missing_dates_in_db(temp_db)
-            scrape_missing_dates(db=temp_db, missing_dates=missing_dates)
-        else:
-            logger.warning("No CSV files were found")
+                missing_dates = find_missing_dates_in_db(temp_db)
+                scrape_missing_dates(db=temp_db, missing_dates=missing_dates)
+            else:
+                logger.warning("No CSV files were found")
     except FileNotFoundError as e:
         logger.error(e)
         logger.error(f"{directory} folder not found.")
@@ -114,16 +117,17 @@ def check_csv_if_all_date_was_scraped() -> None:
         logger.error(f"An unexpected error occurred: {e}")
     finally:
         if con:
+            logger.info("Closing the connection to the temporary SQLite database.")
             con.close()
-        # Ensure the file is closed and all transactions are complete
-        logger.info("Ensure all transactions are committed and closed.")
         if os.path.exists(temp_db):
             # Adding a short delay to ensure the file is released
             time.sleep(1)
             try:
-                os.remove(temp_db)
-                logger.info("Temporary database deleted.")
-            except PermissionError:
+                with lock:
+                    os.remove(temp_db)
+                    logger.info("Temporary database deleted.")
+            except PermissionError as e:
+                logger.error(e)
                 logger.error(f"Could not remove {temp_db}, it is being used by another process.")
 
 
