@@ -1,9 +1,9 @@
 import calendar
+import datetime
 import os
 import sqlite3
 import time
 from calendar import monthrange
-import datetime
 
 import pandas as pd
 from loguru import logger
@@ -28,18 +28,20 @@ def check_if_current_date_has_passed(year, month, day):
         return False
 
 
-def find_missing_dates_in_db(sqlite: str) -> list:
+def find_missing_dates_in_db(sqlite_db: str) -> list:
     """
     Find the missing dates in the SQlite database that were scraped today.
     Only check for the data that were scraped today.
-    :param sqlite: Path to the SQLite database.
+    :param sqlite_db: Path to the SQLite database.
     :returns: List of missing dates of each month.
     """
     logger.info("Checking if all date was scraped...")
     missing_dates = []
-    with sqlite3.connect(sqlite) as con:
+    with sqlite3.connect(sqlite_db) as con:
         query = get_count_of_date_by_mth_asof_today_query()
-        result = con.execute(query).fetchall()
+        cursor = con.execute(query)
+        result = cursor.fetchall()
+        cursor.close()
 
         today = datetime.datetime.today()
         year = today.year
@@ -54,7 +56,7 @@ def find_missing_dates_in_db(sqlite: str) -> list:
                     logger.info(f"All date of {calendar.month_name[month]} {year} was scraped")
                 else:
                     logger.warning(f"Not all date of {calendar.month_name[month]} {year} was scraped")
-                    dates_in_db, end_date, start_date = find_dates_of_the_month_in_db(con, days_in_month, month, year)
+                    dates_in_db, end_date, start_date = find_dates_of_the_month_in_db(sqlite_db, days_in_month, month, year)
 
                     missing_dates = find_missing_dates(dates_in_db, days_in_month, start_date, end_date, today, month,
                                                        year)
@@ -66,13 +68,10 @@ def find_missing_dates_in_db(sqlite: str) -> list:
                     logger.info(f"All date of {calendar.month_name[month]} {year} was scraped")
                 else:
                     logger.warning(f"Not all date of {calendar.month_name[month]} {year} was scraped")
-                    dates_in_db, end_date, start_date = find_dates_of_the_month_in_db(con, days_in_month, month, year)
+                    dates_in_db, end_date, start_date = find_dates_of_the_month_in_db(sqlite_db, days_in_month, month, year)
 
                     missing_dates = find_missing_dates(dates_in_db, days_in_month, start_date, end_date, today, month,
                                                        year)
-
-        logger.info("Close the connection to the SQLite database after finding the missing dates.")
-        con.close()
 
     return missing_dates
 
@@ -96,18 +95,18 @@ def check_csv_if_all_date_was_scraped() -> None:
     directory = 'scraped_hotel_data_csv'
     logger.info(f"Checking CSV files in the {directory} directory if all date was scraped today...")
     temp_db = 'temp_db.db'
-    con = None
     try:
         csv_files: list = find_csv_files(directory)
         if csv_files:
             df = convert_csv_to_df(csv_files)
 
             logger.info("Create a temporary SQLite database to insert the data to check if all date was scraped today.")
-            con = sqlite3.connect(temp_db)
-            df.to_sql('HotelPrice', con, if_exists='replace', index=False)
+
+            with sqlite3.connect(temp_db) as con:
+                df.to_sql('HotelPrice', con, if_exists='replace', index=False)
 
             missing_dates = find_missing_dates_in_db(temp_db)
-            scrape_missing_dates(db=temp_db, missing_dates=missing_dates)
+            scrape_missing_dates(missing_dates=missing_dates)
         else:
             logger.warning("No CSV files were found")
     except FileNotFoundError as e:
@@ -115,19 +114,18 @@ def check_csv_if_all_date_was_scraped() -> None:
         logger.error(f"{directory} folder not found.")
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
-    finally:
-        if con:
-            logger.info("Closing the connection to the temporary SQLite database.")
-            con.close()
-        if os.path.exists(temp_db):
-            # Adding a short delay to ensure the file is released
-            time.sleep(1)
-            try:
-                os.remove(temp_db)
-                logger.info("Temporary database deleted.")
-            except PermissionError as e:
-                logger.error(e)
-                logger.error(f"Could not remove {temp_db}. it is being used by another process.")
+
+    if os.path.exists(temp_db):
+        try:
+            os.remove(temp_db)
+            logger.info("Temporary database deleted.")
+        except PermissionError as e:
+            logger.error(e)
+            logger.error(f"Could not remove {temp_db}. it is being used by another process.")
+            logger.info("Truncate the HotelPrice table in the temporary database.")
+            with sqlite3.connect(temp_db) as con:
+                con.execute("DELETE FROM HotelPrice")
+            logger.warning("Please delete the temporary database manually after the web-scraping process finishes.")
 
 
 def get_count_of_date_by_mth_asof_today_query():
@@ -191,11 +189,11 @@ def find_missing_dates(dates_in_db, days_in_month, start_date, end_date, today, 
     return missing_dates
 
 
-def find_dates_of_the_month_in_db(con, days_in_month, month, year) -> tuple:
+def find_dates_of_the_month_in_db(db: str, days_in_month, month, year) -> tuple:
     """
     Find Dates of the month on the Database.
 
-    :param con: Sqlite3 Connection.
+    :param db: Sqlite database path.
     :param days_in_month: Total days in the given month.
     :param month: Month.
     :param year: Year.
@@ -205,12 +203,17 @@ def find_dates_of_the_month_in_db(con, days_in_month, month, year) -> tuple:
     query = get_dates_of_each_month_asof_today_query()
     start_date = datetime.datetime(year, month, 1).strftime('%Y-%m-%d')
     end_date = datetime.datetime(year, month, days_in_month).strftime('%Y-%m-%d')
-    result = con.execute(query, (start_date, end_date)).fetchall()
+
+    with sqlite3.connect(db) as con:
+        cursor = con.execute(query, (start_date, end_date))
+        result = cursor.fetchall()
+        cursor.close()
+
     dates_in_db = set([row[0] for row in result])
     return dates_in_db, end_date, start_date
 
 
-def scrape_missing_dates(db: str, missing_dates: list, to_sqlite: bool = False):
+def scrape_missing_dates(db: str = None, missing_dates: list = None, to_sqlite: bool = False):
     """
     Scrape missing dates with BasicScraper.
     :param db: SQLite database path.
@@ -223,7 +226,7 @@ def scrape_missing_dates(db: str, missing_dates: list, to_sqlite: bool = False):
         for date in missing_dates:
             scrape_with_basic_scraper(db, date, to_sqlite)
     else:
-        logger.warning("No missing dates to scrape.")
+        logger.warning(f"Missing dates is None. No missing dates to scrape.")
 
 
 def get_dates_of_each_month_asof_today_query():
@@ -272,5 +275,3 @@ def convert_csv_to_df(csv_files: list) -> pd.DataFrame:
 
     if df_list:
         return pd.concat(df_list)
-
-

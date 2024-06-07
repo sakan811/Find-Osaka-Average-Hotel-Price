@@ -175,7 +175,7 @@ def scroll_down_until_page_bottom(driver: WebDriver) -> None:
         # Click 'load more result' button if present
         click_load_more_result_button(driver)
 
-        driver.implicitly_wait(2)
+        # driver.implicitly_wait(2)
 
 
 def create_df_from_scraped_data(check_in, check_out, city, hotel_data_dict) -> pd.DataFrame:
