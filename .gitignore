@@ -175,3 +175,4 @@ cython_debug/
 /*.csv
 /*.db
 /scraped_hotel_data_csv/
+/*.jar
