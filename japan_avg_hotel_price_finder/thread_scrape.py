@@ -13,17 +13,15 @@
 #    limitations under the License.
 
 import calendar
-import threading
-import time
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 
 import pandas as pd
 from loguru import logger
 
+from japan_avg_hotel_price_finder.scrape_until_month_end import MonthEndBasicScraper
 from japan_avg_hotel_price_finder.utils import check_if_current_date_has_passed
 from set_details import Details
-from japan_avg_hotel_price_finder.scrape_until_month_end import MonthEndBasicScraper
 
 
 class ThreadPoolScraper(MonthEndBasicScraper):
@@ -76,8 +74,10 @@ class ThreadPoolScraper(MonthEndBasicScraper):
                     # Append the result to the 'results' list
                     results.append(df)
 
-            # Create a thread pool with a maximum of 5 threads
-            with ThreadPoolExecutor(max_workers=5) as executor:
+            max_workers = 9
+
+            # Create a thread pool with a specified maximum threads
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
                 # Submit tasks for each date within the specified range
                 futures = [executor.submit(scrape_each_date, day) for day in range(self.start_day, last_day + 1)]
 

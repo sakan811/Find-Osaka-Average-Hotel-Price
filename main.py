@@ -31,7 +31,8 @@ logger.add('japan_avg_hotel_price_month.log',
            mode='w', level='INFO')
 
 logger.add(sys.stderr,
-           format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {name} | {module} | {function} | {line} | {message}", level='INFO')
+           format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {name} | {module} | {function} | {line} | {message}",
+           level='INFO')
 
 # Initialize argument parser
 parser = argparse.ArgumentParser(description='Parser that control which kind of scraper to use.')

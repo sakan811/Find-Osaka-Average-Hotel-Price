@@ -57,7 +57,7 @@ This script can also be used to scrape data from other cities.
     python main.py --thread_pool=True
     ```
   - Scrape data start from the given start date to the end of the same month.
-    - Scrape five dates at the same time.
+    - Scrape nine dates at the same time.
 - To scrape using Month End Scraper:
   - Run the following command via command line terminal:
     ```  
