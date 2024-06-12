@@ -114,8 +114,6 @@ def click_pop_up_ad(wait: WebDriverWait, driver: WebDriver) -> None:
         logger.error(e)
         logger.error(f'{ads_css_selector} timed out')
         logger.error(f'Moving on')
-        # logger.error(f'Refresh the page.')
-        # driver.refresh()
     except Exception as e:
         logger.error(e)
         logger.error(f'{ads_css_selector} failed due to {e}')
@@ -163,7 +161,7 @@ def scroll_down_until_page_bottom(driver: WebDriver) -> None:
         logger.debug(f'{current_height = }')
 
         # Scroll down to the bottom
-        driver.execute_script("window.scrollBy(0, 2000);")
+        driver.execute_script("window.scrollBy(0, 4000);")
 
         # Get current height
         new_height = driver.execute_script("return window.scrollY")
@@ -177,7 +175,7 @@ def scroll_down_until_page_bottom(driver: WebDriver) -> None:
         # Click 'load more result' button if present
         click_load_more_result_button(driver)
 
-        wait = WebDriverWait(driver, 5)
+        wait = WebDriverWait(driver, 2)
         logger.info("Clicking pop-up ad in case it appears...")
         click_pop_up_ad(wait, driver)
 
@@ -315,7 +313,7 @@ class BasicScraper:
 
         get_url_with_driver(driver, url)
 
-        wait = WebDriverWait(driver, 5)
+        wait = WebDriverWait(driver, 2)
 
         click_pop_up_ad(wait, driver)
 
