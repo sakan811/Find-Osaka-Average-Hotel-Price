@@ -269,8 +269,6 @@ class BasicScraper:
 
         if self.pop_up_clicked < 1:
             logger.warning("Pop-up ad is never clicked")
-            raise Exception("Pop-up ad is never clicked. "
-                            "Check the path to pop-up ad in 'self._click_pop_up_ad' function")
 
         if self.load_more_result_clicked < 1:
             logger.warning("Load more result button is never clicked")
