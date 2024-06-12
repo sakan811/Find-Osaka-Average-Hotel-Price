@@ -22,7 +22,8 @@ import pandas as pd
 from loguru import logger
 from pandas import DataFrame
 from selenium import webdriver
-from selenium.common import NoSuchElementException, TimeoutException, WebDriverException
+from selenium.common import NoSuchElementException, TimeoutException, WebDriverException, InvalidSessionIdException, \
+    NoSuchWindowException
 from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
@@ -161,7 +162,7 @@ def scroll_down_until_page_bottom(driver: WebDriver) -> None:
         logger.debug(f'{current_height = }')
 
         # Scroll down to the bottom
-        driver.execute_script("window.scrollBy(0, 6000);")
+        driver.execute_script("window.scrollBy(0, 8000);")
 
         # Get current height
         new_height = driver.execute_script("return window.scrollY")
@@ -226,8 +227,14 @@ def get_url_with_driver(driver: WebDriver, url: str) -> None:
         logger.error(f'TimeoutException: {url} failed due to {e}')
     except NoSuchElementException as e:
         logger.error(f'NoSuchElementException: {url} failed due to {e}')
+    except InvalidSessionIdException as e:
+        logger.error(e)
+        logger.error('Tried to run command without establishing a connection.')
     except WebDriverException as e:
         logger.error(f'WebDriverException: {url} failed due to {e}')
+    except NoSuchWindowException as e:
+        logger.error(e)
+        logger.error('The browser window was closed already.')
     except Exception as e:
         logger.error(e)
         logger.error(f'{url} failed due to {e}')

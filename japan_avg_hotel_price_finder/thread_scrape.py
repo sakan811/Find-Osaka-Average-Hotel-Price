@@ -84,14 +84,7 @@ class ThreadPoolScraper(MonthEndBasicScraper):
 
                 # Wait for all tasks to complete
                 for future in futures:
-                    try:
-                        future.result()
-                    except InvalidSessionIdException as e:
-                        logger.error(e)
-                        logger.error('Tried to run command without establishing a connection.')
-                    except NoSuchWindowException as e:
-                        logger.error(e)
-                        logger.error('The browser window was closed already.')
+                    future.result()
 
             # Concatenate all DataFrames in the 'results' list into a single DataFrame
             df = pd.concat(results, ignore_index=True)
