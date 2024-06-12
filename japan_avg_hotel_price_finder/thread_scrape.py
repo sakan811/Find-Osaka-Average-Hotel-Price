@@ -18,7 +18,7 @@ from datetime import datetime, timedelta
 
 import pandas as pd
 from loguru import logger
-from selenium.common import InvalidSessionIdException
+from selenium.common import InvalidSessionIdException, NoSuchWindowException
 
 from japan_avg_hotel_price_finder.scrape_until_month_end import MonthEndBasicScraper
 from japan_avg_hotel_price_finder.utils import check_if_current_date_has_passed
@@ -88,7 +88,10 @@ class ThreadPoolScraper(MonthEndBasicScraper):
                         future.result()
                     except InvalidSessionIdException as e:
                         logger.error(e)
-                        logger.error('Tried to run command without establishing a connection')
+                        logger.error('Tried to run command without establishing a connection.')
+                    except NoSuchWindowException as e:
+                        logger.error(e)
+                        logger.error('The browser window was closed already.')
 
             # Concatenate all DataFrames in the 'results' list into a single DataFrame
             df = pd.concat(results, ignore_index=True)

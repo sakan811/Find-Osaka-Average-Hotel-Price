@@ -161,7 +161,7 @@ def scroll_down_until_page_bottom(driver: WebDriver) -> None:
         logger.debug(f'{current_height = }')
 
         # Scroll down to the bottom
-        driver.execute_script("window.scrollBy(0, 8000);")
+        driver.execute_script("window.scrollBy(0, 6000);")
 
         # Get current height
         new_height = driver.execute_script("return window.scrollY")
