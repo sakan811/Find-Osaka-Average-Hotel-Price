@@ -25,7 +25,7 @@ from set_details import Details
 
 logger.remove()
 
-level = 'INFO'
+level = 'DEBUG'
 
 logger.add('japan_avg_hotel_price_month.log',
            format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {name} | {module} | {function} | {line} | {message}",
