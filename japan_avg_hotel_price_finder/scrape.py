@@ -22,8 +22,7 @@ import pandas as pd
 from loguru import logger
 from pandas import DataFrame
 from selenium import webdriver
-from selenium.common import NoSuchElementException, TimeoutException, WebDriverException, InvalidSessionIdException, \
-    NoSuchWindowException
+from selenium.common import NoSuchElementException, TimeoutException, WebDriverException
 from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC

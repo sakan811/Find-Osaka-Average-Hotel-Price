@@ -18,7 +18,6 @@ from datetime import datetime, timedelta
 
 import pandas as pd
 from loguru import logger
-from selenium.common import InvalidSessionIdException, NoSuchWindowException
 
 from japan_avg_hotel_price_finder.scrape_until_month_end import MonthEndBasicScraper
 from japan_avg_hotel_price_finder.utils import check_if_current_date_has_passed
