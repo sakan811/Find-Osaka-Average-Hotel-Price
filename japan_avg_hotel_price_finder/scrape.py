@@ -103,6 +103,7 @@ def click_pop_up_ad(wait: WebDriverWait, driver: WebDriver) -> None:
 
     ads_css_selector = ('#b2searchresultsPage > div.b9720ed41e.cdf0a9297c > div > div > div > div.dd5dccd82f > '
                         'div.ffd93a9ecb.dc19f70f85.eb67815534 > div > button')
+
     try:
         ads = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ads_css_selector)))
         ads.click()
@@ -112,8 +113,9 @@ def click_pop_up_ad(wait: WebDriverWait, driver: WebDriver) -> None:
     except TimeoutException as e:
         logger.error(e)
         logger.error(f'{ads_css_selector} timed out')
-        logger.error(f'Refresh the page.')
-        driver.refresh()
+        logger.error(f'Moving on')
+        # logger.error(f'Refresh the page.')
+        # driver.refresh()
     except Exception as e:
         logger.error(e)
         logger.error(f'{ads_css_selector} failed due to {e}')
@@ -174,6 +176,10 @@ def scroll_down_until_page_bottom(driver: WebDriver) -> None:
 
         # Click 'load more result' button if present
         click_load_more_result_button(driver)
+
+        wait = WebDriverWait(driver, 5)
+        logger.info("Clicking pop-up ad in case it appears...")
+        click_pop_up_ad(wait, driver)
 
         driver.implicitly_wait(2)
 
@@ -291,21 +297,21 @@ class BasicScraper:
         :param url: Website URL.
         :return: Dictionary with hotel data.
         """
-        # Configure Chrome options
-        options = webdriver.ChromeOptions()
+        # Configure driver options
+        options = webdriver.FirefoxOptions()
 
         # Block image loading
-        chrome_prefs = {"profile.managed_default_content_settings.images": 2}
-        options.add_experimental_option("prefs", chrome_prefs)
+        options.set_preference('permissions.default.stylesheet', 2)
+        options.set_preference('permissions.default.image', 2)
+        options.set_preference('dom.ipc.plugins.enabled.libflashplayer.so', 'false')
 
-        # Maximize Chrome window
-        options.add_argument("start-maximized")
+        options.add_argument("--headless")
 
         # Disable blink features related to automation control
         options.add_argument('--disable-blink-features=AutomationControlled')
 
-        # Initialize the Chrome driver with the configured options
-        driver = webdriver.Chrome(options=options)
+        # Initialize the driver with the configured options
+        driver = webdriver.Firefox(options=options)
 
         get_url_with_driver(driver, url)
 
