@@ -227,25 +227,8 @@ def get_url_with_driver(driver: WebDriver, url: str) -> None:
         logger.error(f'TimeoutException: {url} failed due to {e}')
     except NoSuchElementException as e:
         logger.error(f'NoSuchElementException: {url} failed due to {e}')
-    except InvalidSessionIdException as e:
-        logger.error(f'InvalidSessionIdException. {url} failed due to {e}')
-        logger.info('Reconnect to the Selenium Webdriver.')
-        driver = connect_to_driver()
-        if driver:
-            driver.get(url)
-        else:
-            logger.error(f'Failed to reconnect to the Selenium Webdriver.')
     except WebDriverException as e:
         logger.error(f'WebDriverException: {url} failed due to {e}')
-    except NoSuchWindowException as e:
-        logger.error(e)
-        logger.error('The browser window was closed already.')
-        logger.info('Reconnect to the Selenium Webdriver.')
-        driver = connect_to_driver()
-        if driver:
-            driver.get(url)
-        else:
-            logger.error(f'Failed to reconnect to the Selenium Webdriver.')
     except Exception as e:
         logger.error(e)
         logger.error(f'{url} failed due to {e}')
