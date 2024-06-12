@@ -58,6 +58,11 @@ This script can also be used to scrape data from other cities.
     ```
   - Scrape data start from the given start date to the end of the same month.
     - Scrape nine dates at the same time.
+    - To specify the dates to be scraped at the same time, add ```--workers```
+      - For example, the following command line set the Thread Pool Scraper to scrape five dates at the same time. 
+      ```
+      python main.py --thread_pool=True --workers=5
+      ```
 - To scrape using Month End Scraper:
   - Run the following command via command line terminal:
     ```  

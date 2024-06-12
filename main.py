@@ -13,7 +13,6 @@
 #    limitations under the License.
 
 import argparse
-import os
 import sys
 
 from loguru import logger
@@ -26,13 +25,15 @@ from set_details import Details
 
 logger.remove()
 
+level = 'INFO'
+
 logger.add('japan_avg_hotel_price_month.log',
            format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {name} | {module} | {function} | {line} | {message}",
-           mode='w', level='INFO')
+           mode='w', level=level)
 
 logger.add(sys.stderr,
            format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {name} | {module} | {function} | {line} | {message}",
-           level='INFO')
+           level=level)
 
 # Initialize argument parser
 parser = argparse.ArgumentParser(description='Parser that control which kind of scraper to use.')
@@ -41,6 +42,8 @@ parser.add_argument('--month_end', type=bool, default=False, help='Scrape until 
 parser.add_argument('--scraper', type=bool, default=True, help='Use basic scraper')
 parser.add_argument('--to_sqlite', type=bool, default=False, help='Use basic scraper')
 parser.add_argument('--month', type=int, default=False, help='Month to scrape data for (1-12)')
+parser.add_argument('--workers', type=int, default=False,
+                    help='Number of thread to use when using Thread Pool Scraper')
 args = parser.parse_args()
 
 details = Details()
@@ -52,21 +55,34 @@ elif args.thread_pool:
     if args.month:
         month = args.month
         details = Details(month=month)
+
     thread_scrape = ThreadPoolScraper(details)
     to_sqlite = args.to_sqlite
-    if to_sqlite:
-        thread_scrape.thread_scrape(to_sqlite)
-        check_db_if_all_date_was_scraped(details.sqlite_name)
+
+    if args.workers:
+        workers = args.workers
+        if to_sqlite:
+            thread_scrape.thread_scrape(to_sqlite, max_workers=workers)
+            check_db_if_all_date_was_scraped(details.sqlite_name)
+        else:
+            df = thread_scrape.thread_scrape(max_workers=workers)
+            check_csv_if_all_date_was_scraped()
     else:
-        df = thread_scrape.thread_scrape()
-        check_csv_if_all_date_was_scraped()
+        if to_sqlite:
+            thread_scrape.thread_scrape(to_sqlite)
+            check_db_if_all_date_was_scraped(details.sqlite_name)
+        else:
+            df = thread_scrape.thread_scrape()
+            check_csv_if_all_date_was_scraped()
 elif args.month_end:
     logger.info('Using month end scraper')
     if args.month:
         month = args.month
         details = Details(month=month)
+
     month_end = MonthEndBasicScraper(details)
     to_sqlite = args.to_sqlite
+
     if to_sqlite:
         month_end.scrape_until_month_end(to_sqlite)
         check_db_if_all_date_was_scraped(details.sqlite_name)
@@ -79,6 +95,7 @@ elif args.scraper:
     check_out = details.check_out
     to_sqlite = args.to_sqlite
     scraper = BasicScraper(details)
+
     if to_sqlite:
         scraper.start_scraping_process(check_in, check_out, to_sqlite)
     else:

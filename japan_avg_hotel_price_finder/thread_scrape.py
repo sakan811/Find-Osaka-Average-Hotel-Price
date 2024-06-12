@@ -32,10 +32,12 @@ class ThreadPoolScraper(MonthEndBasicScraper):
         """
         super().__init__(details)
 
-    def thread_scrape(self, to_sqlite: bool = False) -> None | pd.DataFrame:
+    def thread_scrape(self, to_sqlite: bool = False, max_workers: int = 9) -> None | pd.DataFrame:
         """
         Scrape hotel data from the start day to the end of the same month using Thread Pool executor.
-        :param to_sqlite: If True, save the scraped data to a SQLite database, else save it to CSV
+        :param to_sqlite: If True, save the scraped data to a SQLite database, else save it to CSV.
+        :param max_workers: Maximum number of threads to use.
+                            Default is 9.
         :return: None or a Pandas dataframe.
         """
         logger.info('Scraping hotel data using Thread Pool executor...')
@@ -73,8 +75,6 @@ class ThreadPoolScraper(MonthEndBasicScraper):
 
                     # Append the result to the 'results' list
                     results.append(df)
-
-            max_workers = 9
 
             # Create a thread pool with a specified maximum threads
             with ThreadPoolExecutor(max_workers=max_workers) as executor:
