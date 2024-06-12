@@ -28,7 +28,7 @@ from set_details import Details
 
 logger.add('test.log',
            format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {name} | {module} | {function} | {line} | {message}",
-           mode='w')
+           mode='w', level="DEBUG")
 
 
 def test_check_if_all_date_was_scraped_csv() -> None:
