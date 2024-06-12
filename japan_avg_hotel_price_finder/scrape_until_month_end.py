@@ -17,11 +17,14 @@ import calendar
 from datetime import datetime, timedelta
 
 import pandas as pd
-from loguru import logger
 
+from japan_avg_hotel_price_finder.configure_logging import configure_logging_with_file
 from japan_avg_hotel_price_finder.scrape import BasicScraper
 from japan_avg_hotel_price_finder.utils import check_if_current_date_has_passed
 from set_details import Details
+
+
+logger = configure_logging_with_file('month_end_scraper.log', 'month_end_scraper')
 
 
 class MonthEndBasicScraper(BasicScraper):

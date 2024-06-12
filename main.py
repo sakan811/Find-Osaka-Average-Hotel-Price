@@ -13,27 +13,16 @@
 #    limitations under the License.
 
 import argparse
-import sys
 
-from loguru import logger
-
+from japan_avg_hotel_price_finder.configure_logging import configure_logging_with_file
 from japan_avg_hotel_price_finder.scrape import BasicScraper
 from japan_avg_hotel_price_finder.scrape_until_month_end import MonthEndBasicScraper
 from japan_avg_hotel_price_finder.thread_scrape import ThreadPoolScraper
 from japan_avg_hotel_price_finder.utils import check_csv_if_all_date_was_scraped, check_db_if_all_date_was_scraped
 from set_details import Details
 
-logger.remove()
+logger = configure_logging_with_file('main.log', 'main')
 
-level = 'DEBUG'
-
-logger.add('japan_avg_hotel_price_month.log',
-           format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {name} | {module} | {function} | {line} | {message}",
-           mode='w', level=level)
-
-logger.add(sys.stdout,
-           format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {name} | {module} | {function} | {line} | {message}",
-           level=level)
 
 # Initialize argument parser
 parser = argparse.ArgumentParser(description='Parser that control which kind of scraper to use.')

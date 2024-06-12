@@ -16,9 +16,12 @@
 import sqlite3
 
 import pandas as pd
-from loguru import logger
 
+from japan_avg_hotel_price_finder.configure_logging import configure_logging_with_file
 from set_details import Details
+
+
+logger = configure_logging_with_file('migrate_to_sqlite.log', 'migrate_to_sqlite')
 
 
 def migrate_data_to_sqlite(df_filtered: pd.DataFrame, details: Details) -> None:

@@ -2,14 +2,16 @@ import calendar
 import datetime
 import os
 import sqlite3
-import time
 from calendar import monthrange
 
 import pandas as pd
-from loguru import logger
 
+from japan_avg_hotel_price_finder.configure_logging import configure_logging_with_file
 from japan_avg_hotel_price_finder.scrape import BasicScraper
 from set_details import Details
+
+
+logger = configure_logging_with_file('utils.log', 'utils')
 
 
 def check_if_current_date_has_passed(year, month, day):

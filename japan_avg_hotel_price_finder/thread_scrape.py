@@ -17,11 +17,13 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 
 import pandas as pd
-from loguru import logger
 
+from japan_avg_hotel_price_finder.configure_logging import configure_logging_with_file
 from japan_avg_hotel_price_finder.scrape_until_month_end import MonthEndBasicScraper
 from japan_avg_hotel_price_finder.utils import check_if_current_date_has_passed
 from set_details import Details
+
+logger = configure_logging_with_file('thread_pool_scraper.log', 'thread_pool_scraper')
 
 
 class ThreadPoolScraper(MonthEndBasicScraper):
@@ -66,7 +68,8 @@ class ThreadPoolScraper(MonthEndBasicScraper):
 
                 current_date = datetime(self.year, self.month, day)
                 if current_date_has_passed:
-                    logger.warning(f'The current day of the month to scrape was passed. Skip {self.year}-{self.month}-{day}.')
+                    logger.warning(
+                        f'The current day of the month to scrape was passed. Skip {self.year}-{self.month}-{day}.')
                 else:
                     check_in: str = current_date.strftime('%Y-%m-%d')
                     check_out: str = (current_date + timedelta(days=self.nights)).strftime('%Y-%m-%d')
