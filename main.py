@@ -31,7 +31,7 @@ logger.add('japan_avg_hotel_price_month.log',
            format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {name} | {module} | {function} | {line} | {message}",
            mode='w', level=level)
 
-logger.add(sys.stderr,
+logger.add(sys.stdout,
            format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {name} | {module} | {function} | {line} | {message}",
            level=level)
 
