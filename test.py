@@ -17,8 +17,9 @@ from calendar import monthrange
 
 import pytest
 import pytz
-from loguru import logger
 
+
+from japan_avg_hotel_price_finder.configure_logging import configure_logging_with_file
 from japan_avg_hotel_price_finder.scrape import BasicScraper
 from japan_avg_hotel_price_finder.scrape_until_month_end import MonthEndBasicScraper
 from japan_avg_hotel_price_finder.thread_scrape import ThreadPoolScraper
@@ -26,9 +27,7 @@ from japan_avg_hotel_price_finder.utils import check_db_if_all_date_was_scraped,
     get_count_of_date_by_mth_asof_today_query, check_csv_if_all_date_was_scraped, find_csv_files, convert_csv_to_df
 from set_details import Details
 
-logger.add('test.log',
-           format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {name} | {module} | {function} | {line} | {message}",
-           mode='w', level="DEBUG")
+logger = configure_logging_with_file('test.log', 'test')
 
 
 def test_check_if_all_date_was_scraped_csv() -> None:
