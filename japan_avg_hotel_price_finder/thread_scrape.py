@@ -34,10 +34,12 @@ class ThreadPoolScraper(MonthEndBasicScraper):
         """
         super().__init__(details)
 
-    def thread_scrape(self, to_sqlite: bool = False, max_workers: int = 9) -> None | pd.DataFrame:
+    def thread_scrape(self, to_sqlite: bool = False, timezone=None, max_workers: int = 9) -> None | pd.DataFrame:
         """
         Scrape hotel data from the start day to the end of the same month using Thread Pool executor.
         :param to_sqlite: If True, save the scraped data to a SQLite database, else save it to CSV.
+        :param timezone: Set timezone.
+                Default is None.
         :param max_workers: Maximum number of threads to use.
                             Default is 9.
         :return: None or a Pandas dataframe.
@@ -50,7 +52,10 @@ class ThreadPoolScraper(MonthEndBasicScraper):
         # Define a list to store the result DataFrame from each thread
         results = []
 
-        today = datetime.today()
+        if timezone is not None:
+            today = datetime.now(timezone)
+        else:
+            today = datetime.today()
 
         if self.year < today.year:
             logger.warning(f'The current year to scrape has passed. Skip {self.year}.')

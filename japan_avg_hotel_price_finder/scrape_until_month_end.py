@@ -23,7 +23,6 @@ from japan_avg_hotel_price_finder.scrape import BasicScraper
 from japan_avg_hotel_price_finder.utils import check_if_current_date_has_passed
 from set_details import Details
 
-
 logger = configure_logging_with_file('jp_hotel_data.log', 'jp_hotel_data')
 
 
@@ -39,11 +38,13 @@ class MonthEndBasicScraper(BasicScraper):
         self.year = details.year
         self.nights = details.nights
 
-    def scrape_until_month_end(self, to_sqlite: bool = False) -> None | pd.DataFrame:
+    def scrape_until_month_end(self, to_sqlite: bool = False, timezone=None) -> None | pd.DataFrame:
         """
         Scrape hotel data (hotel name, room price, review score)
         starting from a given start day until the end of the same month.
         :param to_sqlite: If True, save the scraped data to a SQLite database, else save to CSV.
+        :param timezone: Set timezone.
+                        Default is None.
         :return: None or a Pandas DataFrame.
         """
         logger.info(f'Scraping data from {self.start_day}-{calendar.month_name[self.month]}-{self.year} '
@@ -60,7 +61,10 @@ class MonthEndBasicScraper(BasicScraper):
 
         df_list = []
 
-        today = datetime.today()
+        if timezone is not None:
+            today = datetime.now(timezone)
+        else:
+            today = datetime.today()
 
         if self.year < today.year:
             logger.warning(f'The current year to scrape has passed. Skip {self.year}.')
@@ -89,7 +93,8 @@ class MonthEndBasicScraper(BasicScraper):
                     else:
                         check_in = current_date.strftime('%Y-%m-%d')
                         check_out = (current_date + timedelta(days=self.nights)).strftime('%Y-%m-%d')
-                        logger.info(f'Scrape data for {self.nights} nights. Check-in: {check_in}, Check-out: {check_out}')
+                        logger.info(
+                            f'Scrape data for {self.nights} nights. Check-in: {check_in}, Check-out: {check_out}')
 
                         current_date += timedelta(days=1)
                         logger.debug(f'Current date: {current_date.strftime("%Y-%m-%d")}')
