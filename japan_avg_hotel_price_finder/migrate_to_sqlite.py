@@ -21,7 +21,7 @@ from japan_avg_hotel_price_finder.configure_logging import configure_logging_wit
 from set_details import Details
 
 
-logger = configure_logging_with_file('migrate_to_sqlite.log', 'migrate_to_sqlite')
+logger = configure_logging_with_file('jp_hotel_data.log', 'jp_hotel_data')
 
 
 def migrate_data_to_sqlite(df_filtered: pd.DataFrame, details: Details) -> None:

@@ -23,7 +23,7 @@ from japan_avg_hotel_price_finder.scrape_until_month_end import MonthEndBasicScr
 from japan_avg_hotel_price_finder.utils import check_if_current_date_has_passed
 from set_details import Details
 
-logger = configure_logging_with_file('thread_pool_scraper.log', 'thread_pool_scraper')
+logger = configure_logging_with_file('jp_hotel_data.log', 'jp_hotel_data')
 
 
 class ThreadPoolScraper(MonthEndBasicScraper):

@@ -31,7 +31,7 @@ from japan_avg_hotel_price_finder.configure_logging import configure_logging_wit
 from japan_avg_hotel_price_finder.migrate_to_sqlite import migrate_data_to_sqlite
 from set_details import Details
 
-logger = configure_logging_with_file('basic_scraper.log', 'basic_scraper')
+logger = configure_logging_with_file('jp_hotel_data.log', 'jp_hotel_data')
 
 
 def append_to_hotel_dict(

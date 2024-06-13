@@ -21,7 +21,7 @@ from japan_avg_hotel_price_finder.thread_scrape import ThreadPoolScraper
 from japan_avg_hotel_price_finder.utils import check_csv_if_all_date_was_scraped, check_db_if_all_date_was_scraped
 from set_details import Details
 
-logger = configure_logging_with_file('main.log', 'main')
+logger = configure_logging_with_file('jp_hotel_data.log', 'jp_hotel_data')
 
 
 # Initialize argument parser

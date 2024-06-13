@@ -11,7 +11,7 @@ from japan_avg_hotel_price_finder.scrape import BasicScraper
 from set_details import Details
 
 
-logger = configure_logging_with_file('utils.log', 'utils')
+logger = configure_logging_with_file('jp_hotel_data.log', 'jp_hotel_data')
 
 
 def check_if_current_date_has_passed(year, month, day):

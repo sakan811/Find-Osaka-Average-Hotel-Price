@@ -283,4 +283,4 @@ def test_check_if_all_date_was_scraped() -> None:
 
 
 if __name__ == '__main__':
-    pytest.main([__file__])
+    pytest.main()

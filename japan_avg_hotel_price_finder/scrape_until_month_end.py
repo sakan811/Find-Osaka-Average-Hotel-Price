@@ -24,7 +24,7 @@ from japan_avg_hotel_price_finder.utils import check_if_current_date_has_passed
 from set_details import Details
 
 
-logger = configure_logging_with_file('month_end_scraper.log', 'month_end_scraper')
+logger = configure_logging_with_file('jp_hotel_data.log', 'jp_hotel_data')
 
 
 class MonthEndBasicScraper(BasicScraper):
@@ -67,16 +67,27 @@ class MonthEndBasicScraper(BasicScraper):
         else:
             logger.info('Loop through each day of the month')
             current_date = start_date
+
+            logger.debug(f'Current date: {current_date.strftime("%Y-%m-%d")}')
+            logger.debug(f'End date: {end_date.strftime("%Y-%m-%d")}')
+
             while current_date <= end_date:
-                current_date_has_passed: bool = check_if_current_date_has_passed(self.year, self.month, self.start_day)
+                start_day = current_date.day
+                month = current_date.month
+                year = current_date.year
+
+                current_date_has_passed: bool = check_if_current_date_has_passed(year, month, start_day)
                 if current_date_has_passed:
                     logger.warning(f'The current day of the month to scrape was passed. Skip {self.year}-{self.month}-{self.start_day}.')
+                    current_date += timedelta(days=1)
+                    logger.debug(f'Current date: {current_date.strftime("%Y-%m-%d")}')
                 else:
                     check_in = current_date.strftime('%Y-%m-%d')
                     check_out = (current_date + timedelta(days=self.nights)).strftime('%Y-%m-%d')
                     logger.info(f'Scrape data for {self.nights} nights. Check-in: {check_in}, Check-out: {check_out}')
 
                     current_date += timedelta(days=1)
+                    logger.debug(f'Current date: {current_date.strftime("%Y-%m-%d")}')
 
                     df = self.start_scraping_process(check_in, check_out, to_sqlite)
 
