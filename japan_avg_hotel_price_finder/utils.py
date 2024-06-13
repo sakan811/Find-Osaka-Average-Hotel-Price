@@ -14,15 +14,21 @@ from set_details import Details
 logger = configure_logging_with_file('jp_hotel_data.log', 'jp_hotel_data')
 
 
-def check_if_current_date_has_passed(year: int, month: int, day: int) -> bool:
+def check_if_current_date_has_passed(year: int, month: int, day: int, timezone=None) -> bool:
     """
     Check if the current date has passed the given day of the month.
     :param year: The year of the date to check.
     :param month: The month of the date to check.
     :param day: The day of the month to check.
+    :param timezone: Set timezone.
+                    Default is None.
     :return: True if the current date has passed the given day, False otherwise.
     """
-    today_for_check = datetime.datetime.today().strftime('%Y-%m-%d')
+    if timezone is not None:
+        today = datetime.datetime.now(timezone)
+    else:
+        today = datetime.datetime.today()
+    today_for_check = today.strftime('%Y-%m-%d')
     current_date_for_check = datetime.datetime(year, month, day).strftime('%Y-%m-%d')
     if current_date_for_check < today_for_check:
         return True

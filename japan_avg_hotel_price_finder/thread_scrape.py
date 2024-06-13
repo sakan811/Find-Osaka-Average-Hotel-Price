@@ -73,7 +73,7 @@ class ThreadPoolScraper(MonthEndBasicScraper):
                     """
                     logger.info('Scraping hotel data of the given date...')
 
-                    current_date_has_passed: bool = check_if_current_date_has_passed(self.year, self.month, day)
+                    current_date_has_passed: bool = check_if_current_date_has_passed(self.year, self.month, day, timezone)
 
                     current_date = datetime(self.year, self.month, day)
                     if current_date_has_passed:

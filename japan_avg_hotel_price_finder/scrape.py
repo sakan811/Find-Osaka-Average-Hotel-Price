@@ -21,7 +21,7 @@ import bs4
 import pandas as pd
 from pandas import DataFrame
 from selenium import webdriver
-from selenium.common import NoSuchElementException, TimeoutException, WebDriverException
+from selenium.common import NoSuchElementException, TimeoutException, WebDriverException, ElementClickInterceptedException
 from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
@@ -191,16 +191,34 @@ class BasicScraper:
                                          'div.b3869ababc > div.b2c588d242 > div.c1b783d372.b99ea5ed8e > '
                                          'div.fb4e9b097f > div.fa298e29e2.a1b24d26fa > button')
 
+        wait = WebDriverWait(driver, 1)
         try:
-            wait = WebDriverWait(driver, 1)
             load_more_button = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, load_more_result_css_selector)))
             load_more_button.click()
         except NoSuchElementException as e:
             logger.error(e)
-            logger.error(f'{load_more_result_css_selector} not found. Keep scrolling.')
+            logger.error(f'The \'load more result\' button not found. Keep scrolling.')
+        except ElementClickInterceptedException as e:
+            logger.warning(e)
+            logger.warning("ElementClickInterceptedException: The button is obscured. Trying to handle the obstruction.")
+
+            logger.info("Identify the obstructing element")
+            try:
+                overlay = driver.find_element(By.CLASS_NAME, 'a3f7e233ba')
+                if overlay.is_displayed():
+                    logger.info("Found an obstructing overlay, attempting to hide it.")
+                    driver.execute_script("arguments[0].style.display='none';", overlay)
+                    logger.info("Obstructing overlay hidden.")
+            except NoSuchElementException as e:
+                logger.warning(e)
+                logger.warning("No obstructing overlay found.")
+
+            logger.info("Retry clicking the button")
+            load_more_button = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, load_more_result_css_selector)))
+            load_more_button.click()
         except Exception as e:
             logger.error(e)
-            logger.error(f'{load_more_result_css_selector} failed due to {e}')
+            logger.error(f'Unexpected error occurred')
         else:
             self.load_more_result_clicked += 1
             logger.debug(f'{load_more_result_css_selector} clicked successfully')
@@ -264,7 +282,7 @@ class BasicScraper:
 
         wait = WebDriverWait(driver, 2)
 
-        self._click_pop_up_ad(wait)
+        self._click_pop_up_ad(wait, driver)
 
         self._scroll_down_until_page_bottom(driver)
 
@@ -336,10 +354,11 @@ class BasicScraper:
         logger.info('Return data as DataFrame')
         return df_filtered
 
-    def _click_pop_up_ad(self, wait: WebDriverWait) -> None:
+    def _click_pop_up_ad(self, wait: WebDriverWait, driver: WebDriver) -> None:
         """
         Click pop-up ad.
         :param wait: Selenium WebDriverWait object.
+        :param driver: Selenium WebDriver object.
         :return: None.
         """
         logger.info("Clicking pop-up ad...")
@@ -351,14 +370,32 @@ class BasicScraper:
             ads.click()
         except NoSuchElementException as e:
             logger.error(e)
-            logger.error(f'{ads_css_selector} not found')
+            logger.error(f'Pop-up ad not found')
         except TimeoutException as e:
             logger.error(e)
-            logger.error(f'{ads_css_selector} timed out')
+            logger.error(f'Pop-up ad timed out')
             logger.error(f'Moving on')
+        except ElementClickInterceptedException as e:
+            logger.warning(e)
+            logger.warning("ElementClickInterceptedException: The pop-up ad is obscured. Trying to handle the obstruction.")
+
+            logger.info("Identify the obstructing element")
+            try:
+                overlay = driver.find_element(By.CLASS_NAME, 'a3f7e233ba')
+                if overlay.is_displayed():
+                    logger.info("Found an obstructing overlay, attempting to hide it.")
+                    driver.execute_script("arguments[0].style.display='none';", overlay)
+                    logger.info("Obstructing overlay hidden.")
+            except NoSuchElementException as e:
+                logger.warning(e)
+                logger.warning("No obstructing overlay found.")
+
+            logger.info("Retry clicking the pop-up ad")
+            load_more_button = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ads_css_selector)))
+            load_more_button.click()
         except Exception as e:
             logger.error(e)
-            logger.error(f'{ads_css_selector} failed due to {e}')
+            logger.error(f'Unexpected error occurred')
         else:
             self.pop_up_clicked += 1
             logger.debug('Clicked the pop-up ads successfully')
@@ -394,7 +431,7 @@ class BasicScraper:
 
             wait = WebDriverWait(driver, 1)
             logger.info("Clicking pop-up ad in case it appears...")
-            self._click_pop_up_ad(wait)
+            self._click_pop_up_ad(wait, driver)
 
 
 if __name__ == '__main__':

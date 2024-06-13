@@ -84,7 +84,7 @@ class MonthEndBasicScraper(BasicScraper):
                     month = current_date.month
                     year = current_date.year
 
-                    current_date_has_passed: bool = check_if_current_date_has_passed(year, month, start_day)
+                    current_date_has_passed: bool = check_if_current_date_has_passed(year, month, start_day, timezone)
                     if current_date_has_passed:
                         logger.warning(f'The current day of the month to scrape was passed. '
                                        f'Skip {year}-{month}-{start_day}.')
