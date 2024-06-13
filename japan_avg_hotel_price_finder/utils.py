@@ -14,7 +14,7 @@ from set_details import Details
 logger = configure_logging_with_file('jp_hotel_data.log', 'jp_hotel_data')
 
 
-def check_if_current_date_has_passed(year, month, day):
+def check_if_current_date_has_passed(year: int, month: int, day: int) -> bool:
     """
     Check if the current date has passed the given day of the month.
     :param year: The year of the date to check.
@@ -60,8 +60,8 @@ def find_missing_dates_in_db(sqlite_db: str) -> list:
                     logger.warning(f"Not all date of {calendar.month_name[month]} {year} was scraped")
                     dates_in_db, end_date, start_date = find_dates_of_the_month_in_db(sqlite_db, days_in_month, month, year)
 
-                    missing_dates = find_missing_dates(dates_in_db, days_in_month, start_date, end_date, today, month,
-                                                       year)
+                    missing_dates = find_missing_dates(dates_in_db, days_in_month, today, month, year)
+                    logger.warning(f"Missing dates in {start_date} to {end_date}: {missing_dates}")
             else:
                 date_obj = datetime.datetime.strptime(row[0], '%Y-%m')
                 month = date_obj.month
@@ -72,8 +72,8 @@ def find_missing_dates_in_db(sqlite_db: str) -> list:
                     logger.warning(f"Not all date of {calendar.month_name[month]} {year} was scraped")
                     dates_in_db, end_date, start_date = find_dates_of_the_month_in_db(sqlite_db, days_in_month, month, year)
 
-                    missing_dates = find_missing_dates(dates_in_db, days_in_month, start_date, end_date, today, month,
-                                                       year)
+                    missing_dates = find_missing_dates(dates_in_db, days_in_month, today, month, year)
+                    logger.warning(f"Missing dates in {start_date} to {end_date}: {missing_dates}")
 
     return missing_dates
 
@@ -162,13 +162,17 @@ def scrape_with_basic_scraper(db: str, date, to_sqlite: bool = False):
     scraper.start_scraping_process(details.check_in, details.check_out, to_sqlite)
 
 
-def find_missing_dates(dates_in_db, days_in_month, start_date, end_date, today, month, year):
+def find_missing_dates(
+        dates_in_db: set[str],
+        days_in_month: int,
+        today: datetime,
+        month: int,
+        year: int) -> list[str]:
     """
     Find missing dates of the given month.
     :param dates_in_db: Dates of that month in the database of the current AsOf Date.
+                        Date format: '%Y-%m-%d'.
     :param days_in_month: Total days in the given month.
-    :param start_date: First day of the month.
-    :param end_date: Last day of the month.
     :param today: Today's date as a Datetime object.
     :param month: Month.
     :param year: Year.
@@ -187,7 +191,6 @@ def find_missing_dates(dates_in_db, days_in_month, start_date, end_date, today, 
                     missing_dates.append(date_str)
             else:
                 missing_dates.append(date_str)
-    logger.warning(f"Missing dates in {start_date} to {end_date}: {missing_dates}")
     return missing_dates
 
 
@@ -200,7 +203,8 @@ def find_dates_of_the_month_in_db(db: str, days_in_month, month, year) -> tuple:
     :param month: Month.
     :param year: Year.
 
-    :return: Tuple of (Dates, End Date, Start Date).
+    :return: Tuple of (Dates in the database, End Date, Start Date).
+            Date format for all values in the Tuple: '%Y-%m-%d'.
     """
     query = get_dates_of_each_month_asof_today_query()
     start_date = datetime.datetime(year, month, 1).strftime('%Y-%m-%d')

@@ -378,7 +378,7 @@ class BasicScraper:
             logger.debug(f'{current_height = }')
 
             # Scroll down to the bottom
-            driver.execute_script("window.scrollBy(0, 2000);")
+            driver.execute_script("window.scrollBy(0, 4000);")
 
             # Get current height
             new_height = driver.execute_script("return window.scrollY")

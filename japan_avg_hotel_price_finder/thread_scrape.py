@@ -68,8 +68,7 @@ class ThreadPoolScraper(MonthEndBasicScraper):
 
                 current_date = datetime(self.year, self.month, day)
                 if current_date_has_passed:
-                    logger.warning(
-                        f'The current day of the month to scrape was passed. Skip {self.year}-{self.month}-{day}.')
+                    logger.warning(f'The current day of the month to scrape was passed. Skip {self.year}-{self.month}-{day}.')
                 else:
                     check_in: str = current_date.strftime('%Y-%m-%d')
                     check_out: str = (current_date + timedelta(days=self.nights)).strftime('%Y-%m-%d')
