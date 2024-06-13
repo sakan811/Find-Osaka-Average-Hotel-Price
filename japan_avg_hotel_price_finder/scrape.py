@@ -192,7 +192,8 @@ class BasicScraper:
                                          'div.fb4e9b097f > div.fa298e29e2.a1b24d26fa > button')
 
         try:
-            load_more_button = driver.find_element(By.CSS_SELECTOR, load_more_result_css_selector)
+            wait = WebDriverWait(driver, 2)
+            load_more_button = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, load_more_result_css_selector)))
             load_more_button.click()
         except NoSuchElementException as e:
             logger.error(e)
@@ -394,8 +395,6 @@ class BasicScraper:
             wait = WebDriverWait(driver, 2)
             logger.info("Clicking pop-up ad in case it appears...")
             self._click_pop_up_ad(wait)
-
-            driver.implicitly_wait(2)
 
 
 if __name__ == '__main__':
