@@ -42,22 +42,23 @@ def test_find_missing_dates():
 
 
 def test_find_csv_files():
-    directory = 'test_find_csv_files'
+    directory = 'tests/test_find_csv_files'
     csv_files = find_csv_files(directory)
+    print(csv_files)
     assert len(csv_files) > 0
 
-    directory_2 = 'test_find_csv_files_2'
+    directory_2 = 'tests/test_find_csv_files_2'
     csv_files = find_csv_files(directory_2)
     assert len(csv_files) == 0
 
 
 def test_convert_csv_to_df():
-    directory = 'test_find_csv_files'
+    directory = 'tests/test_find_csv_files'
     csv_files = find_csv_files(directory)
     df = convert_csv_to_df(csv_files)
     assert not df.empty
 
-    directory_2 = 'test_find_csv_files_2'
+    directory_2 = 'tests/test_find_csv_files_2'
     csv_files = find_csv_files(directory_2)
     df = convert_csv_to_df(csv_files)
     assert df is None
