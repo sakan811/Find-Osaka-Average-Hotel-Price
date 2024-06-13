@@ -61,40 +61,45 @@ class MonthEndBasicScraper(BasicScraper):
         df_list = []
 
         today = datetime.today()
-        if self.month < today.month:
-            month_name = calendar.month_name[self.month]
-            logger.warning(f'The current month to scrape has passed. Skip {month_name} {self.year}.')
+
+        if self.year < today.year:
+            logger.warning(f'The current year to scrape has passed. Skip {self.year}.')
         else:
-            logger.info('Loop through each day of the month')
-            current_date = start_date
+            if self.month < today.month:
+                month_name = calendar.month_name[self.month]
+                logger.warning(f'The current month to scrape has passed. Skip {month_name} {self.year}.')
+            else:
+                logger.info('Loop through each day of the month')
+                current_date = start_date
 
-            logger.debug(f'Current date: {current_date.strftime("%Y-%m-%d")}')
-            logger.debug(f'End date: {end_date.strftime("%Y-%m-%d")}')
+                logger.debug(f'Current date: {current_date.strftime("%Y-%m-%d")}')
+                logger.debug(f'End date: {end_date.strftime("%Y-%m-%d")}')
 
-            while current_date <= end_date:
-                start_day = current_date.day
-                month = current_date.month
-                year = current_date.year
+                while current_date <= end_date:
+                    start_day = current_date.day
+                    month = current_date.month
+                    year = current_date.year
 
-                current_date_has_passed: bool = check_if_current_date_has_passed(year, month, start_day)
-                if current_date_has_passed:
-                    logger.warning(f'The current day of the month to scrape was passed. Skip {self.year}-{self.month}-{self.start_day}.')
-                    current_date += timedelta(days=1)
-                    logger.debug(f'Current date: {current_date.strftime("%Y-%m-%d")}')
-                else:
-                    check_in = current_date.strftime('%Y-%m-%d')
-                    check_out = (current_date + timedelta(days=self.nights)).strftime('%Y-%m-%d')
-                    logger.info(f'Scrape data for {self.nights} nights. Check-in: {check_in}, Check-out: {check_out}')
+                    current_date_has_passed: bool = check_if_current_date_has_passed(year, month, start_day)
+                    if current_date_has_passed:
+                        logger.warning(f'The current day of the month to scrape was passed. '
+                                       f'Skip {year}-{month}-{start_day}.')
+                        current_date += timedelta(days=1)
+                        logger.debug(f'Current date: {current_date.strftime("%Y-%m-%d")}')
+                    else:
+                        check_in = current_date.strftime('%Y-%m-%d')
+                        check_out = (current_date + timedelta(days=self.nights)).strftime('%Y-%m-%d')
+                        logger.info(f'Scrape data for {self.nights} nights. Check-in: {check_in}, Check-out: {check_out}')
 
-                    current_date += timedelta(days=1)
-                    logger.debug(f'Current date: {current_date.strftime("%Y-%m-%d")}')
+                        current_date += timedelta(days=1)
+                        logger.debug(f'Current date: {current_date.strftime("%Y-%m-%d")}')
 
-                    df = self.start_scraping_process(check_in, check_out, to_sqlite)
+                        df = self.start_scraping_process(check_in, check_out, to_sqlite)
 
-                    df_list.append(df)
+                        df_list.append(df)
 
-            combined_df = pd.concat(df_list, ignore_index=True)
-            return combined_df
+                combined_df = pd.concat(df_list, ignore_index=True)
+                return combined_df
 
 
 if __name__ == '__main__':

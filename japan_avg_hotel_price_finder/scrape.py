@@ -192,7 +192,7 @@ class BasicScraper:
                                          'div.fb4e9b097f > div.fa298e29e2.a1b24d26fa > button')
 
         try:
-            wait = WebDriverWait(driver, 2)
+            wait = WebDriverWait(driver, 1)
             load_more_button = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, load_more_result_css_selector)))
             load_more_button.click()
         except NoSuchElementException as e:
@@ -378,7 +378,7 @@ class BasicScraper:
             logger.debug(f'{current_height = }')
 
             # Scroll down to the bottom
-            driver.execute_script("window.scrollBy(0, 2500);")
+            driver.execute_script("window.scrollBy(0, 2000);")
 
             # Get current height
             new_height = driver.execute_script("return window.scrollY")
@@ -392,7 +392,7 @@ class BasicScraper:
             # Click 'load more result' button if present
             self._click_load_more_result_button(driver)
 
-            wait = WebDriverWait(driver, 2)
+            wait = WebDriverWait(driver, 1)
             logger.info("Clicking pop-up ad in case it appears...")
             self._click_pop_up_ad(wait)
 
