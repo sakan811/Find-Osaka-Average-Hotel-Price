@@ -21,7 +21,8 @@ import bs4
 import pandas as pd
 from pandas import DataFrame
 from selenium import webdriver
-from selenium.common import NoSuchElementException, TimeoutException, WebDriverException, ElementClickInterceptedException
+from selenium.common import NoSuchElementException, TimeoutException, WebDriverException, \
+    ElementClickInterceptedException, NoSuchWindowException
 from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
@@ -204,20 +205,7 @@ class BasicScraper:
             logger.warning("ElementClickInterceptedException: The load more result button is obscured. "
                            "Trying to handle the obstruction.")
 
-            # List of possible obstructing class names
-            obstructing_classes = self.obstructing_classes
-
-            logger.info("Identifying the obstructing element(s)")
-
-            for class_name in obstructing_classes:
-                try:
-                    overlay = driver.find_element(By.CLASS_NAME, class_name)
-                    if overlay.is_displayed():
-                        logger.info(f"Found an obstructing overlay with class '{class_name}', attempting to hide it.")
-                        driver.execute_script("arguments[0].style.display='none';", overlay)
-                        logger.info(f"Obstructing overlay with class '{class_name}' hidden.")
-                except NoSuchElementException:
-                    logger.info(f"No obstructing overlay found with class '{class_name}'.")
+            self._hide_overlay_element(driver)
 
             logger.info("Retry clicking the load more result button")
             load_more_button = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, load_more_result_css_selector)))
@@ -228,6 +216,23 @@ class BasicScraper:
         else:
             self.load_more_result_clicked += 1
             logger.debug(f'Load more result button clicked successfully')
+
+    def _hide_overlay_element(self, driver) -> None:
+        """
+        Hide the overlay element.
+        :param driver: Selenium WebDriver.
+        :return: None
+        """
+        logger.info("Identifying the obstructing element(s)...")
+        for class_name in self.obstructing_classes:
+            try:
+                overlay = driver.find_element(By.CLASS_NAME, class_name)
+                if overlay.is_displayed():
+                    logger.info(f"Found an obstructing overlay with class '{class_name}', attempting to hide it.")
+                    driver.execute_script("arguments[0].style.display='none';", overlay)
+                    logger.info(f"Obstructing overlay with class '{class_name}' hidden.")
+            except NoSuchElementException:
+                logger.info(f"No obstructing overlay found with class '{class_name}'.")
 
     def _find_box_elements(self, soup) -> bs4.ResultSet:
         """
@@ -386,20 +391,7 @@ class BasicScraper:
             logger.warning("ElementClickInterceptedException: The pop-up ad is obscured. "
                            "Trying to handle the obstruction.")
 
-            # List of possible obstructing class names
-            obstructing_classes = self.obstructing_classes
-
-            logger.info("Identifying the obstructing element(s)")
-
-            for class_name in obstructing_classes:
-                try:
-                    overlay = driver.find_element(By.CLASS_NAME, class_name)
-                    if overlay.is_displayed():
-                        logger.info(f"Found an obstructing overlay with class '{class_name}', attempting to hide it.")
-                        driver.execute_script("arguments[0].style.display='none';", overlay)
-                        logger.info(f"Obstructing overlay with class '{class_name}' hidden.")
-                except NoSuchElementException:
-                    logger.info(f"No obstructing overlay found with class '{class_name}'.")
+            self._hide_overlay_element(driver)
 
             logger.info("Retry clicking the pop-up ad")
             ads = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ads_css_selector)))
@@ -420,17 +412,27 @@ class BasicScraper:
         :return: None.
         """
         logger.info("Scrolling down until the bottom of the page...")
-
+        current_height = 0
+        new_height = 0
         while True:
-            current_height = driver.execute_script("return window.scrollY")
-            logger.debug(f'{current_height = }')
+            # Get current height
+            try:
+                current_height = driver.execute_script("return window.scrollY")
+                logger.debug(f'{current_height = }')
+            except NoSuchWindowException as e:
+                logger.error(e)
+                logger.error('No such window: The browsing context has been discarded.')
 
             # Scroll down to the bottom
             driver.execute_script("window.scrollBy(0, 2000);")
 
-            # Get current height
-            new_height = driver.execute_script("return window.scrollY")
-            logger.debug(f'{new_height = }')
+            try:
+                # Get current height
+                new_height = driver.execute_script("return window.scrollY")
+                logger.debug(f'{new_height = }')
+            except NoSuchWindowException as e:
+                logger.error(e)
+                logger.error('No such window: The browsing context has been discarded.')
 
             # If the new height is the same as the last height, then the bottom is reached
             if current_height == new_height:
