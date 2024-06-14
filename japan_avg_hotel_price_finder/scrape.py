@@ -414,19 +414,16 @@ class BasicScraper:
         logger.info("Scrolling down until the bottom of the page...")
         current_height = 0
         new_height = 0
+
         while True:
-            # Get current height
             try:
+                # Get current height
                 current_height = driver.execute_script("return window.scrollY")
                 logger.debug(f'{current_height = }')
-            except NoSuchWindowException as e:
-                logger.error(e)
-                logger.error('No such window: The browsing context has been discarded.')
 
-            # Scroll down to the bottom
-            driver.execute_script("window.scrollBy(0, 2000);")
+                # Scroll down to the bottom
+                driver.execute_script("window.scrollBy(0, 2000);")
 
-            try:
                 # Get current height
                 new_height = driver.execute_script("return window.scrollY")
                 logger.debug(f'{new_height = }')
