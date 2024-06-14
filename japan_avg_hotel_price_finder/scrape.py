@@ -310,7 +310,7 @@ class BasicScraper:
                 if self.pop_up_clicked < 1:
                     logger.warning("Pop-up ad is never clicked. "
                                    "Please update the CSS selector of the pop-up ad in '_click_pop_up_ad' function.")
-                raise Exception("Load more result button is never clicked. "
+                raise SystemExit("Load more result button is never clicked. "
                                 "Please update the CSS selector of this button in '_click_load_more_result_button' function.")
 
             logger.info("Click the load more result button")
@@ -451,10 +451,14 @@ class BasicScraper:
                 logger.error(e)
                 logger.error('No such window: The browsing context has been discarded.')
 
-            # If the new height is the same as the last height, then the bottom is reached
-            if current_height == new_height:
-                logger.info("Reached the bottom of the page.")
-                break
+            if new_height == 0:
+                logger.error('Failed to scroll down, refreshing the page...')
+                driver.refresh()
+            else:
+                # If the new height is the same as the last height, then the bottom is reached
+                if current_height == new_height:
+                    logger.info("Reached the bottom of the page.")
+                    break
 
             # Click 'load more result' button if present
             self._click_load_more_result_button(wait, driver)
