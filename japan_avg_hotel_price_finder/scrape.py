@@ -161,7 +161,7 @@ def connect_to_webdriver() -> WebDriver:
     options.set_preference('permissions.default.stylesheet', 2)
     options.set_preference('permissions.default.image', 2)
     options.set_preference('dom.ipc.plugins.enabled.libflashplayer.so', 'false')
-    # options.add_argument("--headless")
+    options.add_argument("--headless")
     # Disable blink features related to automation control
     options.add_argument('--disable-blink-features=AutomationControlled')
     # Initialize the driver with the configured options
