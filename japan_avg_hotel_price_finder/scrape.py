@@ -303,9 +303,6 @@ class BasicScraper:
 
         if self.load_more_result_clicked < 1:
             logger.warning("Load more result button is never clicked")
-            raise Exception("Load more result button is never clicked."
-                            "Check the path to 'load more result button' "
-                            "in 'self._click_load_more_result_button' function")
 
         logger.info('Get the page source after the page has loaded')
         html = driver.page_source
