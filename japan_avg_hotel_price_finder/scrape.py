@@ -157,7 +157,7 @@ def connect_to_webdriver() -> WebDriver:
     options.set_preference('permissions.default.stylesheet', 2)
     options.set_preference('permissions.default.image', 2)
     options.set_preference('dom.ipc.plugins.enabled.libflashplayer.so', 'false')
-    options.add_argument("--headless")
+    # options.add_argument("--headless")
     # Disable blink features related to automation control
     options.add_argument('--disable-blink-features=AutomationControlled')
     # Initialize the driver with the configured options
@@ -192,15 +192,18 @@ class BasicScraper:
 
         load_more_result_css_selector = ('#bodyconstraint-inner > div:nth-child(8) > div > div.c1cce822c4 > '
                                          'div.b3869ababc > div.b2c588d242 > div.c1b783d372.b99ea5ed8e > '
-                                         'div.fb4e9b097f > div.fa298e29e2.a1b24d26fa > button')
+                                         'div.fb4e9b097f > div.fa298e29e2.a1b24d26fa > button > span')
 
-        wait = WebDriverWait(driver, 5)
+        wait = WebDriverWait(driver, 2)
         try:
             load_more_button = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, load_more_result_css_selector)))
             load_more_button.click()
         except NoSuchElementException as e:
             logger.error(e)
             logger.error(f'The \'load more result\' button not found. Keep scrolling.')
+        except TimeoutException as e:
+            logger.error(e)
+            logger.error(f'The \'load more result\' button timed out.')
         except ElementClickInterceptedException as e:
             logger.warning(e)
             logger.warning("ElementClickInterceptedException: The load more result button is obscured. "
@@ -292,7 +295,9 @@ class BasicScraper:
 
         get_url_with_driver(driver, url)
 
-        wait = WebDriverWait(driver, 5)
+        # driver.implicitly_wait(500)
+
+        wait = WebDriverWait(driver, 2)
 
         self._click_pop_up_ad(wait, driver)
 
@@ -374,7 +379,7 @@ class BasicScraper:
         """
         logger.info("Clicking pop-up ad...")
 
-        ads_css_selector = '.f4552b6561 > span:nth-child(1) > span:nth-child(1) > svg:nth-child(1)'
+        ads_css_selector = 'div.e93d17c51f:nth-child(1) > button:nth-child(1) > span:nth-child(1) > span:nth-child(1)'
 
         try:
             ads = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ads_css_selector)))
@@ -439,7 +444,7 @@ class BasicScraper:
             # Click 'load more result' button if present
             self._click_load_more_result_button(driver)
 
-            wait = WebDriverWait(driver, 5)
+            wait = WebDriverWait(driver, 2)
             logger.info("Clicking pop-up ad in case it appears...")
             self._click_pop_up_ad(wait, driver)
 
