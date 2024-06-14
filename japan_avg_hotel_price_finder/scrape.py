@@ -95,34 +95,38 @@ def transform_data(df: pd.DataFrame) -> pd.DataFrame:
     return df_filtered.sort_values(by='Price/Review')
 
 
-def create_df_from_scraped_data(check_in, check_out, city, hotel_data_dict) -> pd.DataFrame:
+def create_df_from_scraped_data(check_in: str, check_out: str, city: str, hotel_data_dict: dict) -> DataFrame:
     """
     Create a DataFrame from the collected data.
     :param check_in: The check-in date.
     :param check_out: The check-out date.
     :param city: City where the hotels are located.
     :param hotel_data_dict: Dictionary with hotel data.
-    :returns: Pandas DataFrame with hotel data
+    :returns: Pandas DataFrame with hotel data or None in case 'hotel_data_dict' is None.
     """
     logger.info("Create a DataFrame from the collected data")
-    df = None
-    try:
-        df = pd.DataFrame(hotel_data_dict)
+    df = pd.DataFrame()
+    if hotel_data_dict:
+        try:
+            df = pd.DataFrame(hotel_data_dict)
 
-        logger.info("Add City column to DataFrame")
-        df['City'] = city
+            logger.info("Add City column to DataFrame")
+            df['City'] = city
 
-        logger.info("Add Date column to DataFrame")
-        df['Date'] = check_in
+            logger.info("Add Date column to DataFrame")
+            df['Date'] = check_in
 
-        logger.info("Add AsOf column to DataFrame")
-        df['AsOf'] = datetime.datetime.now()
+            logger.info("Add AsOf column to DataFrame")
+            df['AsOf'] = datetime.datetime.now()
 
-        df = transform_data(df)
-    except ValueError as e:
-        logger.error(e)
-        logger.error(f'Error when creating a DataFrame for {check_in} to {check_out} data')
-    return df
+            df = transform_data(df)
+        except ValueError as e:
+            logger.error(e)
+            logger.error(f'Error when creating a DataFrame for {check_in} to {check_out} data')
+        return df
+    else:
+        logger.warning(f'hotel_data_dict is None. Return None.')
+        return df
 
 
 def get_url_with_driver(driver: WebDriver, url: str) -> None:
@@ -284,11 +288,11 @@ class BasicScraper:
             hotel_data_dict = append_to_hotel_dict(hotel_data_dict, hotel_element, price_element, review_element)
         return hotel_data_dict
 
-    def _scrape(self, url: str) -> dict:
+    def _scrape(self, url: str) -> None | dict:
         """
         Scrape hotel data from the website.
         :param url: Website URL.
-        :return: Dictionary with hotel data.
+        :return: Dictionary with hotel data or None in case error happened.
         """
         logger.info("Connect to the Selenium Webdriver")
         driver = connect_to_webdriver()
@@ -302,12 +306,11 @@ class BasicScraper:
 
             self._scroll_down_until_page_bottom(driver)
 
-            if self.pop_up_clicked < 1:
-                logger.warning("Pop-up ad is never clicked. "
-                               "Please update the CSS selector of the pop-up ad in '_click_pop_up_ad' function.")
-
             if self.load_more_result_clicked < 1:
                 logger.warning("Load more result button is never clicked")
+                if self.pop_up_clicked < 1:
+                    logger.warning("Pop-up ad is never clicked. "
+                                   "Please update the CSS selector of the pop-up ad in '_click_pop_up_ad' function.")
                 raise Exception("Load more result button is never clicked. "
                                 "Please update the CSS selector of this button in '_click_load_more_result_button' function.")
 
@@ -324,17 +327,19 @@ class BasicScraper:
             driver.quit()
 
         logger.info('Parse the HTML content with BeautifulSoup')
-        soup = bs4.BeautifulSoup(html, 'html.parser')
+        if html is not None:
+            soup = bs4.BeautifulSoup(html, 'html.parser')
+            return self._find_hotel_data_from_box_class(soup)
+        else:
+            return None
 
-        return self._find_hotel_data_from_box_class(soup)
-
-    def start_scraping_process(self, check_in: str, check_out: str, to_sqlite: bool = False) -> None | DataFrame:
+    def start_scraping_process(self, check_in: str, check_out: str, to_sqlite: bool = False) -> DataFrame:
         """
         Main function to start the web scraping process.
         :param check_in: Check-in date.
         :param check_out: Check-out date.
         :param to_sqlite: If True, save the scraped data to a SQLite database, else save to CSV.
-        :return: None or Pandas DataFrame.
+        :return: Pandas DataFrame.
         """
         logger.info(f"Starting web-scraping... Period: {check_in} to {check_out}")
 
@@ -349,29 +354,33 @@ class BasicScraper:
                f'&no_rooms={num_rooms}&group_children={group_children}'
                f'&selected_currency={selected_currency}&nflt=ht_id%3D204')
 
-        hotel_data_dict = self._scrape(url)
+        hotel_data_dict: dict | None = self._scrape(url)
 
-        df_filtered = create_df_from_scraped_data(check_in, check_out, city, hotel_data_dict)
+        df_filtered = pd.DataFrame()
+        if hotel_data_dict:
+            df_filtered: pd.DataFrame = create_df_from_scraped_data(check_in, check_out, city, hotel_data_dict)
 
-        if df_filtered is not None:
-            if to_sqlite:
-                logger.info('Save data to SQLite database')
-                migrate_data_to_sqlite(df_filtered, self.details)
-            else:
-                logger.info('Save data to CSV')
-                save_dir = 'scraped_hotel_data_csv'
+            if not df_filtered.empty:
+                if to_sqlite:
+                    logger.info('Save data to SQLite database')
+                    migrate_data_to_sqlite(df_filtered, self.details)
+                else:
+                    logger.info('Save data to CSV')
+                    save_dir = 'scraped_hotel_data_csv'
 
-                try:
-                    # Attempt to create the directory
-                    os.makedirs(save_dir)
-                    logger.info(f'Created {save_dir} directory')
-                except FileExistsError as e:
-                    # If the directory already exists, log a message and continue
-                    logger.error(e)
-                    logger.error(f'{save_dir} directory already exists')
+                    try:
+                        # Attempt to create the directory
+                        os.makedirs(save_dir)
+                        logger.info(f'Created {save_dir} directory')
+                    except FileExistsError as e:
+                        # If the directory already exists, log a message and continue
+                        logger.error(e)
+                        logger.error(f'{save_dir} directory already exists')
 
-                file_path = os.path.join(save_dir, f'{city}_hotel_data_{check_in}_to_{check_out}.csv')
-                df_filtered.to_csv(file_path, index=False)
+                    file_path = os.path.join(save_dir, f'{city}_hotel_data_{check_in}_to_{check_out}.csv')
+                    df_filtered.to_csv(file_path, index=False)
+        else:
+            logger.warning("HTML content is None. No data was scraped.")
 
         logger.info('Return data as DataFrame')
         return df_filtered
@@ -433,7 +442,7 @@ class BasicScraper:
                 logger.debug(f'{current_height = }')
 
                 # Scroll down to the bottom
-                driver.execute_script("window.scrollBy(0, 2000);")
+                driver.execute_script("window.scrollBy(0, 4000);")
 
                 # Get current height
                 new_height = driver.execute_script("return window.scrollY")
