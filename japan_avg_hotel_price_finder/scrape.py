@@ -303,12 +303,13 @@ class BasicScraper:
             self._scroll_down_until_page_bottom(driver)
 
             if self.pop_up_clicked < 1:
-                logger.warning("Pop-up ad is never clicked")
+                logger.warning("Pop-up ad is never clicked. "
+                               "Please update the CSS selector of the pop-up ad in '_click_pop_up_ad' function.")
 
             if self.load_more_result_clicked < 1:
                 logger.warning("Load more result button is never clicked")
                 raise Exception("Load more result button is never clicked. "
-                                "Please check the CSS selector of this button in '_click_load_more_result_button' function.")
+                                "Please update the CSS selector of this button in '_click_load_more_result_button' function.")
 
             logger.info("Click the load more result button")
             self._click_load_more_result_button(driver)
