@@ -178,6 +178,7 @@ class BasicScraper:
         self.hotel_data_dict = {'Hotel': [], 'Price': [], 'Review': []}
         self.load_more_result_clicked = 0
         self.pop_up_clicked = 0
+        self.obstructing_classes = ['a3f7e233ba', 'f0fbe41bfe.b290b28eaf']
 
     def _click_load_more_result_button(self, driver: WebDriver) -> None:
         """
@@ -200,28 +201,33 @@ class BasicScraper:
             logger.error(f'The \'load more result\' button not found. Keep scrolling.')
         except ElementClickInterceptedException as e:
             logger.warning(e)
-            logger.warning("ElementClickInterceptedException: The button is obscured. Trying to handle the obstruction.")
+            logger.warning("ElementClickInterceptedException: The pop-up ad is obscured. "
+                           "Trying to handle the obstruction.")
 
-            logger.info("Identify the obstructing element")
-            try:
-                overlay = driver.find_element(By.CLASS_NAME, 'a3f7e233ba')
-                if overlay.is_displayed():
-                    logger.info("Found an obstructing overlay, attempting to hide it.")
-                    driver.execute_script("arguments[0].style.display='none';", overlay)
-                    logger.info("Obstructing overlay hidden.")
-            except NoSuchElementException as e:
-                logger.warning(e)
-                logger.warning("No obstructing overlay found.")
+            # List of possible obstructing class names
+            obstructing_classes = self.obstructing_classes
 
-            logger.info("Retry clicking the button")
-            load_more_button = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, load_more_result_css_selector)))
+            logger.info("Identifying the obstructing element(s)")
+
+            for class_name in obstructing_classes:
+                try:
+                    overlay = driver.find_element(By.CLASS_NAME, class_name)
+                    if overlay.is_displayed():
+                        logger.info(f"Found an obstructing overlay with class '{class_name}', attempting to hide it.")
+                        driver.execute_script("arguments[0].style.display='none';", overlay)
+                        logger.info(f"Obstructing overlay with class '{class_name}' hidden.")
+                except NoSuchElementException:
+                    logger.info(f"No obstructing overlay found with class '{class_name}'.")
+
+            logger.info("Retry clicking the pop-up ad")
+            load_more_button = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ads_css_selector)))
             load_more_button.click()
         except Exception as e:
             logger.error(e)
             logger.error(f'Unexpected error occurred')
         else:
             self.load_more_result_clicked += 1
-            logger.debug(f'{load_more_result_css_selector} clicked successfully')
+            logger.debug(f'Load more result button clicked successfully')
 
     def _find_box_elements(self, soup) -> bs4.ResultSet:
         """
@@ -377,18 +383,23 @@ class BasicScraper:
             logger.error(f'Moving on')
         except ElementClickInterceptedException as e:
             logger.warning(e)
-            logger.warning("ElementClickInterceptedException: The pop-up ad is obscured. Trying to handle the obstruction.")
+            logger.warning("ElementClickInterceptedException: The pop-up ad is obscured. "
+                           "Trying to handle the obstruction.")
 
-            logger.info("Identify the obstructing element")
-            try:
-                overlay = driver.find_element(By.CLASS_NAME, 'a3f7e233ba')
-                if overlay.is_displayed():
-                    logger.info("Found an obstructing overlay, attempting to hide it.")
-                    driver.execute_script("arguments[0].style.display='none';", overlay)
-                    logger.info("Obstructing overlay hidden.")
-            except NoSuchElementException as e:
-                logger.warning(e)
-                logger.warning("No obstructing overlay found.")
+            # List of possible obstructing class names
+            obstructing_classes = self.obstructing_classes
+
+            logger.info("Identifying the obstructing element(s)")
+
+            for class_name in obstructing_classes:
+                try:
+                    overlay = driver.find_element(By.CLASS_NAME, class_name)
+                    if overlay.is_displayed():
+                        logger.info(f"Found an obstructing overlay with class '{class_name}', attempting to hide it.")
+                        driver.execute_script("arguments[0].style.display='none';", overlay)
+                        logger.info(f"Obstructing overlay with class '{class_name}' hidden.")
+                except NoSuchElementException:
+                    logger.info(f"No obstructing overlay found with class '{class_name}'.")
 
             logger.info("Retry clicking the pop-up ad")
             load_more_button = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ads_css_selector)))
