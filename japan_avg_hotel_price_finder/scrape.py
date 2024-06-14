@@ -201,7 +201,7 @@ class BasicScraper:
             logger.error(f'The \'load more result\' button not found. Keep scrolling.')
         except ElementClickInterceptedException as e:
             logger.warning(e)
-            logger.warning("ElementClickInterceptedException: The pop-up ad is obscured. "
+            logger.warning("ElementClickInterceptedException: The load more result button is obscured. "
                            "Trying to handle the obstruction.")
 
             # List of possible obstructing class names
@@ -219,8 +219,8 @@ class BasicScraper:
                 except NoSuchElementException:
                     logger.info(f"No obstructing overlay found with class '{class_name}'.")
 
-            logger.info("Retry clicking the pop-up ad")
-            load_more_button = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ads_css_selector)))
+            logger.info("Retry clicking the load more result button")
+            load_more_button = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, load_more_result_css_selector)))
             load_more_button.click()
         except Exception as e:
             logger.error(e)
@@ -402,8 +402,8 @@ class BasicScraper:
                     logger.info(f"No obstructing overlay found with class '{class_name}'.")
 
             logger.info("Retry clicking the pop-up ad")
-            load_more_button = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ads_css_selector)))
-            load_more_button.click()
+            ads = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ads_css_selector)))
+            ads.click()
         except Exception as e:
             logger.error(e)
             logger.error(f'Unexpected error occurred')
