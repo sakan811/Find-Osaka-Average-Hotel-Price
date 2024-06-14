@@ -194,7 +194,7 @@ class BasicScraper:
                                          'div.b3869ababc > div.b2c588d242 > div.c1b783d372.b99ea5ed8e > '
                                          'div.fb4e9b097f > div.fa298e29e2.a1b24d26fa > button')
 
-        wait = WebDriverWait(driver, 1)
+        wait = WebDriverWait(driver, 5)
         try:
             load_more_button = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, load_more_result_css_selector)))
             load_more_button.click()
@@ -292,7 +292,7 @@ class BasicScraper:
 
         get_url_with_driver(driver, url)
 
-        wait = WebDriverWait(driver, 2)
+        wait = WebDriverWait(driver, 5)
 
         self._click_pop_up_ad(wait, driver)
 
@@ -303,6 +303,8 @@ class BasicScraper:
 
         if self.load_more_result_clicked < 1:
             logger.warning("Load more result button is never clicked")
+            raise Exception("Load more result button is never clicked. "
+                            "Please check the CSS selector of this button in '_click_load_more_result_button' function.")
 
         logger.info('Get the page source after the page has loaded')
         html = driver.page_source
@@ -437,7 +439,7 @@ class BasicScraper:
             # Click 'load more result' button if present
             self._click_load_more_result_button(driver)
 
-            wait = WebDriverWait(driver, 1)
+            wait = WebDriverWait(driver, 5)
             logger.info("Clicking pop-up ad in case it appears...")
             self._click_pop_up_ad(wait, driver)
 
