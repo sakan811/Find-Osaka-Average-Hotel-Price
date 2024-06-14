@@ -157,7 +157,7 @@ def connect_to_webdriver() -> WebDriver:
     options.set_preference('permissions.default.stylesheet', 2)
     options.set_preference('permissions.default.image', 2)
     options.set_preference('dom.ipc.plugins.enabled.libflashplayer.so', 'false')
-    # options.add_argument("--headless")
+    options.add_argument("--headless")
     # Disable blink features related to automation control
     options.add_argument('--disable-blink-features=AutomationControlled')
     # Initialize the driver with the configured options
@@ -292,30 +292,35 @@ class BasicScraper:
         """
         logger.info("Connect to the Selenium Webdriver")
         driver = connect_to_webdriver()
+        html = None
+        try:
+            get_url_with_driver(driver, url)
 
-        get_url_with_driver(driver, url)
+            wait = WebDriverWait(driver, 2)
 
-        # driver.implicitly_wait(500)
+            self._click_pop_up_ad(wait, driver)
 
-        wait = WebDriverWait(driver, 2)
+            self._scroll_down_until_page_bottom(driver)
 
-        self._click_pop_up_ad(wait, driver)
+            if self.pop_up_clicked < 1:
+                logger.warning("Pop-up ad is never clicked")
 
-        self._scroll_down_until_page_bottom(driver)
+            if self.load_more_result_clicked < 1:
+                logger.warning("Load more result button is never clicked")
+                raise Exception("Load more result button is never clicked. "
+                                "Please check the CSS selector of this button in '_click_load_more_result_button' function.")
 
-        if self.pop_up_clicked < 1:
-            logger.warning("Pop-up ad is never clicked")
+            logger.info("Click the load more result button")
+            self._click_load_more_result_button(driver)
 
-        if self.load_more_result_clicked < 1:
-            logger.warning("Load more result button is never clicked")
-            raise Exception("Load more result button is never clicked. "
-                            "Please check the CSS selector of this button in '_click_load_more_result_button' function.")
-
-        logger.info('Get the page source after the page has loaded')
-        html = driver.page_source
-
-        logger.info('Close the webdriver after obtaining the HTML content')
-        driver.quit()
+            logger.info('Get the page source after the page has loaded')
+            html = driver.page_source
+        except Exception as e:
+            logger.error(e)
+            logger.error(f"Unexpected error occurred.")
+        finally:
+            logger.info('Close the webdriver after obtaining the HTML content or if an error occurs')
+            driver.quit()
 
         logger.info('Parse the HTML content with BeautifulSoup')
         soup = bs4.BeautifulSoup(html, 'html.parser')
