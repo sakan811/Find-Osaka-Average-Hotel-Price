@@ -179,7 +179,8 @@ class BasicScraper:
         self.hotel_data_dict = {'Hotel': [], 'Price': [], 'Review': []}
         self.load_more_result_clicked = 0
         self.pop_up_clicked = 0
-        self.obstructing_classes = ['a3f7e233ba', 'f0fbe41bfe.b290b28eaf']
+        self.obstructing_classes = ['a3f7e233ba', 'f0fbe41bfe.b290b28eaf',
+                                    'bf33709ee1.a190bb5f27.c73e91a7c9.bb5314095f.e47e45fccd.a94fe207f7']
 
     def _click_load_more_result_button(self, driver: WebDriver) -> None:
         """
