@@ -161,7 +161,7 @@ def connect_to_webdriver() -> WebDriver:
     options.set_preference('permissions.default.stylesheet', 2)
     options.set_preference('permissions.default.image', 2)
     options.set_preference('dom.ipc.plugins.enabled.libflashplayer.so', 'false')
-    options.add_argument("--headless")
+    # options.add_argument("--headless")
     # Disable blink features related to automation control
     options.add_argument('--disable-blink-features=AutomationControlled')
     # Initialize the driver with the configured options
@@ -186,9 +186,10 @@ class BasicScraper:
         self.obstructing_classes = ['a3f7e233ba', 'f0fbe41bfe.b290b28eaf',
                                     'bf33709ee1.a190bb5f27.c73e91a7c9.bb5314095f.e47e45fccd.a94fe207f7']
 
-    def _click_load_more_result_button(self, driver: WebDriver) -> None:
+    def _click_load_more_result_button(self, wait: WebDriverWait, driver: WebDriver) -> None:
         """
         Click 'load more result' button to load more hotels.
+        :param wait: Selenium WebDriverWait object.
         :param driver: Selenium WebDriver.
         :return: None
         """
@@ -197,8 +198,6 @@ class BasicScraper:
         load_more_result_css_selector = ('#bodyconstraint-inner > div:nth-child(8) > div > div.c1cce822c4 > '
                                          'div.b3869ababc > div.b2c588d242 > div.c1b783d372.b99ea5ed8e > '
                                          'div.fb4e9b097f > div.fa298e29e2.a1b24d26fa > button > span')
-
-        wait = WebDriverWait(driver, 2)
         try:
             load_more_button = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, load_more_result_css_selector)))
             load_more_button.click()
@@ -300,11 +299,11 @@ class BasicScraper:
         try:
             get_url_with_driver(driver, url)
 
-            wait = WebDriverWait(driver, 2)
+            wait = WebDriverWait(driver, 0.5)
 
             self._click_pop_up_ad(wait, driver)
 
-            self._scroll_down_until_page_bottom(driver)
+            self._scroll_down_until_page_bottom(wait, driver)
 
             if self.load_more_result_clicked < 1:
                 logger.warning("Load more result button is never clicked")
@@ -315,7 +314,7 @@ class BasicScraper:
                                 "Please update the CSS selector of this button in '_click_load_more_result_button' function.")
 
             logger.info("Click the load more result button")
-            self._click_load_more_result_button(driver)
+            self._click_load_more_result_button(wait, driver)
 
             logger.info('Get the page source after the page has loaded')
             html = driver.page_source
@@ -423,11 +422,12 @@ class BasicScraper:
             self.pop_up_clicked += 1
             logger.debug('Clicked the pop-up ads successfully')
 
-    def _scroll_down_until_page_bottom(self, driver: WebDriver) -> None:
+    def _scroll_down_until_page_bottom(self, wait: WebDriverWait, driver: WebDriver) -> None:
         """
         Scroll down and click 'Load more result' button if present.
 
         Scroll down until reach the bottom of the page.
+        :param wait: Selenium WebDriverWait object.
         :param driver: Selenium WebDriver.
         :return: None.
         """
@@ -442,7 +442,7 @@ class BasicScraper:
                 logger.debug(f'{current_height = }')
 
                 # Scroll down to the bottom
-                driver.execute_script("window.scrollBy(0, 4000);")
+                driver.execute_script("window.scrollBy(0, 2000);")
 
                 # Get current height
                 new_height = driver.execute_script("return window.scrollY")
@@ -457,9 +457,8 @@ class BasicScraper:
                 break
 
             # Click 'load more result' button if present
-            self._click_load_more_result_button(driver)
+            self._click_load_more_result_button(wait, driver)
 
-            wait = WebDriverWait(driver, 2)
             logger.info("Clicking pop-up ad in case it appears...")
             self._click_pop_up_ad(wait, driver)
 

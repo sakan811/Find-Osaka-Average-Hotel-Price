@@ -1,4 +1,29 @@
+import concurrent.futures
 import logging
+
+
+class AsyncFileHandler(logging.Handler):
+    def __init__(self, filename, mode='a'):
+        super().__init__()
+        self.filename = filename
+        self.mode = mode
+        self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+        self.queue = []
+
+    def emit(self, record):
+        log_entry = self.format(record)
+        self.queue.append(log_entry)
+        self.executor.submit(self._write_log)
+
+    def _write_log(self):
+        if self.queue:
+            with open(self.filename, self.mode) as log_file:
+                while self.queue:
+                    log_file.write(self.queue.pop(0) + '\n')
+
+    def close(self):
+        self.executor.shutdown(wait=True)
+        super().close()
 
 
 def configure_logging(logger_name='root') -> None | logging.Logger:
@@ -55,8 +80,9 @@ def configure_logging_with_file(log_file, logger_name='root') -> None | logging.
     # Define a custom log format
     log_format = '%(asctime)s | %(filename)s | line:%(lineno)d | %(funcName)s | %(levelname)s | %(message)s'
 
-    # Create a FileHandler to write logs to the specified file in overwrite mode
-    file_handler = logging.FileHandler(log_file, mode='w')  # 'w' for write mode (overwrite)
+    # Create an AsyncFileHandler to write logs to the specified file
+    # 'w' for write mode (overwrite)
+    async_file_handler = AsyncFileHandler(log_file, mode='w')
 
     # Create a StreamHandler to output logs to the terminal
     stream_handler = logging.StreamHandler()
@@ -65,11 +91,11 @@ def configure_logging_with_file(log_file, logger_name='root') -> None | logging.
     formatter = logging.Formatter(log_format)
 
     # Set the Formatter for both the FileHandler and StreamHandler
-    file_handler.setFormatter(formatter)
+    async_file_handler.setFormatter(formatter)
     stream_handler.setFormatter(formatter)
 
     # Add both the FileHandler and StreamHandler to the root logger
-    logger.addHandler(file_handler)
+    logger.addHandler(async_file_handler)
     logger.addHandler(stream_handler)
 
     return logger
