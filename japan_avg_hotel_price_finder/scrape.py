@@ -328,7 +328,6 @@ class BasicScraper:
                     logger.warning("Pop-up ad is never clicked. "
                                    "The CSS selector for the pop-up ad might have a problem."
                                    "Please update the CSS selector of the pop-up ad in '_click_pop_up_ad' function.")
-                raise SystemExit
 
             logger.info('Get the page source after the page has loaded')
             html = driver.page_source
