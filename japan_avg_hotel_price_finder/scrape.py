@@ -308,25 +308,26 @@ class BasicScraper:
         logger.info("Connect to the Selenium Webdriver")
         driver = connect_to_webdriver()
         html = None
+        load_more_result_clicked = self.load_more_result_clicked
+        pop_up_clicked = self.pop_up_clicked
         try:
             get_url_with_driver(driver, url)
 
-            wait = WebDriverWait(driver, timeout=1e-9, poll_frequency=0)
+            wait = WebDriverWait(driver, timeout=0.1, poll_frequency=0)
 
             self._click_pop_up_ad(wait, driver)
 
             self._scroll_down_until_page_bottom(wait, driver)
 
-            if self.load_more_result_clicked < 1:
-                logger.warning("Load more result button is never clicked")
-                if self.pop_up_clicked < 1:
+            if load_more_result_clicked < 1:
+                logger.warning("Load more result button is never clicked. "
+                               "The CSS selector for the load more result button might have a problem."
+                               "Please update the CSS selector in '_click_load_more_result_button' function.")
+                if pop_up_clicked < 1:
                     logger.warning("Pop-up ad is never clicked. "
+                                   "The CSS selector for the pop-up ad might have a problem."
                                    "Please update the CSS selector of the pop-up ad in '_click_pop_up_ad' function.")
-                raise SystemExit("Load more result button is never clicked. "
-                                 "Please update the CSS selector of this button in '_click_load_more_result_button' function.")
-
-            logger.info("Click the load more result button")
-            self._click_load_more_result_button(wait, driver)
+                raise SystemExit
 
             logger.info('Get the page source after the page has loaded')
             html = driver.page_source
@@ -334,9 +335,6 @@ class BasicScraper:
             logger.error(e)
             logger.error(f"Unexpected error occurred.")
         finally:
-            logger.info('Set number of load more result button and pop-up ad clicked to 0')
-            self.load_more_result_clicked = 0
-            self.pop_up_clicked = 0
             logger.info('Close the webdriver after obtaining the HTML content or if an error occurs')
             driver.quit()
 
@@ -457,7 +455,7 @@ class BasicScraper:
                 logger.debug(f'{current_height = }')
 
                 # Scroll down to the bottom
-                driver.execute_script("window.scrollBy(0, 200);")
+                driver.execute_script("window.scrollBy(0, 2000);")
 
                 # Get current height
                 new_height = driver.execute_script("return window.scrollY")
