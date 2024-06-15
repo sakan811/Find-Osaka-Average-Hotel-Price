@@ -161,7 +161,7 @@ def connect_to_webdriver() -> WebDriver:
     options.set_preference('permissions.default.stylesheet', 2)
     options.set_preference('permissions.default.image', 2)
     options.set_preference('dom.ipc.plugins.enabled.libflashplayer.so', 'false')
-    options.add_argument("--headless")
+    # options.add_argument("--headless")
     # Disable blink features related to automation control
     options.add_argument('--disable-blink-features=AutomationControlled')
     # Initialize the driver with the configured options
@@ -299,7 +299,7 @@ class BasicScraper:
         try:
             get_url_with_driver(driver, url)
 
-            wait = WebDriverWait(driver, 0.5)
+            wait = WebDriverWait(driver, timeout=1e-9, poll_frequency=0)
 
             self._click_pop_up_ad(wait, driver)
 
@@ -322,6 +322,9 @@ class BasicScraper:
             logger.error(e)
             logger.error(f"Unexpected error occurred.")
         finally:
+            logger.info('Set number of load more result button and pop-up ad clicked to 0')
+            self.load_more_result_clicked = 0
+            self.pop_up_clicked = 0
             logger.info('Close the webdriver after obtaining the HTML content or if an error occurs')
             driver.quit()
 
@@ -442,7 +445,7 @@ class BasicScraper:
                 logger.debug(f'{current_height = }')
 
                 # Scroll down to the bottom
-                driver.execute_script("window.scrollBy(0, 2000);")
+                driver.execute_script("window.scrollBy(0, 200);")
 
                 # Get current height
                 new_height = driver.execute_script("return window.scrollY")
