@@ -161,7 +161,7 @@ def connect_to_webdriver() -> WebDriver:
     options.set_preference('permissions.default.stylesheet', 2)
     options.set_preference('permissions.default.image', 2)
     options.set_preference('dom.ipc.plugins.enabled.libflashplayer.so', 'false')
-    # options.add_argument("--headless")
+    options.add_argument("--headless")
     # Disable blink features related to automation control
     options.add_argument('--disable-blink-features=AutomationControlled')
     # Initialize the driver with the configured options
@@ -195,34 +195,46 @@ class BasicScraper:
         """
         logger.info("Click 'load more result' button.")
 
-        load_more_result_css_selector = ('#bodyconstraint-inner > div:nth-child(8) > div > div.c1cce822c4 > '
-                                         'div.b3869ababc > div.b2c588d242 > div.c1b783d372.b99ea5ed8e > '
-                                         'div.fb4e9b097f > div.fa298e29e2.a1b24d26fa > button > span')
-        try:
-            load_more_button = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, load_more_result_css_selector)))
-            load_more_button.click()
-        except NoSuchElementException as e:
-            logger.error(e)
-            logger.error(f'The \'load more result\' button not found. Keep scrolling.')
-        except TimeoutException as e:
-            logger.error(e)
-            logger.error(f'The \'load more result\' button timed out.')
-        except ElementClickInterceptedException as e:
-            logger.warning(e)
-            logger.warning("ElementClickInterceptedException: The load more result button is obscured. "
-                           "Trying to handle the obstruction.")
+        load_more_result_css_selector_list = [
+            '#bodyconstraint-inner > div:nth-child(8) > div > div.c1cce822c4 > '
+            'div.b3869ababc > div.b2c588d242 > div.c1b783d372.b99ea5ed8e > '
+            'div.fb4e9b097f > div.fa298e29e2.a1b24d26fa > button > span',
+            '#bodyconstraint-inner > div:nth-child(8) > div > div.c1cce822c4 > div.b3869ababc > div.b2c588d242 > '
+            'div.c1b783d372.b99ea5ed8e > div.fb4e9b097f > div.fa298e29e2.a1b24d26fa',
+            '#bodyconstraint-inner > div:nth-child(8) > div > div.c1cce822c4 > div.b3869ababc > div.b2c588d242 > '
+            'div.c1b783d372.b99ea5ed8e > div.fb4e9b097f > div.fa298e29e2.a1b24d26fa > button',
+            '#bodyconstraint-inner > div:nth-child(8) > div > div.c1cce822c4 > div.b3869ababc > div.b2c588d242 > '
+            'div.c1b783d372.b99ea5ed8e > div.fb4e9b097f > div.fa298e29e2.a1b24d26fa > button > span'
+        ]
 
-            self._hide_overlay_element(driver)
+        for load_more_result_css_selector in load_more_result_css_selector_list:
+            try:
+                load_more_button = wait.until(
+                    EC.element_to_be_clickable((By.CSS_SELECTOR, load_more_result_css_selector)))
+                load_more_button.click()
+            except NoSuchElementException as e:
+                logger.error(e)
+                logger.error(f'The \'load more result\' button not found. Keep scrolling.')
+            except TimeoutException as e:
+                logger.error(e)
+                logger.error(f'The \'load more result\' button timed out.')
+            except ElementClickInterceptedException as e:
+                logger.warning(e)
+                logger.warning("ElementClickInterceptedException: The load more result button is obscured. "
+                               "Trying to handle the obstruction.")
 
-            logger.info("Retry clicking the load more result button")
-            load_more_button = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, load_more_result_css_selector)))
-            load_more_button.click()
-        except Exception as e:
-            logger.error(e)
-            logger.error(f'Unexpected error occurred')
-        else:
-            self.load_more_result_clicked += 1
-            logger.debug(f'Load more result button clicked successfully')
+                self._hide_overlay_element(driver)
+
+                logger.info("Retry clicking the load more result button")
+                load_more_button = wait.until(
+                    EC.element_to_be_clickable((By.CSS_SELECTOR, load_more_result_css_selector)))
+                load_more_button.click()
+            except Exception as e:
+                logger.error(e)
+                logger.error(f'Unexpected error occurred')
+            else:
+                self.load_more_result_clicked += 1
+                logger.debug(f'Load more result button clicked successfully')
 
     def _hide_overlay_element(self, driver) -> None:
         """
@@ -311,7 +323,7 @@ class BasicScraper:
                     logger.warning("Pop-up ad is never clicked. "
                                    "Please update the CSS selector of the pop-up ad in '_click_pop_up_ad' function.")
                 raise SystemExit("Load more result button is never clicked. "
-                                "Please update the CSS selector of this button in '_click_load_more_result_button' function.")
+                                 "Please update the CSS selector of this button in '_click_load_more_result_button' function.")
 
             logger.info("Click the load more result button")
             self._click_load_more_result_button(wait, driver)
