@@ -120,9 +120,8 @@ def create_df_from_scraped_data(check_in: str, check_out: str, city: str, hotel_
             df['AsOf'] = datetime.datetime.now()
 
             df = transform_data(df)
-        except ValueError as e:
-            logger.error(e)
-            logger.error(f'Error when creating a DataFrame for {check_in} to {check_out} data')
+        except ValueError:
+            logger.error(f'ValueError: Error when creating a DataFrame for {check_in} to {check_out} data')
         return df
     else:
         logger.warning(f'hotel_data_dict is None. Return None.')
@@ -139,15 +138,15 @@ def get_url_with_driver(driver: WebDriver, url: str) -> None:
     logger.info(f"Get the URL: {url}")
     try:
         driver.get(url)
-    except TimeoutException as e:
-        logger.error(f'TimeoutException: {url} failed due to {e}')
-    except NoSuchElementException as e:
-        logger.error(f'NoSuchElementException: {url} failed due to {e}')
-    except WebDriverException as e:
-        logger.error(f'WebDriverException: {url} failed due to {e}')
+    except TimeoutException:
+        logger.error(f'TimeoutException: {url} failed')
+    except NoSuchElementException:
+        logger.error(f'NoSuchElementException: {url} failed')
+    except WebDriverException:
+        logger.error(f'WebDriverException: {url} failed')
     except Exception as e:
         logger.error(e)
-        logger.error(f'{url} failed due to {e}')
+        logger.error(f'Unexpected error: {url} failed')
 
 
 def connect_to_webdriver() -> WebDriver:
@@ -212,14 +211,11 @@ class BasicScraper:
                 load_more_button = wait.until(
                     EC.element_to_be_clickable((By.CSS_SELECTOR, load_more_result_css_selector)))
                 load_more_button.click()
-            except NoSuchElementException as e:
-                logger.error(e)
-                logger.error(f'The \'load more result\' button not found. Keep scrolling.')
-            except TimeoutException as e:
-                logger.error(e)
-                logger.error(f'The \'load more result\' button timed out.')
-            except ElementClickInterceptedException as e:
-                logger.warning(e)
+            except NoSuchElementException:
+                logger.error(f'NoSuchElementException: The \'load more result\' button not found. Keep scrolling.')
+            except TimeoutException:
+                logger.error(f'TimeoutException: The \'load more result\' button timed out.')
+            except ElementClickInterceptedException:
                 logger.warning("ElementClickInterceptedException: The load more result button is obscured. "
                                "Trying to handle the obstruction.")
 
@@ -383,10 +379,9 @@ class BasicScraper:
                         # Attempt to create the directory
                         os.makedirs(save_dir)
                         logger.info(f'Created {save_dir} directory')
-                    except FileExistsError as e:
+                    except FileExistsError:
                         # If the directory already exists, log a message and continue
-                        logger.error(e)
-                        logger.error(f'{save_dir} directory already exists')
+                        logger.error(f'FileExistsError: {save_dir} directory already exists')
 
                     file_path = os.path.join(save_dir, f'{city}_hotel_data_{check_in}_to_{check_out}.csv')
                     df_filtered.to_csv(file_path, index=False)
@@ -418,15 +413,12 @@ class BasicScraper:
         try:
             ads = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ads_css_selector)))
             ads.click()
-        except NoSuchElementException as e:
-            logger.error(e)
+        except NoSuchElementException:
             logger.error(f'Pop-up ad not found')
-        except TimeoutException as e:
-            logger.error(e)
+        except TimeoutException:
             logger.error(f'Pop-up ad timed out')
             logger.error(f'Moving on')
-        except ElementClickInterceptedException as e:
-            logger.warning(e)
+        except ElementClickInterceptedException:
             logger.warning("ElementClickInterceptedException: The pop-up ad is obscured. "
                            "Trying to handle the obstruction.")
 
@@ -469,8 +461,7 @@ class BasicScraper:
                 # Get current height
                 new_height = driver.execute_script("return window.scrollY")
                 logger.debug(f'{new_height = }')
-            except NoSuchWindowException as e:
-                logger.error(e)
+            except NoSuchWindowException:
                 logger.error('No such window: The browsing context has been discarded.')
 
             if new_height == 0:
