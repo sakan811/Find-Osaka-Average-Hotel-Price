@@ -235,6 +235,7 @@ class BasicScraper:
             else:
                 self.load_more_result_clicked += 1
                 logger.debug(f'Load more result button clicked successfully')
+                return
 
     def _hide_overlay_element(self, driver) -> None:
         """
