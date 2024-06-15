@@ -181,17 +181,17 @@ class BasicScraper:
         self.review_class = 'f13857cc8c.e008572b71'
         self.box_class = 'fa298e29e2.b74446e476.e40c0c68b1.ea1d0cfcb7.d8991ab7ae.e8b7755ec7.ad0e783e41'
         self.hotel_data_dict = {'Hotel': [], 'Price': [], 'Review': []}
-        self.load_more_result_clicked = 0
-        self.pop_up_clicked = 0
         self.obstructing_classes = ['a3f7e233ba', 'f0fbe41bfe.b290b28eaf',
                                     'bf33709ee1.a190bb5f27.c73e91a7c9.bb5314095f.e47e45fccd.a94fe207f7']
+        self.num_load_more_result_clicked_list = 0
+        self.num_pop_up_clicked_list = 0
 
-    def _click_load_more_result_button(self, wait: WebDriverWait, driver: WebDriver) -> None:
+    def _click_load_more_result_button(self, wait: WebDriverWait, driver: WebDriver) -> int | None:
         """
         Click 'load more result' button to load more hotels.
         :param wait: Selenium WebDriverWait object.
         :param driver: Selenium WebDriver.
-        :return: None
+        :return: Number of 'load more result' button clicked or None in case it's not clicked.
         """
         logger.info("Click 'load more result' button.")
 
@@ -233,9 +233,8 @@ class BasicScraper:
                 logger.error(e)
                 logger.error(f'Unexpected error occurred')
             else:
-                self.load_more_result_clicked += 1
                 logger.debug(f'Load more result button clicked successfully')
-                return
+                return 1
 
     def _hide_overlay_element(self, driver) -> None:
         """
@@ -309,25 +308,25 @@ class BasicScraper:
         logger.info("Connect to the Selenium Webdriver")
         driver = connect_to_webdriver()
         html = None
-        load_more_result_clicked = self.load_more_result_clicked
-        pop_up_clicked = self.pop_up_clicked
+        num_pop_up_clicked_list = []
+        num_load_more_result_clicked_list = []
         try:
             get_url_with_driver(driver, url)
 
             wait = WebDriverWait(driver, timeout=0.1, poll_frequency=0)
 
-            self._click_pop_up_ad(wait, driver)
+            num_pop_up_clicked: int = self._click_pop_up_ad(wait, driver)
+            if num_pop_up_clicked is not None:
+                num_pop_up_clicked_list.append(num_pop_up_clicked)
 
-            self._scroll_down_until_page_bottom(wait, driver)
+            num_load_more_result_clicked, num_pop_up_clicked = self._scroll_down_until_page_bottom(wait, driver)
+            if num_load_more_result_clicked is not None:
+                num_load_more_result_clicked_list.append(num_load_more_result_clicked)
+            if num_pop_up_clicked is not None:
+                num_pop_up_clicked_list.append(num_pop_up_clicked)
 
-            if load_more_result_clicked < 1:
-                logger.warning("Load more result button is never clicked. "
-                               "The CSS selector for the load more result button might have a problem."
-                               "Please update the CSS selector in '_click_load_more_result_button' function.")
-                if pop_up_clicked < 1:
-                    logger.warning("Pop-up ad is never clicked. "
-                                   "The CSS selector for the pop-up ad might have a problem."
-                                   "Please update the CSS selector of the pop-up ad in '_click_pop_up_ad' function.")
+            self.num_pop_up_clicked_list = sum(num_pop_up_clicked_list)
+            self.num_load_more_result_clicked_list = sum(num_load_more_result_clicked_list)
 
             logger.info('Get the page source after the page has loaded')
             html = driver.page_source
@@ -394,20 +393,28 @@ class BasicScraper:
         else:
             logger.warning("HTML content is None. No data was scraped.")
 
-        logger.info('Return data as DataFrame')
+        if self.num_load_more_result_clicked_list < 1:
+            logger.warning("Load more result button is never clicked. "
+                           "The CSS selector for the load more result button might have a problem."
+                           "Please update the CSS selector in '_click_load_more_result_button' function.")
+        if self.num_pop_up_clicked_list < 1:
+            logger.warning("Pop-up ad is never clicked. "
+                           "The CSS selector for the pop-up ad might have a problem."
+                           "Please update the CSS selector of the pop-up ad in '_click_pop_up_ad' function.")
+
+        logger.info('Finally, return a Pandas DataFrame')
         return df_filtered
 
-    def _click_pop_up_ad(self, wait: WebDriverWait, driver: WebDriver) -> None:
+    def _click_pop_up_ad(self, wait: WebDriverWait, driver: WebDriver) -> int | None:
         """
         Click pop-up ad.
         :param wait: Selenium WebDriverWait object.
         :param driver: Selenium WebDriver object.
-        :return: None.
+        :return: Number of pop-up ads clicked or None in case it's not clicked.
         """
         logger.info("Clicking pop-up ad...")
 
         ads_css_selector = 'div.e93d17c51f:nth-child(1) > button:nth-child(1) > span:nth-child(1) > span:nth-child(1)'
-
         try:
             ads = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ads_css_selector)))
             ads.click()
@@ -432,22 +439,24 @@ class BasicScraper:
             logger.error(e)
             logger.error(f'Unexpected error occurred')
         else:
-            self.pop_up_clicked += 1
             logger.debug('Clicked the pop-up ads successfully')
+            return 1
 
-    def _scroll_down_until_page_bottom(self, wait: WebDriverWait, driver: WebDriver) -> None:
+    def _scroll_down_until_page_bottom(self, wait: WebDriverWait, driver: WebDriver) -> tuple[int, int] | None:
         """
         Scroll down and click 'Load more result' button if present.
 
         Scroll down until reach the bottom of the page.
         :param wait: Selenium WebDriverWait object.
         :param driver: Selenium WebDriver.
-        :return: None.
+        :return: Tuple of the number of clicks on 'Load more result' button and 'pop-up ads'.
+                None in case 'load more result' button or pop-up ad is not clicked.
         """
         logger.info("Scrolling down until the bottom of the page...")
         current_height = 0
         new_height = 0
-
+        click_pop_up_ad_clicked_list = []
+        load_more_result_button_clicked_list = []
         while True:
             try:
                 # Get current height
@@ -474,10 +483,16 @@ class BasicScraper:
                     break
 
             # Click 'load more result' button if present
-            self._click_load_more_result_button(wait, driver)
+            num_load_more_result_button_clicked = self._click_load_more_result_button(wait, driver)
+            if num_load_more_result_button_clicked is not None:
+                load_more_result_button_clicked_list.append(num_load_more_result_button_clicked)
 
             logger.info("Clicking pop-up ad in case it appears...")
-            self._click_pop_up_ad(wait, driver)
+            num_pop_up_ad_clicked = self._click_pop_up_ad(wait, driver)
+            if num_pop_up_ad_clicked is not None:
+                click_pop_up_ad_clicked_list.append(num_pop_up_ad_clicked)
+
+        return sum(load_more_result_button_clicked_list), sum(click_pop_up_ad_clicked_list)
 
 
 if __name__ == '__main__':
