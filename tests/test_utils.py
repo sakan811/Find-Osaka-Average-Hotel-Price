@@ -73,7 +73,7 @@ def test_convert_csv_to_df():
 def test_check_if_all_date_was_scraped_csv() -> None:
     city = 'Osaka'
     group_adults = 1
-    num_rooms = 0
+    num_rooms = 1
     group_children = 0
     selected_currency = 'USD'
 
@@ -124,7 +124,7 @@ def test_check_if_all_date_was_scraped_csv() -> None:
 def test_check_if_all_date_was_scraped() -> None:
     city = 'Osaka'
     group_adults = 1
-    num_rooms = 0
+    num_rooms = 1
     group_children = 0
     selected_currency = 'USD'
 
@@ -154,7 +154,7 @@ def test_check_if_all_date_was_scraped() -> None:
     )
 
     thread_scrape = ThreadPoolScraper(hotel_stay)
-    thread_scrape.thread_scrape(to_sqlite=True, timezone=city_timezone, max_workers=5)
+    thread_scrape.thread_scrape(to_sqlite=True, timezone=city_timezone, max_workers=2)
     check_db_if_all_date_was_scraped(sqlite_name)
 
     with sqlite3.connect(sqlite_name) as conn:
