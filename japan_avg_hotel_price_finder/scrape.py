@@ -473,7 +473,7 @@ class BasicScraper:
 
             if new_height == 0:
                 logger.error('Failed to scroll down, refreshing the page...')
-                driver.refresh()
+                break
             else:
                 # If the new height is the same as the last height, then the bottom is reached
                 if current_height == new_height:
