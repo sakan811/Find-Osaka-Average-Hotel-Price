@@ -178,3 +178,5 @@ cython_debug/
 /*.jar
 /backup/
 /query.sql
+/*.db-wal
+/*.db-shm
