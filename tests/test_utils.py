@@ -103,7 +103,7 @@ def test_check_if_all_date_was_scraped_csv() -> None:
     )
 
     thread_scrape = ThreadPoolScraper(hotel_stay)
-    thread_scrape.thread_scrape(timezone=city_timezone, max_workers=3)
+    thread_scrape.thread_scrape(timezone=city_timezone, max_workers=5)
     check_csv_if_all_date_was_scraped()
 
     with sqlite3.connect(sqlite_name) as conn:
@@ -154,7 +154,7 @@ def test_check_if_all_date_was_scraped() -> None:
     )
 
     thread_scrape = ThreadPoolScraper(hotel_stay)
-    thread_scrape.thread_scrape(to_sqlite=True, timezone=city_timezone, max_workers=1)
+    thread_scrape.thread_scrape(to_sqlite=True, timezone=city_timezone, max_workers=5)
     check_db_if_all_date_was_scraped(sqlite_name)
 
     with sqlite3.connect(sqlite_name) as conn:
