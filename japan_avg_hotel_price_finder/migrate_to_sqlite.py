@@ -35,8 +35,6 @@ def migrate_data_to_sqlite(df_filtered: pd.DataFrame, details: Details) -> None:
 
     db = details.sqlite_name
     with sqlite3.connect(db) as con:
-        con.execute("PRAGMA journal_mode=WAL")
-
         query = '''
         CREATE TABLE IF NOT EXISTS HotelPrice (
             ID INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -87,7 +85,6 @@ def create_average_room_price_by_date_view(db: str) -> None:
     :return: None
     """
     with sqlite3.connect(db) as con:
-        con.execute("PRAGMA journal_mode=WAL")
         query = '''
         CREATE VIEW IF NOT EXISTS AverageRoomPriceByDate AS 
         select Date, avg(Price) as AveragePrice, City
