@@ -195,60 +195,26 @@ class BasicScraper:
         """
         logger.info("Click 'load more result' button.")
 
-        load_more_result_css_selector_list = [
-            '#bodyconstraint-inner > div:nth-child(8) > div > div.c1cce822c4 > '
-            'div.b3869ababc > div.b2c588d242 > div.c1b783d372.b99ea5ed8e > '
-            'div.fb4e9b097f > div.fa298e29e2.a1b24d26fa > button > span',
-            '#bodyconstraint-inner > div:nth-child(8) > div > div.c1cce822c4 > div.b3869ababc > div.b2c588d242 > '
-            'div.c1b783d372.b99ea5ed8e > div.fb4e9b097f > div.fa298e29e2.a1b24d26fa',
-            '#bodyconstraint-inner > div:nth-child(8) > div > div.c1cce822c4 > div.b3869ababc > div.b2c588d242 > '
-            'div.c1b783d372.b99ea5ed8e > div.fb4e9b097f > div.fa298e29e2.a1b24d26fa > button',
-            '#bodyconstraint-inner > div:nth-child(8) > div > div.c1cce822c4 > div.b3869ababc > div.b2c588d242 > '
-            'div.c1b783d372.b99ea5ed8e > div.fb4e9b097f > div.fa298e29e2.a1b24d26fa > button > span'
-        ]
-
-        for load_more_result_css_selector in load_more_result_css_selector_list:
-            try:
-                load_more_button = wait.until(
-                    EC.element_to_be_clickable((By.CSS_SELECTOR, load_more_result_css_selector)))
-                load_more_button.click()
-            except NoSuchElementException:
-                logger.error(f'NoSuchElementException: The \'load more result\' button not found. Keep scrolling.')
-            except TimeoutException:
-                logger.error(f'TimeoutException: The \'load more result\' button timed out.')
-            except ElementClickInterceptedException:
-                logger.warning("ElementClickInterceptedException: The load more result button is obscured. "
-                               "Trying to handle the obstruction.")
-
-                self._hide_overlay_element(driver)
-
-                logger.info("Retry clicking the load more result button")
-                load_more_button = wait.until(
-                    EC.element_to_be_clickable((By.CSS_SELECTOR, load_more_result_css_selector)))
-                load_more_button.click()
-            except Exception as e:
-                logger.error(e)
-                logger.error(f'Unexpected error occurred')
-            else:
-                logger.debug(f'Load more result button clicked successfully')
-                return 1
-
-    def _hide_overlay_element(self, driver) -> None:
-        """
-        Hide the overlay element.
-        :param driver: Selenium WebDriver.
-        :return: None
-        """
-        logger.info("Identifying the obstructing element(s)...")
-        for class_name in self.obstructing_classes:
-            try:
-                overlay = driver.find_element(By.CLASS_NAME, class_name)
-                if overlay.is_displayed():
-                    logger.info(f"Found an obstructing overlay with class '{class_name}', attempting to hide it.")
-                    driver.execute_script("arguments[0].style.display='none';", overlay)
-                    logger.info(f"Obstructing overlay with class '{class_name}' hidden.")
-            except NoSuchElementException:
-                logger.info(f"No obstructing overlay found with class '{class_name}'.")
+        load_more_result_css_selector = ('#bodyconstraint-inner > div:nth-child(8) > div > div.c1cce822c4 > '
+                                         'div.b3869ababc > div.b2c588d242 > div.c1b783d372.b99ea5ed8e > '
+                                         'div.fb4e9b097f > div.fa298e29e2.a1b24d26fa > button > span')
+        try:
+            load_more_button = wait.until(
+                EC.element_to_be_clickable((By.CSS_SELECTOR, load_more_result_css_selector)))
+            load_more_button.click()
+        except NoSuchElementException:
+            logger.error(f'NoSuchElementException: The \'load more result\' button not found. Keep scrolling.')
+        except ElementClickInterceptedException as e:
+            logger.error(e)
+            logger.error("ElementClickInterceptedException: The pop-up ad is obscured.")
+        except TimeoutException:
+            logger.error(f'TimeoutException: The \'load more result\' button timed out.')
+        except Exception as e:
+            logger.error(e)
+            logger.error(f'Unexpected error occurred')
+        else:
+            logger.debug(f'Load more result button clicked successfully')
+            return 1
 
     def _find_box_elements(self, soup) -> bs4.ResultSet:
         """
@@ -410,36 +376,26 @@ class BasicScraper:
         """
         logger.info("Clicking pop-up ad...")
 
-        ads_css_selector_list = [
-            'div.e93d17c51f:nth-child(1) > button:nth-child(1) > span:nth-child(1)',
-            'div.e93d17c51f:nth-child(1) > button:nth-child(1) > span:nth-child(1) > span:nth-child(1)',
-            'div.e93d17c51f:nth-child(1) > button:nth-child(1) > span:nth-child(1) > span:nth-child(1) > svg:nth-child(1)'
-        ]
+        ads_css_selector = ('div.e93d17c51f:nth-child(1) > button:nth-child(1) > span:nth-child(1) > span:nth-child(1) '
+                            '> svg:nth-child(1)')
 
-        for ads_css_selector in ads_css_selector_list:
-            try:
-                ads = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ads_css_selector)))
-                ads.click()
-            except NoSuchElementException:
-                logger.error(f'Pop-up ad not found')
-            except TimeoutException:
-                logger.error(f'Pop-up ad timed out')
-                logger.error(f'Moving on')
-            except ElementClickInterceptedException:
-                logger.warning("ElementClickInterceptedException: The pop-up ad is obscured. "
-                               "Trying to handle the obstruction.")
-
-                self._hide_overlay_element(driver)
-
-                logger.info("Retry clicking the pop-up ad")
-                ads = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ads_css_selector)))
-                ads.click()
-            except Exception as e:
-                logger.error(e)
-                logger.error(f'Unexpected error occurred')
-            else:
-                logger.debug('Clicked the pop-up ads successfully')
-                return 1
+        try:
+            ads = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ads_css_selector)))
+            ads.click()
+        except NoSuchElementException:
+            logger.error(f'Pop-up ad not found')
+        except TimeoutException:
+            logger.error(f'Pop-up ad timed out')
+            logger.error(f'Moving on')
+        except ElementClickInterceptedException as e:
+            logger.error(e)
+            logger.error("ElementClickInterceptedException: The pop-up ad is obscured.")
+        except Exception as e:
+            logger.error(e)
+            logger.error(f'Unexpected error occurred')
+        else:
+            logger.debug('Clicked the pop-up ads successfully')
+            return 1
 
     def _scroll_down_until_page_bottom(self, wait: WebDriverWait, driver: WebDriver) -> tuple[int, int] | None:
         """
@@ -471,14 +427,10 @@ class BasicScraper:
             except NoSuchWindowException:
                 logger.error('No such window: The browsing context has been discarded.')
 
-            if new_height == 0:
-                logger.error('Failed to scroll down, refreshing the page...')
+            # If the new height is the same as the last height, then the bottom is reached
+            if current_height == new_height:
+                logger.info("Reached the bottom of the page.")
                 break
-            else:
-                # If the new height is the same as the last height, then the bottom is reached
-                if current_height == new_height:
-                    logger.info("Reached the bottom of the page.")
-                    break
 
             # Click 'load more result' button if present
             num_load_more_result_button_clicked = self._click_load_more_result_button(wait, driver)
@@ -489,6 +441,9 @@ class BasicScraper:
             num_pop_up_ad_clicked = self._click_pop_up_ad(wait, driver)
             if num_pop_up_ad_clicked is not None:
                 click_pop_up_ad_clicked_list.append(num_pop_up_ad_clicked)
+
+            # Update current height
+            current_height = new_height
 
         return sum(load_more_result_button_clicked_list), sum(click_pop_up_ad_clicked_list)
 

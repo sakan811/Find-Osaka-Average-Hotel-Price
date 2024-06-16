@@ -32,9 +32,14 @@ def test_thread_scraper() -> None:
     )
 
     thread_scrape = ThreadPoolScraper(hotel_stay)
-    df = thread_scrape.thread_scrape(timezone=city_timezone, max_workers=3)
+    df = thread_scrape.thread_scrape(timezone=city_timezone, max_workers=1)
 
     assert not df.empty
+    # Check row
+    assert df.shape[0] == 2
+
+    # Check column
+    assert df.shape[1] == 7
 
 
 def test_thread_scraper_past_month() -> None:
@@ -63,7 +68,7 @@ def test_thread_scraper_past_month() -> None:
     )
 
     thread_scrape = ThreadPoolScraper(hotel_stay)
-    df = thread_scrape.thread_scrape(timezone=city_timezone, max_workers=3)
+    df = thread_scrape.thread_scrape(timezone=city_timezone, max_workers=1)
 
     assert df is None
 
