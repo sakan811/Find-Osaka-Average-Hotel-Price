@@ -1,9 +1,15 @@
 import datetime
+import sqlite3
 from calendar import monthrange
 
 import pytest
+import pytz
 
-from japan_avg_hotel_price_finder.utils import check_if_current_date_has_passed, find_missing_dates, find_csv_files, convert_csv_to_df
+from japan_avg_hotel_price_finder.thread_scrape import ThreadPoolScraper
+from japan_avg_hotel_price_finder.utils import check_if_current_date_has_passed, find_missing_dates, find_csv_files, \
+    convert_csv_to_df, get_count_of_date_by_mth_asof_today_query, check_csv_if_all_date_was_scraped, \
+    check_db_if_all_date_was_scraped
+from set_details import Details
 
 
 def test_check_if_current_date_has_passed():
@@ -62,6 +68,102 @@ def test_convert_csv_to_df():
     csv_files = find_csv_files(directory_2)
     df = convert_csv_to_df(csv_files)
     assert df is None
+
+
+def test_check_if_all_date_was_scraped_csv() -> None:
+    city = 'Osaka'
+    group_adults = 1
+    num_rooms = 0
+    group_children = 0
+    selected_currency = 'USD'
+
+    # Define the timezone
+    city_timezone = pytz.timezone('Asia/Singapore')
+
+    # Get the current date in the specified timezone
+    today = datetime.datetime.now(city_timezone).date()
+
+    start_day = 5
+
+    if today.month == 12:
+        month = 1
+        year = today.year + 1
+    else:
+        month = today.month + 1
+        year = today.year
+
+    nights = 1
+
+    sqlite_name = 'test_check_if_all_date_was_scraped_csv.db'
+
+    hotel_stay = Details(
+        city=city, group_adults=group_adults, num_rooms=num_rooms,
+        group_children=group_children, selected_currency=selected_currency,
+        start_day=start_day, month=month, year=year, nights=nights, sqlite_name=sqlite_name
+    )
+
+    thread_scrape = ThreadPoolScraper(hotel_stay)
+    thread_scrape.thread_scrape(timezone=city_timezone, max_workers=3)
+    check_csv_if_all_date_was_scraped()
+
+    with sqlite3.connect(sqlite_name) as conn:
+        conn.execute("PRAGMA journal_mode=WAL")
+        directory = 'scraped_hotel_data_csv'
+        csv_files: list = find_csv_files(directory)
+        if csv_files:
+            df = convert_csv_to_df(csv_files)
+            df.to_sql('HotelPrice', conn, if_exists='replace', index=False)
+
+        query = get_count_of_date_by_mth_asof_today_query()
+        result = conn.execute(query).fetchall()
+        days_in_month = monthrange(year, month)[1]
+        for row in result:
+            assert row[1] == days_in_month
+
+
+def test_check_if_all_date_was_scraped() -> None:
+    city = 'Osaka'
+    group_adults = 1
+    num_rooms = 0
+    group_children = 0
+    selected_currency = 'USD'
+
+    # Define the timezone
+    city_timezone = pytz.timezone('Asia/Singapore')
+
+    # Get the current date in the specified timezone
+    today = datetime.datetime.now(city_timezone).date()
+
+    start_day = 15
+
+    if today.month == 12:
+        month = 1
+        year = today.year + 1
+    else:
+        month = today.month + 1
+        year = today.year
+
+    nights = 1
+
+    sqlite_name = 'test_check_if_all_date_was_scraped.db'
+
+    hotel_stay = Details(
+        city=city, group_adults=group_adults, num_rooms=num_rooms,
+        group_children=group_children, selected_currency=selected_currency,
+        start_day=start_day, month=month, year=year, nights=nights, sqlite_name=sqlite_name
+    )
+
+    thread_scrape = ThreadPoolScraper(hotel_stay)
+    thread_scrape.thread_scrape(to_sqlite=True, timezone=city_timezone, max_workers=3)
+    check_db_if_all_date_was_scraped(sqlite_name)
+
+    with sqlite3.connect(sqlite_name) as conn:
+        conn.execute("PRAGMA journal_mode=WAL")
+        query = get_count_of_date_by_mth_asof_today_query()
+        result = conn.execute(query).fetchall()
+        days_in_month = monthrange(year, month)[1]
+        for row in result:
+            assert row[1] == days_in_month
 
 
 if __name__ == '__main__':
