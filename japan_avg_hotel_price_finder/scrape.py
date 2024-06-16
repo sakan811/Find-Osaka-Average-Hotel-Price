@@ -82,14 +82,17 @@ def transform_data(df: pd.DataFrame) -> pd.DataFrame:
     logger.info("Transforming data...")
 
     # Remove duplicate rows from the DataFrame based on 'Hotel' column
-    df_filtered = df.drop_duplicates(subset='Hotel')
+    df_dropped = df.drop_duplicates(subset='Hotel')
 
-    # Convert 'Price' and 'Review' columns to numeric using .loc
-    df_filtered['Price'] = pd.to_numeric(df['Price'], errors='coerce')
-    df_filtered['Review'] = pd.to_numeric(df['Review'], errors='coerce')
+    # Create a copy of the relevant columns
+    df_filtered = df_dropped[['Price', 'Review']].copy()
 
-    # Add a new column for the ratio of Price to Review
-    df_filtered['Price/Review'] = df_filtered['Price'] / df_filtered['Review']
+    # Convert columns to numeric values
+    df_filtered.loc[:, 'Price'] = pd.to_numeric(df_filtered['Price'], errors='coerce')
+    df_filtered.loc[:, 'Review'] = pd.to_numeric(df_filtered['Review'], errors='coerce')
+
+    # Calculate the Price/Review ratio
+    df_filtered.loc[:, 'Price/Review'] = df_filtered['Price'] / df_filtered['Review']
 
     # Sort the DataFrame based on the 'Price/Review' column
     return df_filtered.sort_values(by='Price/Review')

@@ -63,6 +63,7 @@ def test_check_if_all_date_was_scraped_csv() -> None:
     check_csv_if_all_date_was_scraped()
 
     with sqlite3.connect(sqlite_name) as conn:
+        conn.execute("PRAGMA journal_mode=WAL")
         directory = 'scraped_hotel_data_csv'
         csv_files: list = find_csv_files(directory)
         if csv_files:
@@ -271,6 +272,7 @@ def test_check_if_all_date_was_scraped() -> None:
     check_db_if_all_date_was_scraped(sqlite_name)
 
     with sqlite3.connect(sqlite_name) as conn:
+        conn.execute("PRAGMA journal_mode=WAL")
         query = get_count_of_date_by_mth_asof_today_query()
         result = conn.execute(query).fetchall()
         days_in_month = monthrange(year, month)[1]
