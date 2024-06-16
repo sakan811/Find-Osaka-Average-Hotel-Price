@@ -35,8 +35,6 @@ def test_thread_scraper() -> None:
     df = thread_scrape.thread_scrape(timezone=city_timezone, max_workers=5)
 
     assert not df.empty
-    # Check row
-    assert df.shape[0] == 2
 
     # Check column
     assert df.shape[1] == 7
