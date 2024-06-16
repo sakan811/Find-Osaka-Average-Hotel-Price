@@ -25,7 +25,7 @@ from japan_avg_hotel_price_finder.utils import check_db_if_all_date_was_scraped,
     get_count_of_date_by_mth_asof_today_query, check_csv_if_all_date_was_scraped, find_csv_files, convert_csv_to_df
 from set_details import Details
 
-@pytest.mark.skip
+
 def test_check_if_all_date_was_scraped_csv() -> None:
     city = 'Osaka'
     group_adults = 1
@@ -76,7 +76,7 @@ def test_check_if_all_date_was_scraped_csv() -> None:
         for row in result:
             assert row[1] == days_in_month
 
-@pytest.mark.skip
+
 def test_thread_scraper() -> None:
     city = 'Osaka'
     group_adults = 1
@@ -107,7 +107,7 @@ def test_thread_scraper() -> None:
 
     assert not df.empty
 
-@pytest.mark.skip
+
 def test_thread_scraper_past_month() -> None:
     city = 'Osaka'
     group_adults = 1
@@ -138,7 +138,7 @@ def test_thread_scraper_past_month() -> None:
 
     assert df is None
 
-@pytest.mark.skip
+
 def test_until_month_end_scraper() -> None:
     city = 'Osaka'
     group_adults = 1
@@ -170,7 +170,7 @@ def test_until_month_end_scraper() -> None:
 
     assert not df.empty
 
-@pytest.mark.skip
+
 def test_until_month_end_scraper_past_month() -> None:
     city = 'Osaka'
     group_adults = 1
@@ -202,7 +202,7 @@ def test_until_month_end_scraper_past_month() -> None:
 
     assert df is None
 
-@pytest.mark.skip
+
 def test_scraper() -> None:
     city = 'Osaka'
     group_adults = 1
@@ -234,7 +234,7 @@ def test_scraper() -> None:
 
     assert not df.empty
 
-@pytest.mark.skip
+
 def test_check_if_all_date_was_scraped() -> None:
     city = 'Osaka'
     group_adults = 1
