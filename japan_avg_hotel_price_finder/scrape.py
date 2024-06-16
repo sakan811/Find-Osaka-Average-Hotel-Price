@@ -16,6 +16,7 @@
 import datetime
 import os
 import re
+import time
 
 import bs4
 import pandas as pd
@@ -412,30 +413,36 @@ class BasicScraper:
         """
         logger.info("Clicking pop-up ad...")
 
-        ads_css_selector = 'div.e93d17c51f:nth-child(1) > button:nth-child(1) > span:nth-child(1) > span:nth-child(1)'
-        try:
-            ads = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ads_css_selector)))
-            ads.click()
-        except NoSuchElementException:
-            logger.error(f'Pop-up ad not found')
-        except TimeoutException:
-            logger.error(f'Pop-up ad timed out')
-            logger.error(f'Moving on')
-        except ElementClickInterceptedException:
-            logger.warning("ElementClickInterceptedException: The pop-up ad is obscured. "
-                           "Trying to handle the obstruction.")
+        ads_css_selector_list = [
+            'div.e93d17c51f:nth-child(1) > button:nth-child(1) > span:nth-child(1)',
+            'div.e93d17c51f:nth-child(1) > button:nth-child(1) > span:nth-child(1) > span:nth-child(1)',
+            'div.e93d17c51f:nth-child(1) > button:nth-child(1) > span:nth-child(1) > span:nth-child(1) > svg:nth-child(1)'
+        ]
 
-            self._hide_overlay_element(driver)
+        for ads_css_selector in ads_css_selector_list:
+            try:
+                ads = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ads_css_selector)))
+                ads.click()
+            except NoSuchElementException:
+                logger.error(f'Pop-up ad not found')
+            except TimeoutException:
+                logger.error(f'Pop-up ad timed out')
+                logger.error(f'Moving on')
+            except ElementClickInterceptedException:
+                logger.warning("ElementClickInterceptedException: The pop-up ad is obscured. "
+                               "Trying to handle the obstruction.")
 
-            logger.info("Retry clicking the pop-up ad")
-            ads = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ads_css_selector)))
-            ads.click()
-        except Exception as e:
-            logger.error(e)
-            logger.error(f'Unexpected error occurred')
-        else:
-            logger.debug('Clicked the pop-up ads successfully')
-            return 1
+                self._hide_overlay_element(driver)
+
+                logger.info("Retry clicking the pop-up ad")
+                ads = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ads_css_selector)))
+                ads.click()
+            except Exception as e:
+                logger.error(e)
+                logger.error(f'Unexpected error occurred')
+            else:
+                logger.debug('Clicked the pop-up ads successfully')
+                return 1
 
     def _scroll_down_until_page_bottom(self, wait: WebDriverWait, driver: WebDriver) -> tuple[int, int] | None:
         """
