@@ -83,10 +83,7 @@ def transform_data(df: pd.DataFrame) -> pd.DataFrame:
     logger.info("Transforming data...")
 
     # Remove duplicate rows from the DataFrame based on 'Hotel' column
-    df_dropped = df.drop_duplicates(subset='Hotel')
-
-    # Create a copy of the relevant columns
-    df_filtered = df_dropped[['Price', 'Review']].copy()
+    df_filtered = df.drop_duplicates(subset='Hotel').copy()
 
     # Convert columns to numeric values
     df_filtered.loc[:, 'Price'] = pd.to_numeric(df_filtered['Price'], errors='coerce')
