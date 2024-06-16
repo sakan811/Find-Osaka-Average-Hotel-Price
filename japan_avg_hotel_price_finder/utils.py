@@ -46,6 +46,7 @@ def find_missing_dates_in_db(sqlite_db: str) -> list:
     logger.info("Checking if all date was scraped...")
     missing_dates = []
     with sqlite3.connect(sqlite_db) as con:
+        con.execute("PRAGMA journal_mode=WAL")
         query = get_count_of_date_by_mth_asof_today_query()
         cursor = con.execute(query)
         result = cursor.fetchall()
@@ -132,6 +133,7 @@ def check_csv_if_all_date_was_scraped() -> None:
             logger.error(f"Could not remove {temp_db}. it is being used by another process.")
             logger.info("Truncate the HotelPrice table in the temporary database.")
             with sqlite3.connect(temp_db) as con:
+                con.execute("PRAGMA journal_mode=WAL")
                 con.execute("DELETE FROM HotelPrice")
             logger.warning("Please delete the temporary database manually after the web-scraping process finishes.")
 
@@ -217,6 +219,7 @@ def find_dates_of_the_month_in_db(db: str, days_in_month, month, year) -> tuple:
     end_date = datetime.datetime(year, month, days_in_month).strftime('%Y-%m-%d')
 
     with sqlite3.connect(db) as con:
+        con.execute("PRAGMA journal_mode=WAL")
         cursor = con.execute(query, (start_date, end_date))
         result = cursor.fetchall()
         cursor.close()
