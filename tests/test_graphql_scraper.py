@@ -3,6 +3,7 @@ import datetime
 import numpy as np
 import pandas as pd
 import pytest
+import pytz
 import requests
 
 from japan_avg_hotel_price_finder.graphql_scraper import scrape_graphql, transform_data_in_df, extract_hotel_data, \
@@ -10,7 +11,8 @@ from japan_avg_hotel_price_finder.graphql_scraper import scrape_graphql, transfo
 
 
 def test_graphql_scraper():
-    today = datetime.datetime.today()
+    timezone = pytz.timezone('Asia/Tokyo')
+    today = datetime.datetime.now(timezone)
     check_in = today.strftime('%Y-%m-%d')
     tomorrow = today + datetime.timedelta(days=1)
     check_out = tomorrow.strftime('%Y-%m-%d')
