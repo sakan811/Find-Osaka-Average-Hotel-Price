@@ -127,6 +127,6 @@ to find the missing dates.
 
 ### Automated Hotel Scraper
 - Scrape Osaka hotel data daily using GitHub action for all 12 months.
-  - Use the ThreadPool scraper from [main.py](main.py) with --month for each month.
+  - Use the GraphQL scraper from [use_graphql_scraper.py](use_graphql_scraper.py) with --month for each month.
 - Save to CSV for each month.
 - Save CSV to Google Cloud Storage.
