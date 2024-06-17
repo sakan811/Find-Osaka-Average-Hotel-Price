@@ -105,7 +105,6 @@ class ThreadPoolScraper(BasicScraper):
                         # Update the 'city_data', 'check_in_data', and 'check_out_data' attributes
                         self.city_data = city
 
-
                 # Create a thread pool with a specified maximum threads
                 with ThreadPoolExecutor(max_workers=max_workers) as executor:
                     # Submit tasks for each date within the specified range

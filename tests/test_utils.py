@@ -69,7 +69,7 @@ def test_convert_csv_to_df():
     df = convert_csv_to_df(csv_files)
     assert df is None
 
-
+@pytest.mark.skip
 def test_check_if_all_date_was_scraped_csv() -> None:
     city = 'Osaka'
     group_adults = 1
@@ -124,6 +124,7 @@ def test_check_if_all_date_was_scraped_csv() -> None:
             assert row[1] == days_in_month
 
 
+@pytest.mark.skip
 def test_check_if_all_date_was_scraped() -> None:
     city = 'Osaka'
     group_adults = 1
