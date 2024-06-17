@@ -84,9 +84,10 @@ This script can also be used to scrape data from other cities.
   as using --month will make the scraper starts from the day specified in 'start_day' variable 
   in [set_details.py](set_details.py) 
 
-### To the missing dates in the database or in the CSV files directory
+### To find the missing dates in the database or in the CSV files directory
 To ensure that all dates of the month were scraped when using the Thread Pool scraper, functions in
-[check_missing_dates.py](check_missing_dates.py) will check in the given SQLite database or CSV files directory.
+[check_missing_dates.py](check_missing_dates.py) will check in the given SQLite database or CSV files directory
+to find the missing dates.
 - To check in the database, use the following command line as an example:
   ```  
   python check_missing_dates.py --check_db=hotel_data.db

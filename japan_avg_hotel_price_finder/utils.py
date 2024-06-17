@@ -348,7 +348,7 @@ def save_scraped_data(
                 # If the directory already exists, log a message and continue
                 logger.error(f'FileExistsError: {save_dir} directory already exists')
 
-            if month and year:
+            if city and month and year:
                 month_name = calendar.month_name[month]
                 file_path = os.path.join(save_dir, f'{city}_hotel_data_{month_name}_{year}.csv')
                 dataframe.to_csv(file_path, index=False)
