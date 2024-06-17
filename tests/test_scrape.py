@@ -66,9 +66,13 @@ def test_scraper() -> None:
     )
 
     scraper = BasicScraper(hotel_stay)
-    df = scraper.start_scraping_process(check_in, check_out)
+    data_tuple = scraper.start_scraping_process(check_in, check_out)
+    df = data_tuple[0]
 
     assert not df.empty
+
+    # Check column
+    assert df.shape[1] == 7
 
 
 if __name__ == '__main__':

@@ -70,7 +70,7 @@ def test_thread_scraper_past_month() -> None:
     data_tuple = thread_scrape.thread_scrape(timezone=city_timezone, max_workers=5)
     df = data_tuple[0]
 
-    assert df is None
+    assert df.empty
 
 
 if __name__ == '__main__':
