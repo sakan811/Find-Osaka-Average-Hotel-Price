@@ -102,11 +102,13 @@ def test_check_if_all_date_was_scraped_csv() -> None:
         start_day=start_day, month=month, year=year, nights=nights, sqlite_name=sqlite_name
     )
 
+    directory = 'test_check_if_all_date_was_scraped_csv'
+
     thread_scrape = ThreadPoolScraper(hotel_stay)
     df, city, check_in, check_out = thread_scrape.thread_scrape(timezone=city_timezone, max_workers=5)
     save_scraped_data(dataframe=df, city=city, check_in=check_in,
-                      check_out=check_out, save_dir='test_check_if_all_date_was_scraped_csv')
-    check_csv_if_all_date_was_scraped()
+                      check_out=check_out, save_dir=directory)
+    check_csv_if_all_date_was_scraped(directory)
 
     with sqlite3.connect(sqlite_name) as conn:
         directory = 'test_check_if_all_date_was_scraped_csv'

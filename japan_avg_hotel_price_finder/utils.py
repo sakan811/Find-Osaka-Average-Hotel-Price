@@ -97,12 +97,12 @@ def check_db_if_all_date_was_scraped(db: str) -> None:
     scrape_missing_dates(db=db, missing_dates=missing_dates, to_sqlite=True)
 
 
-def check_csv_if_all_date_was_scraped() -> None:
+def check_csv_if_all_date_was_scraped(directory) -> None:
     """
     Check inside the CSV files directory if all dates of each month were scraped today.
+    :param directory: Path to the CSV files directory.
     :returns: None
     """
-    directory = 'scraped_hotel_data_csv'
     logger.info(f"Checking CSV files in the {directory} directory if all date was scraped today...")
     temp_db = 'temp_db.db'
     try:

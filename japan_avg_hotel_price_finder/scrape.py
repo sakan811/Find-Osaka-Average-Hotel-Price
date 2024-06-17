@@ -337,12 +337,12 @@ class BasicScraper:
 
         if self.num_load_more_result_clicked_list < 1:
             logger.warning("Load more result button is never clicked. "
-                           "The CSS selector for the load more result button might have a problem."
+                           "The CSS selector for the load more result button might have a problem. "
                            "Please update the CSS selector in '_click_load_more_result_button' function.")
-        if self.num_pop_up_clicked_list < 1:
-            logger.warning("Pop-up ad is never clicked. "
-                           "The CSS selector for the pop-up ad might have a problem."
-                           "Please update the CSS selector of the pop-up ad in '_click_pop_up_ad' function.")
+            if self.num_pop_up_clicked_list < 1:
+                logger.warning("Pop-up ad is never clicked. "
+                               "The CSS selector for the pop-up ad might have a problem. "
+                               "Please update the CSS selector of the pop-up ad in '_click_pop_up_ad' function.")
 
         logger.info('Return scraped data as a Pandas DataFrame')
         return df_filtered, city, check_in, check_out
