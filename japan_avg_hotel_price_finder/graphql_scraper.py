@@ -18,7 +18,7 @@ def get_header() -> dict:
     return {
         "Content-Type": "application/json",
         "Accept": "*/*",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101 Firefox/91.0",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
         "X-Booking-Csrf-Token": "eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJjb250ZXh0LWVucmljaG1lbnQtYXBpIiwic3ViIjoiY3NyZi10b2tlbiIsImlhdCI6MTcxODYyNTQ2NywiZXhwIjoxNzE4NzExODY3fQ.CAooc42_J_78rrJe-e2kgLUyRvd_JBzuo2G8MP2V6veKwH5-TfikWdjTK2yBOfEe_Xl_IxDMFZOl-Q3qgvWp5A",
         "X-Booking-Context-Action-Name": "searchresults_irene",
         "X-Booking-Context-Aid": "304142"
@@ -520,27 +520,31 @@ def transform_data_in_df(check_in, city, dataframe) -> pd.DataFrame:
     :param dataframe: Pandas DataFrame to be transformed.
     :return: Pandas DataFrame.
     """
-    logger.info("Add City column to DataFrame")
-    dataframe['City'] = city
-    logger.info("Add Date column to DataFrame")
-    dataframe['Date'] = check_in
-    logger.info("Add AsOf column to DataFrame")
-    dataframe['AsOf'] = datetime.datetime.now()
+    if not dataframe.empty:
+        logger.info("Add City column to DataFrame")
+        dataframe['City'] = city
+        logger.info("Add Date column to DataFrame")
+        dataframe['Date'] = check_in
+        logger.info("Add AsOf column to DataFrame")
+        dataframe['AsOf'] = datetime.datetime.now()
 
-    logger.info("Remove duplicate rows from the DataFrame based on 'Hotel' column")
-    df_filtered = dataframe.drop_duplicates(subset='Hotel').copy()
+        logger.info("Remove duplicate rows from the DataFrame based on 'Hotel' column")
+        df_filtered = dataframe.drop_duplicates(subset='Hotel').copy()
 
-    # Drop rows where any of the 'Hotel', 'Review', 'Price' columns are None or NaN
-    logger.info("Dropping rows where 'Hotel', 'Review', or 'Price' columns are None or NaN")
-    df_filtered = df_filtered.dropna(subset=['Hotel', 'Review', 'Price'])
+        # Drop rows where any of the 'Hotel', 'Review', 'Price' columns are None or NaN
+        logger.info("Dropping rows where 'Hotel', 'Review', or 'Price' columns are None or NaN")
+        df_filtered = df_filtered.dropna(subset=['Hotel', 'Review', 'Price'])
 
-    logger.info("Convert columns to numeric values")
-    df_filtered.loc[:, 'Price'] = pd.to_numeric(df_filtered['Price'], errors='coerce')
-    df_filtered.loc[:, 'Review'] = pd.to_numeric(df_filtered['Review'], errors='coerce')
+        logger.info("Convert columns to numeric values")
+        df_filtered.loc[:, 'Price'] = pd.to_numeric(df_filtered['Price'], errors='coerce')
+        df_filtered.loc[:, 'Review'] = pd.to_numeric(df_filtered['Review'], errors='coerce')
 
-    logger.info("Calculate the Price/Review ratio")
-    df_filtered.loc[:, 'Price/Review'] = df_filtered['Price'] / df_filtered['Review']
-    return df_filtered
+        logger.info("Calculate the Price/Review ratio")
+        df_filtered.loc[:, 'Price/Review'] = df_filtered['Price'] / df_filtered['Review']
+        return df_filtered
+    else:
+        logger.warning("Dataframe is empty. No data was scraped.")
+        return dataframe
 
 
 def extract_hotel_data(df_list: list, hotel_data_list: list) -> None:
