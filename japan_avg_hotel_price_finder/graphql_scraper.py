@@ -427,7 +427,10 @@ def check_info(
         city_data = data['data']['searchQueries']['search']['breadcrumbs'][2]['name']
         check_in_data = data['data']['searchQueries']['search']['flexibleDatesConfig']['dateRangeCalendar']['checkin'][0]
         check_out_data = data['data']['searchQueries']['search']['flexibleDatesConfig']['dateRangeCalendar']['checkout'][0]
-        currency_data = data['data']['searchQueries']['search']['results'][0]['blocks'][0]['finalPrice']['currency']
+        try:
+            currency_data = data['data']['searchQueries']['search']['results'][0]['blocks'][0]['finalPrice']['currency']
+        except IndexError:
+            currency_data = data['data']['searchQueries']['search']['results'][1]['blocks'][0]['finalPrice']['currency']
 
         if entered_city != city_data:
             logger.error(f"Error City not match: {entered_city} != {city_data}")
