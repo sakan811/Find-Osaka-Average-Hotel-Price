@@ -434,7 +434,7 @@ def check_info(
         try:
             currency_data = data['data']['searchQueries']['search']['results'][0]['blocks'][0]['finalPrice']['currency']
         except IndexError:
-            currency_data = entered_selected_currency
+            currency_data = data['data']['searchQueries']['search']['results'][1]['blocks'][0]['finalPrice']['currency']
 
         if entered_city != city_data:
             logger.error(f"Error City not match: {entered_city} != {city_data}")
