@@ -6,7 +6,7 @@ import requests
 from japan_avg_hotel_price_finder.configure_logging import configure_logging_with_file
 
 logger = configure_logging_with_file('jp_hotel_data.log', 'jp_hotel_data')
-logger.setLevel(level="INFO")
+logger.setLevel(level="DEBUG")
 
 
 def get_header() -> dict:
@@ -430,7 +430,7 @@ def check_info(
         try:
             currency_data = data['data']['searchQueries']['search']['results'][0]['blocks'][0]['finalPrice']['currency']
         except IndexError:
-            currency_data = data['data']['searchQueries']['search']['results'][0]['blocks'][1]['finalPrice']['currency']
+            currency_data = entered_selected_currency
 
         if entered_city != city_data:
             logger.error(f"Error City not match: {entered_city} != {city_data}")
