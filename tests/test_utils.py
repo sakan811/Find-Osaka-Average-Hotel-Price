@@ -7,8 +7,8 @@ import pytz
 
 from japan_avg_hotel_price_finder.thread_scrape import ThreadPoolScraper
 from japan_avg_hotel_price_finder.utils import check_if_current_date_has_passed, find_missing_dates, find_csv_files, \
-    convert_csv_to_df, get_count_of_date_by_mth_asof_today_query, check_csv_if_all_date_was_scraped, \
-    check_db_if_all_date_was_scraped, save_scraped_data
+    convert_csv_to_df, get_count_of_date_by_mth_asof_today_query, \
+    check_in_db_if_all_date_was_scraped, save_scraped_data, check_in_csv_dir_if_all_date_was_scraped
 from set_details import Details
 
 
@@ -108,7 +108,7 @@ def test_check_if_all_date_was_scraped_csv() -> None:
     df, city, check_in, check_out = thread_scrape.thread_scrape(timezone=city_timezone, max_workers=5)
     save_scraped_data(dataframe=df, city=city, check_in=check_in,
                       check_out=check_out, save_dir=directory)
-    check_csv_if_all_date_was_scraped(directory)
+    check_in_csv_dir_if_all_date_was_scraped(directory)
 
     with sqlite3.connect(sqlite_name) as conn:
         directory = 'test_check_if_all_date_was_scraped_csv'
@@ -160,7 +160,7 @@ def test_check_if_all_date_was_scraped() -> None:
     data_tuple = thread_scrape.thread_scrape(timezone=city_timezone, max_workers=5)
     df = data_tuple[0]
     save_scraped_data(dataframe=df, details_dataclass=hotel_stay, to_sqlite=True)
-    check_db_if_all_date_was_scraped(hotel_stay.sqlite_name)
+    check_in_db_if_all_date_was_scraped(hotel_stay.sqlite_name)
 
     with sqlite3.connect(sqlite_name) as conn:
         query = get_count_of_date_by_mth_asof_today_query()

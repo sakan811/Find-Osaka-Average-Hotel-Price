@@ -86,21 +86,23 @@ def find_missing_dates_in_db(sqlite_db: str) -> list:
     return missing_dates
 
 
-def check_db_if_all_date_was_scraped(db: str) -> None:
+def check_in_db_if_all_date_was_scraped(db: str, to_sqlite: bool = False) -> None:
     """
     Check inside the SQLite database if all dates of each month were scraped today.
     :param db: Path to the SQLite database.
+    :param to_sqlite: If True, load the data to the SQLite database, else save to CSV.
     :returns: None
     """
     logger.info(f"Checking in the SQLite database '{db}' if any date was not scraped today...")
     missing_dates = find_missing_dates_in_db(db)
-    scrape_missing_dates(db=db, missing_dates=missing_dates, to_sqlite=True)
+    scrape_missing_dates(db=db, missing_dates=missing_dates, to_sqlite=to_sqlite)
 
 
-def check_csv_if_all_date_was_scraped(directory) -> None:
+def check_in_csv_dir_if_all_date_was_scraped(directory: str = 'scraped_hotel_data_csv') -> None:
     """
     Check inside the CSV files directory if all dates of each month were scraped today.
     :param directory: Path to the CSV files directory.
+                    Default is 'scraped_hotel_data_csv' folder.
     :returns: None
     """
     logger.info(f"Checking CSV files in the {directory} directory if all date was scraped today...")
@@ -115,15 +117,15 @@ def check_csv_if_all_date_was_scraped(directory) -> None:
             with sqlite3.connect(temp_db) as con:
                 df.to_sql('HotelPrice', con, if_exists='replace', index=False)
 
-            missing_dates = find_missing_dates_in_db(temp_db)
-            scrape_missing_dates(missing_dates=missing_dates)
+            check_in_db_if_all_date_was_scraped(temp_db)
         else:
             logger.warning("No CSV files were found")
     except FileNotFoundError as e:
         logger.error(e)
         logger.error(f"{directory} folder not found.")
     except Exception as e:
-        logger.error(f"An unexpected error occurred: {e}")
+        logger.error(e)
+        logger.error(f"An unexpected error occurred")
 
     if os.path.exists(temp_db):
         try:
@@ -308,6 +310,8 @@ def save_scraped_data(
         save_dir='scraped_hotel_data_csv') -> None:
     """
     Save scraped data to CSV or SQLite database.
+    The CSV files directory is created automatically if it doesn't exist.
+    The default CSV files directory name is depended on the default value of 'save_dir' parameter.
     :param dataframe: Pandas DataFrame.
     :param details_dataclass: Details dataclass object.
                             Only needed if saving to SQLite database.
