@@ -55,9 +55,8 @@ elif args.thread_pool:
             save_scraped_data(dataframe=df, details_dataclass=details, to_sqlite=to_sqlite)
             check_in_db_if_all_date_was_scraped(details.sqlite_name, to_sqlite=to_sqlite)
         else:
-            df, city, check_in, check_out = thread_scrape.thread_scrape(max_workers=workers)
-            save_scraped_data(dataframe=df, city=city, check_in=check_in,
-                              check_out=check_out)
+            df, city, month_number, year = thread_scrape.thread_scrape(max_workers=workers)
+            save_scraped_data(dataframe=df, city=city, month=month_number, year=year)
             check_in_csv_dir_if_all_date_was_scraped()
     else:
         if to_sqlite:
@@ -66,9 +65,8 @@ elif args.thread_pool:
             save_scraped_data(dataframe=df, details_dataclass=details, to_sqlite=to_sqlite)
             check_in_db_if_all_date_was_scraped(details.sqlite_name, to_sqlite=to_sqlite)
         else:
-            df, city, check_in, check_out = thread_scrape.thread_scrape()
-            save_scraped_data(dataframe=df, city=city, check_in=check_in,
-                              check_out=check_out)
+            df, city, month_number, year = thread_scrape.thread_scrape()
+            save_scraped_data(dataframe=df, city=city, month=month_number, year=year)
             check_in_csv_dir_if_all_date_was_scraped()
 elif args.scraper:
     logger.info('Using basic scraper')

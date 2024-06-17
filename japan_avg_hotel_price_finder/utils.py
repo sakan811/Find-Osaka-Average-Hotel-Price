@@ -303,9 +303,11 @@ def convert_csv_to_df(csv_files: list) -> pd.DataFrame:
 def save_scraped_data(
         dataframe: pd.DataFrame,
         details_dataclass: Details = None,
-        city: str = '',
-        check_in: str = '',
-        check_out: str = '',
+        city: str = None,
+        check_in: str = None,
+        check_out: str = None,
+        month: int = None,
+        year: int = None,
         to_sqlite: bool = False,
         save_dir='scraped_hotel_data_csv') -> None:
     """
@@ -318,9 +320,13 @@ def save_scraped_data(
     :param city: City where the hotels are located.
                 Only needed if saving to CSV file.
     :param check_in: Check-in date.
-                    Only needed if saving to CSV file.
+                    Only needed if saving to CSV file for Basic Scraper.
     :param check_out: Check-out date.
-                    Only needed if saving to CSV file.
+                    Only needed if saving to CSV file for Basic Scraper.
+    :param month: Month number.
+                Only needed if saving to CSV file for Thread Pool Scraper.
+    :param year: Year.
+                Only needed if saving to CSV file for Thread Pool Scraper.
     :param to_sqlite: If True, save the scraped data to a SQLite database, else save it to CSV.
     :param save_dir: Directory to save the scraped data as CSV.
                     Default is 'scraped_hotel_data_csv' folder.
@@ -341,7 +347,16 @@ def save_scraped_data(
                 # If the directory already exists, log a message and continue
                 logger.error(f'FileExistsError: {save_dir} directory already exists')
 
-            file_path = os.path.join(save_dir, f'{city}_hotel_data_{check_in}_to_{check_out}.csv')
-            dataframe.to_csv(file_path, index=False)
+            if month and year:
+                month_name = calendar.month_name[month]
+                file_path = os.path.join(save_dir, f'{city}_hotel_data_{month_name}_{year}.csv')
+                dataframe.to_csv(file_path, index=False)
+            elif city and check_in and check_out:
+                file_path = os.path.join(save_dir, f'{city}_hotel_data_{check_in}_to_{check_out}.csv')
+                dataframe.to_csv(file_path, index=False)
+            else:
+                logger.warning("Cannot save data to CSV. "
+                               "If a basic scraper was used, please enter city, check-in or check-out date. "
+                               "If a thread pool scraper was used, please enter month and year. ")
     else:
         logger.warning('The dataframe is empty. No data to save')

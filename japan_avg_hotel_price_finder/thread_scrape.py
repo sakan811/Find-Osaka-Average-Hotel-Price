@@ -15,7 +15,6 @@
 import calendar
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
-from typing import Tuple
 
 import pandas as pd
 from pandas import DataFrame
@@ -41,20 +40,18 @@ class ThreadPoolScraper(BasicScraper):
         self.nights = details.nights
 
         self.city_data = ''
-        self.check_in_data = ''
-        self.check_out_data = ''
 
     def thread_scrape(
             self,
             timezone=None,
-            max_workers: int = 5) -> tuple[DataFrame, str, str, str]:
+            max_workers: int = 5) -> tuple[DataFrame, str, int, int]:
         """
         Scrape hotel data from the start day to the end of the same month using Thread Pool executor.
         :param timezone: Set timezone.
                 Default is None.
         :param max_workers: Maximum number of threads to use.
                             Default is 5.
-        :return: Tuple with DataFrame, city, check-in, and check-out data.
+        :return: Tuple with DataFrame, city, month number, and year data.
         """
         logger.info('Scraping hotel data using Thread Pool executor...')
 
@@ -72,13 +69,13 @@ class ThreadPoolScraper(BasicScraper):
         if self.year < today.year:
             logger.warning(f'The current year to scrape has passed. Skip {self.year}.')
             df = pd.DataFrame()
-            return df, self.city_data, self.check_in_data, self.check_out_data
+            return df, self.city_data, self.month, self.year
         else:
             if self.month < today.month:
                 month_name = calendar.month_name[self.month]
                 logger.warning(f'The current month to scrape has passed. Skip {month_name} {self.year}.')
                 df = pd.DataFrame()
-                return df, self.city_data, self.check_in_data, self.check_out_data
+                return df, self.city_data, self.month, self.year
             else:
                 # Define a function to perform scraping for each date
                 def scrape_each_date(day: int) -> None:
@@ -107,8 +104,7 @@ class ThreadPoolScraper(BasicScraper):
 
                         # Update the 'city_data', 'check_in_data', and 'check_out_data' attributes
                         self.city_data = city
-                        self.check_in_data = check_in
-                        self.check_out_data = check_out
+
 
                 # Create a thread pool with a specified maximum threads
                 with ThreadPoolExecutor(max_workers=max_workers) as executor:
@@ -122,7 +118,7 @@ class ThreadPoolScraper(BasicScraper):
                 # Concatenate all DataFrames in the 'results' list into a single DataFrame
                 df = pd.concat(results, ignore_index=True)
 
-                return df, self.city_data, self.check_in_data, self.check_out_data
+                return df, self.city_data, self.month, self.year
 
 
 if __name__ == '__main__':
