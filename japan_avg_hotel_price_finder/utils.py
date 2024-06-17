@@ -90,8 +90,9 @@ def check_in_db_if_all_date_was_scraped(db: str, to_sqlite: bool = False) -> Non
     """
     Check inside the SQLite database if all dates of each month were scraped today.
     :param db: Path to the SQLite database.
-    :param to_sqlite: If True, load the data to the SQLite database, else save to CSV.
-    :returns: None
+    :param to_sqlite: If True, after scraping the missing dates, load the scraped data to the SQLite database,
+                    else save to CSV.
+    :returns: None.
     """
     logger.info(f"Checking in the SQLite database '{db}' if any date was not scraped today...")
     missing_dates = find_missing_dates_in_db(db)

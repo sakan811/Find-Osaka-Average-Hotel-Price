@@ -17,8 +17,7 @@ import argparse
 from japan_avg_hotel_price_finder.configure_logging import configure_logging_with_file
 from japan_avg_hotel_price_finder.scrape import BasicScraper
 from japan_avg_hotel_price_finder.thread_scrape import ThreadPoolScraper
-from japan_avg_hotel_price_finder.utils import check_in_db_if_all_date_was_scraped, \
-    save_scraped_data, check_in_csv_dir_if_all_date_was_scraped
+from japan_avg_hotel_price_finder.utils import save_scraped_data
 from set_details import Details
 
 logger = configure_logging_with_file('jp_hotel_data.log', 'jp_hotel_data')
@@ -53,21 +52,17 @@ elif args.thread_pool:
             data_tuple = thread_scrape.thread_scrape(max_workers=workers)
             df = data_tuple[0]
             save_scraped_data(dataframe=df, details_dataclass=details, to_sqlite=to_sqlite)
-            check_in_db_if_all_date_was_scraped(details.sqlite_name, to_sqlite=to_sqlite)
         else:
             df, city, month_number, year = thread_scrape.thread_scrape(max_workers=workers)
             save_scraped_data(dataframe=df, city=city, month=month_number, year=year)
-            check_in_csv_dir_if_all_date_was_scraped()
     else:
         if to_sqlite:
             data_tuple = thread_scrape.thread_scrape()
             df = data_tuple[0]
             save_scraped_data(dataframe=df, details_dataclass=details, to_sqlite=to_sqlite)
-            check_in_db_if_all_date_was_scraped(details.sqlite_name, to_sqlite=to_sqlite)
         else:
             df, city, month_number, year = thread_scrape.thread_scrape()
             save_scraped_data(dataframe=df, city=city, month=month_number, year=year)
-            check_in_csv_dir_if_all_date_was_scraped()
 elif args.scraper:
     logger.info('Using basic scraper')
     check_in = details.check_in
@@ -83,6 +78,8 @@ elif args.scraper:
         df, city, check_in, check_out = scraper.start_scraping_process(check_in, check_out)
         save_scraped_data(dataframe=df, city=city, check_in=check_in,
                           check_out=check_out)
+
+
 
 
 

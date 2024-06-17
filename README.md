@@ -84,6 +84,22 @@ This script can also be used to scrape data from other cities.
   as using --month will make the scraper starts from the day specified in 'start_day' variable 
   in [set_details.py](set_details.py) 
 
+### To the missing dates in the database or in the CSV files directory
+To ensure that all dates of the month were scraped when using the Thread Pool scraper, functions in
+[check_missing_dates.py](check_missing_dates.py) will check in the given SQLite database or CSV files directory.
+- To check in the database, use the following command line as an example:
+  ```  
+  python check_missing_dates.py --check_db=hotel_data.db
+  ``` 
+  - ```--check_db``` should be follow by the path of the database, without any quote.
+- To check in the CSV files directory, use the following command line as an example:
+  ```  
+  python check_missing_dates.py --check_csv=scraped_hotel_data_csv
+  ``` 
+  - ```--check_csv``` should be follow by the path of the CSV files directory, without any quote.
+- If there are missing dates, a Basic Scraper will automatically start to scrape those dates.
+- Only check the missing dates of the data that was scraped today.
+
 ### Dataclass
 [set_details.py](set_details.py)
 - Dataclass that stores booking details, date, and length of stay.
@@ -104,6 +120,9 @@ This script can also be used to scrape data from other cities.
 
 [utils.py](japan_avg_hotel_price_finder%2Futils.py)
 - Contain utility functions.
+
+### [check_missing_dates.py](check_missing_dates.py)
+- Check the missing dates in the database or in the CSV files directory.
 
 ### Automated Hotel Scraper
 - Scrape Osaka hotel data daily using GitHub action for all 12 months.
