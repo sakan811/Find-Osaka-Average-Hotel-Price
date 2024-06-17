@@ -71,10 +71,14 @@ class ThreadPoolScraper(BasicScraper):
 
         if self.year < today.year:
             logger.warning(f'The current year to scrape has passed. Skip {self.year}.')
+            df = pd.DataFrame()
+            return df, self.city_data, self.check_in_data, self.check_out_data
         else:
             if self.month < today.month:
                 month_name = calendar.month_name[self.month]
                 logger.warning(f'The current month to scrape has passed. Skip {month_name} {self.year}.')
+                df = pd.DataFrame()
+                return df, self.city_data, self.check_in_data, self.check_out_data
             else:
                 # Define a function to perform scraping for each date
                 def scrape_each_date(day: int) -> None:
