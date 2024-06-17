@@ -21,7 +21,11 @@ def get_header() -> dict:
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
         "X-Booking-Csrf-Token": "eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJjb250ZXh0LWVucmljaG1lbnQtYXBpIiwic3ViIjoiY3NyZi10b2tlbiIsImlhdCI6MTcxODYyNTQ2NywiZXhwIjoxNzE4NzExODY3fQ.CAooc42_J_78rrJe-e2kgLUyRvd_JBzuo2G8MP2V6veKwH5-TfikWdjTK2yBOfEe_Xl_IxDMFZOl-Q3qgvWp5A",
         "X-Booking-Context-Action-Name": "searchresults_irene",
-        "X-Booking-Context-Aid": "304142"
+        "X-Booking-Context-Aid": "304142",
+        'X-Booking-Et-Serialized-State': 'EjwSq9PIMG0Wo3kB1frx34bv9-QpErp-BGeatPFobVv6jCzqqAw4Gg8OdLtw5fMdx',
+        'X-Booking-Pageview-Id': '0d89890d0ede00d9',
+        'X-Booking-Site-Type-Id': '1',
+        'X-Booking-Topic': 'capla_browser_b-search-web-searchresults'
     }
 
 
