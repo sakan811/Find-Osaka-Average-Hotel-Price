@@ -14,9 +14,8 @@
 
 
 import datetime
-import os
 import re
-import time
+from typing import Tuple
 
 import bs4
 import pandas as pd
@@ -30,7 +29,6 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
 from japan_avg_hotel_price_finder.configure_logging import configure_logging_with_file
-from japan_avg_hotel_price_finder.migrate_to_sqlite import migrate_data_to_sqlite
 from set_details import Details
 
 logger = configure_logging_with_file('jp_hotel_data.log', 'jp_hotel_data')
@@ -186,6 +184,7 @@ class BasicScraper:
         self.num_load_more_result_clicked_list = 0
         self.num_pop_up_clicked_list = 0
 
+
     def _click_load_more_result_button(self, wait: WebDriverWait, driver: WebDriver) -> int | None:
         """
         Click 'load more result' button to load more hotels.
@@ -307,13 +306,12 @@ class BasicScraper:
         else:
             return None
 
-    def start_scraping_process(self, check_in: str, check_out: str, to_sqlite: bool = False) -> DataFrame:
+    def start_scraping_process(self, check_in: str, check_out: str) -> tuple[DataFrame, str, str, str]:
         """
         Main function to start the web scraping process.
         :param check_in: Check-in date.
         :param check_out: Check-out date.
-        :param to_sqlite: If True, save the scraped data to a SQLite database, else save to CSV.
-        :return: Pandas DataFrame.
+        :return: Tuple with DataFrame, city, check-in, and check-out data.
         """
         logger.info(f"Starting web-scraping... Period: {check_in} to {check_out}")
 
@@ -331,27 +329,9 @@ class BasicScraper:
         hotel_data_dict: dict | None = self._scrape(url)
 
         df_filtered = pd.DataFrame()
+
         if hotel_data_dict:
             df_filtered: pd.DataFrame = create_df_from_scraped_data(check_in, check_out, city, hotel_data_dict)
-
-            if not df_filtered.empty:
-                if to_sqlite:
-                    logger.info('Save data to SQLite database')
-                    migrate_data_to_sqlite(df_filtered, self.details)
-                else:
-                    logger.info('Save data to CSV')
-                    save_dir = 'scraped_hotel_data_csv'
-
-                    try:
-                        # Attempt to create the directory
-                        os.makedirs(save_dir)
-                        logger.info(f'Created {save_dir} directory')
-                    except FileExistsError:
-                        # If the directory already exists, log a message and continue
-                        logger.error(f'FileExistsError: {save_dir} directory already exists')
-
-                    file_path = os.path.join(save_dir, f'{city}_hotel_data_{check_in}_to_{check_out}.csv')
-                    df_filtered.to_csv(file_path, index=False)
         else:
             logger.warning("HTML content is None. No data was scraped.")
 
@@ -364,8 +344,8 @@ class BasicScraper:
                            "The CSS selector for the pop-up ad might have a problem."
                            "Please update the CSS selector of the pop-up ad in '_click_pop_up_ad' function.")
 
-        logger.info('Finally, return a Pandas DataFrame')
-        return df_filtered
+        logger.info('Return scraped data as a Pandas DataFrame')
+        return df_filtered, city, check_in, check_out
 
     def _click_pop_up_ad(self, wait: WebDriverWait, driver: WebDriver) -> int | None:
         """

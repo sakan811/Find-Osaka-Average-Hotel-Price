@@ -7,9 +7,9 @@ from calendar import monthrange
 import pandas as pd
 
 from japan_avg_hotel_price_finder.configure_logging import configure_logging_with_file
+from japan_avg_hotel_price_finder.migrate_to_sqlite import migrate_data_to_sqlite
 from japan_avg_hotel_price_finder.scrape import BasicScraper
 from set_details import Details
-
 
 logger = configure_logging_with_file('jp_hotel_data.log', 'jp_hotel_data')
 
@@ -46,7 +46,6 @@ def find_missing_dates_in_db(sqlite_db: str) -> list:
     logger.info("Checking if all date was scraped...")
     missing_dates = []
     with sqlite3.connect(sqlite_db) as con:
-        con.execute("PRAGMA journal_mode=WAL")
         query = get_count_of_date_by_mth_asof_today_query()
         cursor = con.execute(query)
         result = cursor.fetchall()
@@ -65,7 +64,8 @@ def find_missing_dates_in_db(sqlite_db: str) -> list:
                     logger.info(f"All date of {calendar.month_name[month]} {year} was scraped")
                 else:
                     logger.warning(f"Not all date of {calendar.month_name[month]} {year} was scraped")
-                    dates_in_db, end_date, start_date = find_dates_of_the_month_in_db(sqlite_db, days_in_month, month, year)
+                    dates_in_db, end_date, start_date = find_dates_of_the_month_in_db(sqlite_db, days_in_month, month,
+                                                                                      year)
 
                     missing_dates = find_missing_dates(dates_in_db, days_in_month, today, month, year)
                     logger.warning(f"Missing dates in {start_date} to {end_date}: {missing_dates}")
@@ -77,7 +77,8 @@ def find_missing_dates_in_db(sqlite_db: str) -> list:
                     logger.info(f"All date of {calendar.month_name[month]} {year} was scraped")
                 else:
                     logger.warning(f"Not all date of {calendar.month_name[month]} {year} was scraped")
-                    dates_in_db, end_date, start_date = find_dates_of_the_month_in_db(sqlite_db, days_in_month, month, year)
+                    dates_in_db, end_date, start_date = find_dates_of_the_month_in_db(sqlite_db, days_in_month, month,
+                                                                                      year)
 
                     missing_dates = find_missing_dates(dates_in_db, days_in_month, today, month, year)
                     logger.warning(f"Missing dates in {start_date} to {end_date}: {missing_dates}")
@@ -133,7 +134,6 @@ def check_csv_if_all_date_was_scraped() -> None:
             logger.error(f"Could not remove {temp_db}. it is being used by another process.")
             logger.info("Truncate the HotelPrice table in the temporary database.")
             with sqlite3.connect(temp_db) as con:
-                con.execute("PRAGMA journal_mode=WAL")
                 con.execute("DELETE FROM HotelPrice")
             logger.warning("Please delete the temporary database manually after the web-scraping process finishes.")
 
@@ -167,7 +167,14 @@ def scrape_with_basic_scraper(db: str, date, to_sqlite: bool = False):
     check_out = (check_out_datetime_obj + datetime.timedelta(days=1)).strftime('%Y-%m-%d')
     details = Details(check_in=check_in, check_out=check_out, sqlite_name=db)
     scraper = BasicScraper(details)
-    scraper.start_scraping_process(details.check_in, details.check_out, to_sqlite)
+    if to_sqlite:
+        data_tuple = scraper.start_scraping_process(details.check_in, details.check_out)
+        df = data_tuple[0]
+        save_scraped_data(dataframe=df, details_dataclass=details, to_sqlite=to_sqlite)
+    else:
+        df, city, check_in, check_out = scraper.start_scraping_process(details.check_in, details.check_out)
+        save_scraped_data(dataframe=df, city=city, check_in=check_in,
+                          check_out=check_out)
 
 
 def find_missing_dates(
@@ -219,7 +226,6 @@ def find_dates_of_the_month_in_db(db: str, days_in_month, month, year) -> tuple:
     end_date = datetime.datetime(year, month, days_in_month).strftime('%Y-%m-%d')
 
     with sqlite3.connect(db) as con:
-        con.execute("PRAGMA journal_mode=WAL")
         cursor = con.execute(query, (start_date, end_date))
         result = cursor.fetchall()
         cursor.close()
@@ -290,3 +296,48 @@ def convert_csv_to_df(csv_files: list) -> pd.DataFrame:
 
     if df_list:
         return pd.concat(df_list)
+
+
+def save_scraped_data(
+        dataframe: pd.DataFrame,
+        details_dataclass: Details = None,
+        city: str = '',
+        check_in: str = '',
+        check_out: str = '',
+        to_sqlite: bool = False,
+        save_dir='scraped_hotel_data_csv') -> None:
+    """
+    Save scraped data to CSV or SQLite database.
+    :param dataframe: Pandas DataFrame.
+    :param details_dataclass: Details dataclass object.
+                            Only needed if saving to SQLite database.
+    :param city: City where the hotels are located.
+                Only needed if saving to CSV file.
+    :param check_in: Check-in date.
+                    Only needed if saving to CSV file.
+    :param check_out: Check-out date.
+                    Only needed if saving to CSV file.
+    :param to_sqlite: If True, save the scraped data to a SQLite database, else save it to CSV.
+    :param save_dir: Directory to save the scraped data as CSV.
+                    Default is 'scraped_hotel_data_csv' folder.
+    :return: None
+    """
+    logger.info("Saving scraped data...")
+    if not dataframe.empty:
+        if to_sqlite:
+            logger.info('Save data to SQLite database')
+            migrate_data_to_sqlite(dataframe, details_dataclass)
+        else:
+            logger.info('Save data to CSV')
+            try:
+                # Attempt to create the directory
+                os.makedirs(save_dir)
+                logger.info(f'Created {save_dir} directory')
+            except FileExistsError:
+                # If the directory already exists, log a message and continue
+                logger.error(f'FileExistsError: {save_dir} directory already exists')
+
+            file_path = os.path.join(save_dir, f'{city}_hotel_data_{check_in}_to_{check_out}.csv')
+            dataframe.to_csv(file_path, index=False)
+    else:
+        logger.warning('The dataframe is empty. No data to save')

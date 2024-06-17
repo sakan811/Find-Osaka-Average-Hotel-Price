@@ -8,7 +8,7 @@ import pytz
 from japan_avg_hotel_price_finder.thread_scrape import ThreadPoolScraper
 from japan_avg_hotel_price_finder.utils import check_if_current_date_has_passed, find_missing_dates, find_csv_files, \
     convert_csv_to_df, get_count_of_date_by_mth_asof_today_query, check_csv_if_all_date_was_scraped, \
-    check_db_if_all_date_was_scraped
+    check_db_if_all_date_was_scraped, save_scraped_data
 from set_details import Details
 
 
@@ -103,12 +103,13 @@ def test_check_if_all_date_was_scraped_csv() -> None:
     )
 
     thread_scrape = ThreadPoolScraper(hotel_stay)
-    thread_scrape.thread_scrape(timezone=city_timezone, max_workers=5)
+    df, city, check_in, check_out = thread_scrape.thread_scrape(timezone=city_timezone, max_workers=5)
+    save_scraped_data(dataframe=df, city=city, check_in=check_in,
+                      check_out=check_out, save_dir='test_check_if_all_date_was_scraped_csv')
     check_csv_if_all_date_was_scraped()
 
     with sqlite3.connect(sqlite_name) as conn:
-        conn.execute("PRAGMA journal_mode=WAL")
-        directory = 'scraped_hotel_data_csv'
+        directory = 'test_check_if_all_date_was_scraped_csv'
         csv_files: list = find_csv_files(directory)
         if csv_files:
             df = convert_csv_to_df(csv_files)
@@ -154,11 +155,12 @@ def test_check_if_all_date_was_scraped() -> None:
     )
 
     thread_scrape = ThreadPoolScraper(hotel_stay)
-    thread_scrape.thread_scrape(to_sqlite=True, timezone=city_timezone, max_workers=2)
-    check_db_if_all_date_was_scraped(sqlite_name)
+    data_tuple = thread_scrape.thread_scrape(timezone=city_timezone, max_workers=5)
+    df = data_tuple[0]
+    save_scraped_data(dataframe=df, details_dataclass=hotel_stay, to_sqlite=True)
+    check_db_if_all_date_was_scraped(hotel_stay.sqlite_name)
 
     with sqlite3.connect(sqlite_name) as conn:
-        conn.execute("PRAGMA journal_mode=WAL")
         query = get_count_of_date_by_mth_asof_today_query()
         result = conn.execute(query).fetchall()
         days_in_month = monthrange(year, month)[1]

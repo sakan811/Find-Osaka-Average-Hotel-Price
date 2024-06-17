@@ -42,7 +42,7 @@ This script can also be used to scrape data from other cities.
   selected_currency: str = 'USD'  # currency of the room price
   
   # Optional
-  # Set the start date and number of nights when using Thread Pool Scraper or Month End Scraper
+  # Set the start date and number of nights when using Thread Pool Scraper
   start_day: int = 1  # day to start scraping
   month: int = 12  # month to start scraping
   year: int = 2024  # year to start scraping
@@ -63,12 +63,6 @@ This script can also be used to scrape data from other cities.
       ```
       python main.py --thread_pool=True --workers=5
       ```
-- To scrape using Month End Scraper:
-  - Run the following command via command line terminal:
-    ```  
-    python main.py --month_end=True
-    ```
-  - Scrape data start from the given start date to the end of the same month.
 - To scrape using Basic Scraper:
   - Run the following command via command line terminal:
     ```  
@@ -81,7 +75,7 @@ This script can also be used to scrape data from other cities.
   ```  
   python main.py --to_sqlite=True
   ```
-- Month to scrape can be specified using ```--month=(month number as int)``` for Thread Pool and Month End Scraper.
+- Month to scrape can be specified using ```--month=(month number as int)``` for Thread Pool.
   - For example, to scrape data from June of the current year using Thread Pool Scraper, run the following command line:
   ```  
   python main.py --thread_pool=True --month=6
@@ -103,10 +97,6 @@ This script can also be used to scrape data from other cities.
 
 [scrape.py](japan_avg_hotel_price_finder%2Fscrape.py)
 - Scrape data from Booking.com website.
-
-[scrape_until_month_end.py](japan_avg_hotel_price_finder%2Fscrape_until_month_end.py)
-- Scrape data for each date.
-  - Start from the given start date until the end of the same month.
 
 [thread_scrape.py](japan_avg_hotel_price_finder%2Fthread_scrape.py)
 - Scrape data for five dates at the same time using Thread Pool Execute.

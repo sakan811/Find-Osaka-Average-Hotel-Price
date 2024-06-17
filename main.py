@@ -16,9 +16,9 @@ import argparse
 
 from japan_avg_hotel_price_finder.configure_logging import configure_logging_with_file
 from japan_avg_hotel_price_finder.scrape import BasicScraper
-from japan_avg_hotel_price_finder.scrape_until_month_end import MonthEndBasicScraper
 from japan_avg_hotel_price_finder.thread_scrape import ThreadPoolScraper
-from japan_avg_hotel_price_finder.utils import check_csv_if_all_date_was_scraped, check_db_if_all_date_was_scraped
+from japan_avg_hotel_price_finder.utils import check_csv_if_all_date_was_scraped, check_db_if_all_date_was_scraped, \
+    save_scraped_data
 from set_details import Details
 
 logger = configure_logging_with_file('jp_hotel_data.log', 'jp_hotel_data')
@@ -27,7 +27,6 @@ logger = configure_logging_with_file('jp_hotel_data.log', 'jp_hotel_data')
 # Initialize argument parser
 parser = argparse.ArgumentParser(description='Parser that control which kind of scraper to use.')
 parser.add_argument('--thread_pool', type=bool, default=False, help='Use thread pool')
-parser.add_argument('--month_end', type=bool, default=False, help='Scrape until month end')
 parser.add_argument('--scraper', type=bool, default=True, help='Use basic scraper')
 parser.add_argument('--to_sqlite', type=bool, default=False, help='Use basic scraper')
 parser.add_argument('--month', type=int, default=False, help='Month to scrape data for (1-12)')
@@ -51,33 +50,26 @@ elif args.thread_pool:
     if args.workers:
         workers = args.workers
         if to_sqlite:
-            thread_scrape.thread_scrape(to_sqlite, max_workers=workers)
+            data_tuple = thread_scrape.thread_scrape(max_workers=workers)
+            df = data_tuple[0]
+            save_scraped_data(dataframe=df, details_dataclass=details, to_sqlite=to_sqlite)
             check_db_if_all_date_was_scraped(details.sqlite_name)
         else:
-            df = thread_scrape.thread_scrape(max_workers=workers)
+            df, city, check_in, check_out = thread_scrape.thread_scrape(max_workers=workers)
+            save_scraped_data(dataframe=df, city=city, check_in=check_in,
+                              check_out=check_out)
             check_csv_if_all_date_was_scraped()
     else:
         if to_sqlite:
-            thread_scrape.thread_scrape(to_sqlite)
+            data_tuple = thread_scrape.thread_scrape()
+            df = data_tuple[0]
+            save_scraped_data(dataframe=df, details_dataclass=details, to_sqlite=to_sqlite)
             check_db_if_all_date_was_scraped(details.sqlite_name)
         else:
-            df = thread_scrape.thread_scrape()
+            df, city, check_in, check_out = thread_scrape.thread_scrape()
+            save_scraped_data(dataframe=df, city=city, check_in=check_in,
+                              check_out=check_out)
             check_csv_if_all_date_was_scraped()
-elif args.month_end:
-    logger.info('Using month end scraper')
-    if args.month:
-        month = args.month
-        details = Details(month=month)
-
-    month_end = MonthEndBasicScraper(details)
-    to_sqlite = args.to_sqlite
-
-    if to_sqlite:
-        month_end.scrape_until_month_end(to_sqlite)
-        check_db_if_all_date_was_scraped(details.sqlite_name)
-    else:
-        df = month_end.scrape_until_month_end()
-        check_csv_if_all_date_was_scraped()
 elif args.scraper:
     logger.info('Using basic scraper')
     check_in = details.check_in
@@ -86,9 +78,13 @@ elif args.scraper:
     scraper = BasicScraper(details)
 
     if to_sqlite:
-        scraper.start_scraping_process(check_in, check_out, to_sqlite)
+        data_tuple = scraper.start_scraping_process(check_in, check_out)
+        df = data_tuple[0]
+        save_scraped_data(dataframe=df, details_dataclass=details, to_sqlite=to_sqlite)
     else:
-        df = scraper.start_scraping_process(check_in, check_out)
+        df, city, check_in, check_out = scraper.start_scraping_process(check_in, check_out)
+        save_scraped_data(dataframe=df, city=city, check_in=check_in,
+                          check_out=check_out)
 
 
 

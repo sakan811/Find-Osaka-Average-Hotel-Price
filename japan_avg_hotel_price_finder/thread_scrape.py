@@ -15,34 +15,46 @@
 import calendar
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
+from typing import Tuple
 
 import pandas as pd
+from pandas import DataFrame
 
 from japan_avg_hotel_price_finder.configure_logging import configure_logging_with_file
-from japan_avg_hotel_price_finder.scrape_until_month_end import MonthEndBasicScraper
+from japan_avg_hotel_price_finder.scrape import BasicScraper
 from japan_avg_hotel_price_finder.utils import check_if_current_date_has_passed
 from set_details import Details
 
 logger = configure_logging_with_file('jp_hotel_data.log', 'jp_hotel_data')
 
 
-class ThreadPoolScraper(MonthEndBasicScraper):
+class ThreadPoolScraper(BasicScraper):
     def __init__(self, details: Details):
         """
         Initialize the ThreadPoolScraper class with the following parameters:
         :param details: Details dataclass object.
         """
         super().__init__(details)
+        self.start_day = details.start_day
+        self.month = details.month
+        self.year = details.year
+        self.nights = details.nights
 
-    def thread_scrape(self, to_sqlite: bool = False, timezone=None, max_workers: int = 5) -> None | pd.DataFrame:
+        self.city_data = ''
+        self.check_in_data = ''
+        self.check_out_data = ''
+
+    def thread_scrape(
+            self,
+            timezone=None,
+            max_workers: int = 5) -> tuple[DataFrame, str, str, str]:
         """
         Scrape hotel data from the start day to the end of the same month using Thread Pool executor.
-        :param to_sqlite: If True, save the scraped data to a SQLite database, else save it to CSV.
         :param timezone: Set timezone.
                 Default is None.
         :param max_workers: Maximum number of threads to use.
-                            Default is 9.
-        :return: None or a Pandas dataframe.
+                            Default is 5.
+        :return: Tuple with DataFrame, city, check-in, and check-out data.
         """
         logger.info('Scraping hotel data using Thread Pool executor...')
 
@@ -73,19 +85,26 @@ class ThreadPoolScraper(MonthEndBasicScraper):
                     """
                     logger.info('Scraping hotel data of the given date...')
 
-                    current_date_has_passed: bool = check_if_current_date_has_passed(self.year, self.month, day, timezone)
+                    current_date_has_passed: bool = check_if_current_date_has_passed(self.year, self.month, day,
+                                                                                     timezone)
 
                     current_date = datetime(self.year, self.month, day)
                     if current_date_has_passed:
-                        logger.warning(f'The current day of the month to scrape was passed. Skip {self.year}-{self.month}-{day}.')
+                        logger.warning(
+                            f'The current day of the month to scrape was passed. Skip {self.year}-{self.month}-{day}.')
                     else:
                         check_in: str = current_date.strftime('%Y-%m-%d')
                         check_out: str = (current_date + timedelta(days=self.nights)).strftime('%Y-%m-%d')
 
-                        df = self.start_scraping_process(check_in, check_out, to_sqlite)
+                        df, city, check_in, check_out = self.start_scraping_process(check_in, check_out)
 
                         # Append the result to the 'results' list
                         results.append(df)
+
+                        # Update the 'city_data', 'check_in_data', and 'check_out_data' attributes
+                        self.city_data = city
+                        self.check_in_data = check_in
+                        self.check_out_data = check_out
 
                 # Create a thread pool with a specified maximum threads
                 with ThreadPoolExecutor(max_workers=max_workers) as executor:
@@ -99,7 +118,7 @@ class ThreadPoolScraper(MonthEndBasicScraper):
                 # Concatenate all DataFrames in the 'results' list into a single DataFrame
                 df = pd.concat(results, ignore_index=True)
 
-                return df
+                return df, self.city_data, self.check_in_data, self.check_out_data
 
 
 if __name__ == '__main__':
