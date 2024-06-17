@@ -235,8 +235,8 @@ class BasicScraper:
 
         box_elements: bs4.ResultSet = self._find_box_elements(soup)
         if len(box_elements) == 0:
-            logger.error(f'{self.box_class} not found')
-            raise Exception(f'{self.box_class} not found')
+            logger.error(f'Box class: {self.box_class} not found')
+            raise Exception(f'Box class: {self.box_class} not found')
 
         hotel_data_dict = self.hotel_data_dict
 
