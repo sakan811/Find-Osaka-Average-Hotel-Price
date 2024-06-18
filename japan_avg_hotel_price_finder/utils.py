@@ -29,10 +29,15 @@ def check_if_current_date_has_passed(year: int, month: int, day: int, timezone=N
     else:
         today = datetime.datetime.today()
     today_for_check = today.strftime('%Y-%m-%d')
-    current_date_for_check = datetime.datetime(year, month, day).strftime('%Y-%m-%d')
-    if current_date_for_check < today_for_check:
-        return True
-    else:
+
+    try:
+        current_date_for_check = datetime.datetime(year, month, day).strftime('%Y-%m-%d')
+        if current_date_for_check < today_for_check:
+            return True
+        else:
+            return False
+    except ValueError:
+        logger.error("Invalid date. Returning False")
         return False
 
 
@@ -67,7 +72,7 @@ def find_missing_dates_in_db(sqlite_db: str) -> list:
                     dates_in_db, end_date, start_date = find_dates_of_the_month_in_db(sqlite_db, days_in_month, month,
                                                                                       year)
 
-                    missing_dates = find_missing_dates(dates_in_db, days_in_month, today, month, year)
+                    missing_dates = find_missing_dates(dates_in_db, days_in_month, month, year)
                     logger.warning(f"Missing dates in {start_date} to {end_date}: {missing_dates}")
             else:
                 date_obj = datetime.datetime.strptime(row[0], '%Y-%m')
@@ -80,7 +85,7 @@ def find_missing_dates_in_db(sqlite_db: str) -> list:
                     dates_in_db, end_date, start_date = find_dates_of_the_month_in_db(sqlite_db, days_in_month, month,
                                                                                       year)
 
-                    missing_dates = find_missing_dates(dates_in_db, days_in_month, today, month, year)
+                    missing_dates = find_missing_dates(dates_in_db, days_in_month, month, year)
                     logger.warning(f"Missing dates in {start_date} to {end_date}: {missing_dates}")
 
     return missing_dates
@@ -183,32 +188,40 @@ def scrape_with_basic_scraper(db: str, date, to_sqlite: bool = False):
 def find_missing_dates(
         dates_in_db: set[str],
         days_in_month: int,
-        today: datetime,
         month: int,
-        year: int) -> list[str]:
+        year: int,
+        timezone=None) -> list[str]:
     """
     Find missing dates of the given month.
+    Only check date from today onward.
     :param dates_in_db: Dates of that month in the database of the current AsOf Date.
                         Date format: '%Y-%m-%d'.
     :param days_in_month: Total days in the given month.
-    :param today: Today's date as a Datetime object.
     :param month: Month.
     :param year: Year.
+    :param timezone: Timezone, default is None, mostly for testing purpose.
     :returns: Missing Dates as a list.
     """
     logger.info(f"Find missing date of {calendar.month_name[month]} {year}.")
+    if timezone:
+        today = datetime.datetime.now(timezone)
+    else:
+        today = datetime.datetime.today()
+
+    dates_in_db_date_obj = [datetime.datetime.strptime(date, '%Y-%m-%d').date() for date in dates_in_db]
+    filtered_dates = [date for date in dates_in_db_date_obj if date >= today.date()]
+
+    today_date_obj = today.date()
     missing_dates = []
     for day in range(1, days_in_month + 1):
-        date_str = datetime.datetime(year, month, day).strftime('%Y-%m-%d')
-        if date_str not in dates_in_db:
-            if month == today.month:
-                # Handle the case when the month to scrape is the current month.
-                if day < today.day:
-                    logger.warning(f"This day has passed. Skip {date_str}")
-                else:
-                    missing_dates.append(date_str)
-            else:
-                missing_dates.append(date_str)
+        date_to_check = datetime.datetime(year, month, day)
+        date_to_check_str = date_to_check.strftime('%Y-%m-%d')
+        date_to_check_date_obj = date_to_check.date()
+        if date_to_check_date_obj < today_date_obj:
+            logger.warning(f"{date_to_check_str} has passed. Skip this date.")
+        else:
+            if date_to_check_date_obj not in filtered_dates:
+                missing_dates.append(date_to_check_str)
     return missing_dates
 
 
