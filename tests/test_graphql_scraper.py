@@ -70,6 +70,23 @@ def test_transform_data_in_df_dropna():
     assert len(result_df) == 1  # Only 'Hotel A'
 
 
+def test_drop_rows_with_zero_price_or_review():
+    # Given
+    data = {
+        'Hotel': ['Hotel A', 'Hotel B', 'Hotel C'],
+        'Review': [4.0, 0, 5.0],
+        'Price': [200, 0, 250]
+    }
+    df = pd.DataFrame(data)
+
+    # When
+    result_df = transform_data_in_df('2024-06-17', 'Tokyo', df)
+
+    # Then
+    assert len(result_df) == 2  # Only 'Hotel A' and 'Hotel C' should remain
+    assert 'Hotel B' not in result_df['Hotel'].values  # 'Hotel B' with 0 price should be dropped
+
+
 def test_transform_data_in_df_calculation():
     # Create a sample DataFrame
     data = {

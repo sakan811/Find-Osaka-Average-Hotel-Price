@@ -535,13 +535,16 @@ def transform_data_in_df(check_in, city, dataframe) -> pd.DataFrame:
         logger.info("Remove duplicate rows from the DataFrame based on 'Hotel' column")
         df_filtered = dataframe.drop_duplicates(subset='Hotel').copy()
 
+        logger.info("Convert columns to numeric values")
+        df_filtered.loc[:, 'Price'] = pd.to_numeric(df_filtered['Price'], errors='coerce')
+        df_filtered.loc[:, 'Review'] = pd.to_numeric(df_filtered['Review'], errors='coerce')
+
         # Drop rows where any of the 'Hotel', 'Review', 'Price' columns are None or NaN
         logger.info("Dropping rows where 'Hotel', 'Review', or 'Price' columns are None or NaN")
         df_filtered = df_filtered.dropna(subset=['Hotel', 'Review', 'Price'])
 
-        logger.info("Convert columns to numeric values")
-        df_filtered.loc[:, 'Price'] = pd.to_numeric(df_filtered['Price'], errors='coerce')
-        df_filtered.loc[:, 'Review'] = pd.to_numeric(df_filtered['Review'], errors='coerce')
+        logger.info("Dropping rows where 'Review', or 'Price' columns are 0")
+        df_filtered = df_filtered[(df_filtered['Price'] != 0) & (df_filtered['Review'] != 0)]
 
         logger.info("Calculate the Price/Review ratio")
         df_filtered.loc[:, 'Price/Review'] = df_filtered['Price'] / df_filtered['Review']
