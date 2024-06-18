@@ -58,7 +58,10 @@ def scrape_whole_month(details: Details, timezone=None) -> pd.DataFrame:
                     current_date: datetime = datetime.datetime(details.year, details.month, day)
                     check_in: str = current_date.strftime('%Y-%m-%d')
                     check_out: str = (current_date + datetime.timedelta(days=details.nights)).strftime('%Y-%m-%d')
-                    df = scrape_graphql(details.city, check_in, check_out, details.selected_currency)
+                    df = scrape_graphql(city=details.city, check_in=check_in, check_out=check_out,
+                                        num_rooms=details.num_rooms, group_adults=details.group_adults,
+                                        group_children=details.group_children,
+                                        selected_currency=details.selected_currency)
                     df_list.append(df)
 
             df = pd.concat(df_list)
