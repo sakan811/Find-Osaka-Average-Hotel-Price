@@ -1,4 +1,5 @@
 import datetime
+from unittest.mock import Mock
 
 import numpy as np
 import pandas as pd
@@ -243,83 +244,114 @@ def test_extract_hotel_data_multiple_appends():
     assert df2['Price'].tolist() == [200]
 
 
-def test_correct_response_with_matching_data():
+def test_returns_correct_total_page_number_and_data_mapping():
     # Given
-    response = requests.Response()
-    response.status_code = 200
-    response.json = lambda: {
-        "data": {
-            "searchQueries": {
-                "search": {
-                    "pagination": {"nbResultsTotal": 100},
-                    "breadcrumbs": [{}, {}, {"name": "Tokyo"}],
-                    "flexibleDatesConfig": {
-                        "dateRangeCalendar": {
-                            "checkin": ["2023-10-01"],
-                            "checkout": ["2023-10-10"]
-                        }
-                    },
-                    "results": [{
-                        "blocks": [{
-                            "finalPrice": {"currency": "JPY"}
-                        }]
-                    }]
-                }
-            }
-        }
-    }
-
-    entered_city = 'Tokyo'
-    entered_check_in = '2023-10-01'
-    entered_check_out = '2023-10-10'
-    entered_selected_currency = 'JPY'
-
-    # When
-    result = check_info(response, entered_city, entered_check_in, entered_check_out, entered_selected_currency)
-
-    # Then
-    assert result == (100, 'Tokyo', '2023-10-01', '2023-10-10', 'JPY')
-
-
-def test_city_not_match_entered_city():
-    # Given
-    response = requests.Response()
-    response.status_code = 200
-    response.json = lambda: {
+    response_mock = Mock()
+    response_mock.status_code = 200
+    response_mock.json.return_value = {
         'data': {
             'searchQueries': {
                 'search': {
-                    'pagination': {'nbResultsTotal': 10},
-                    'breadcrumbs': [{'name': 'Tokyo'}, {'name': 'Tokyo'}, {'name': 'Tokyo'}],
+                    'pagination': {'nbResultsTotal': 1},
+                    'breadcrumbs': [{}, {}, {'name': 'Test City'}],
                     'flexibleDatesConfig': {
                         'dateRangeCalendar': {
-                            'checkin': ['2022-12-01'],
-                            'checkout': ['2022-12-05']
+                            'checkin': ['2023-01-01'],
+                            'checkout': ['2023-01-02']
                         }
+                    },
+                    'searchMeta': {
+                        'nbAdults': 2,
+                        'nbChildren': 1,
+                        'nbRooms': 1
                     },
                     'results': [{
                         'blocks': [{
-                            'finalPrice': {'currency': 'JPY'}
+                            'finalPrice': {'currency': 'USD'}
                         }]
                     }]
                 }
             }
         }
     }
-    entered_city = 'Osaka'
-    entered_check_in = '2022-12-01'
-    entered_check_out = '2022-12-05'
-    entered_selected_currency = 'USD'
+    entered_city = "Test City"
+    entered_check_in = "2023-01-01"
+    entered_check_out = "2023-01-02"
+    entered_selected_currency = "USD"
+    entered_num_adult = 2
+    entered_num_children = 1
+    entered_num_room = 1
+
+    # When
+    result = check_info(
+        response_mock, entered_city, entered_check_in, entered_check_out,
+        entered_selected_currency, entered_num_adult, entered_num_children,
+        entered_num_room
+    )
+
+    # Then
+    assert result == (1, {
+        "city": "Test City",
+        "check_in": "2023-01-01",
+        "check_out": "2023-01-02",
+        "num_adult": 2,
+        "num_children": 1,
+        "num_room": 1,
+        "selected_currency": "USD"
+    })
+
+
+def test_handles_response_with_missing_or_null_fields_gracefully():
+    # Given
+    response_mock = Mock()
+    response_mock.status_code = 200
+    response_mock.json.return_value = {
+        'data': {
+            'searchQueries': {
+                'search': {
+                    'pagination': {'nbResultsTotal': 1},
+                    'breadcrumbs': [{}, {}, {'name': None}],
+                    'flexibleDatesConfig': {
+                        'dateRangeCalendar': {
+                            'checkin': [None],
+                            'checkout': [None]
+                        }
+                    },
+                    'searchMeta': {
+                        'nbAdults': None,
+                        'nbChildren': None,
+                        'nbRooms': None
+                    },
+                    'results': [{
+                        'blocks': [{
+                            'finalPrice': {'currency': None}
+                        }]
+                    }]
+                }
+            }
+        }
+    }
+    entered_city = "Test City"
+    entered_check_in = "2023-01-01"
+    entered_check_out = "2023-01-02"
+    entered_selected_currency = "USD"
+    entered_num_adult = 2
+    entered_num_children = 1
+    entered_num_room = 1
 
     # When
     error_message = ''
     try:
-        check_info(response, entered_city, entered_check_in, entered_check_out, entered_selected_currency)
+        check_info(
+            response_mock, entered_city, entered_check_in, entered_check_out,
+            entered_selected_currency, entered_num_adult, entered_num_children,
+            entered_num_room
+        )
     except SystemExit as e:
         error_message = str(e)
 
     # Then
-    assert 'Error City not match: Osaka != Tokyo' in error_message
+    assert error_message == "Error City not match: Test City != None"
 
 
 def test_concatenate_multiple_non_empty_dataframes():
