@@ -180,3 +180,4 @@ cython_debug/
 /query.sql
 /*.db-wal
 /*.db-shm
+/back_jp_hotel_data_2024/

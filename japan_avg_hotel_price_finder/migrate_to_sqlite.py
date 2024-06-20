@@ -20,7 +20,6 @@ import pandas as pd
 from japan_avg_hotel_price_finder.configure_logging import configure_logging_with_file
 from set_details import Details
 
-
 logger = configure_logging_with_file('jp_hotel_data.log', 'jp_hotel_data')
 
 
@@ -84,12 +83,62 @@ def create_average_room_price_by_date_view(db: str) -> None:
     :param db: SQLite database path
     :return: None
     """
+    logger.info('Create AverageRoomPriceByDate view...')
     with sqlite3.connect(db) as con:
         query = '''
         CREATE VIEW IF NOT EXISTS AverageRoomPriceByDate AS 
         select Date, avg(Price) as AveragePrice, City
         from HotelPrice
         GROUP BY Date
+        '''
+        con.execute(query)
+
+
+def create_avg_hotel_room_price_by_date_table(db: str) -> None:
+    """
+    Create AverageHotelRoomPriceByDate table
+    :param db: SQLite database path
+    :return: None
+    """
+    logger.info('Create AverageRoomPriceByDate table...')
+    with sqlite3.connect(db) as con:
+        query = '''
+        CREATE table IF NOT EXISTS AverageRoomPriceByDateTable (
+            Date TEXT NOT NULL PRIMARY KEY,
+            AveragePrice REAL NOT NULL,
+            City TEXT NOT NULL
+        ) 
+        '''
+        con.execute(query)
+
+
+def insert_to_avg_hotel_room_price_by_date_table(db: str) -> None:
+    """
+    Insert data into AverageHotelRoomPriceByDate table
+    :param db: SQLite database path
+    :return: None
+    """
+    logger.info("Insert data into AverageHotelRoomPriceByDate table...")
+    with sqlite3.connect(db) as con:
+        query = '''
+        insert into AverageRoomPriceByDateTable (Date, AveragePrice, City)
+        select Date, avg(Price) as AveragePrice, City
+        from HotelPrice
+        GROUP BY Date
+        '''
+        con.execute(query)
+
+
+def delete_from_avg_hotel_room_price_by_date_table(db: str) -> None:
+    """
+    Insert data into AverageHotelRoomPriceByDate table
+    :param db: SQLite database path
+    :return: None
+    """
+    logger.info("Truncate AverageHotelRoomPriceByDate table...")
+    with sqlite3.connect(db) as con:
+        query = '''
+        delete from AverageRoomPriceByDateTable 
         '''
         con.execute(query)
 
