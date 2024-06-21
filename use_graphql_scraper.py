@@ -61,7 +61,7 @@ def scrape_whole_month(details: Details, timezone=None) -> pd.DataFrame:
                     df = scrape_graphql(city=details.city, check_in=check_in, check_out=check_out,
                                         num_rooms=details.num_rooms, group_adults=details.group_adults,
                                         group_children=details.group_children,
-                                        selected_currency=details.selected_currency)
+                                        selected_currency=details.selected_currency, hotel_filter=True)
                     df_list.append(df)
 
             df = pd.concat(df_list)
