@@ -535,16 +535,29 @@ def scrape_graphql(
                                               page_offset=offset)
             response = requests.post(url, headers=headers, json=graphql_query)
 
+            hotel_data_list = []
             if response.status_code == 200:
                 data = response.json()
-                hotel_data_list: list = data['data']['searchQueries']['search']['results']
+                try:
+                    hotel_data_list: list = data['data']['searchQueries']['search']['results']
+                except ValueError:
+                    logger.error(f"ValueError: No hotel data was found.")
+                except KeyError:
+                    logger.error(f"KeyError: No hotel data was found.")
+                except Exception as e:
+                    logger.error(e)
+                    logger.error("Unexpected Error Occurred.")
 
                 extract_hotel_data(df_list, hotel_data_list)
             else:
                 logger.error(f"Error: {response.status_code}")
 
-        df = concat_df_list(df_list)
-        return transform_data_in_df(check_in, city, df)
+        if df_list:
+            df = concat_df_list(df_list)
+            return transform_data_in_df(check_in, city, df)
+        else:
+            logger.warning("No hotel data was found. Return an empty DataFrame.")
+            return pd.DataFrame()
     else:
         logger.warning("Error: city, check_in, check_out and selected_currency are required")
 
@@ -610,39 +623,42 @@ def extract_hotel_data(df_list: list, hotel_data_list: list) -> None:
     :return:
     """
     logger.debug("Extracting data...")
-    for hotel_data in hotel_data_list:
-        logger.debug("Initialize lists to store extracted data")
-        display_names = []
-        review_scores = []
-        final_prices = []
-        for key, val in hotel_data.items():
-            if key == "displayName":
-                if val:
-                    display_names.append(val['text'])
-                else:
-                    display_names.append(None)
+    if hotel_data_list:
+        for hotel_data in hotel_data_list:
+            logger.debug("Initialize lists to store extracted data")
+            display_names = []
+            review_scores = []
+            final_prices = []
+            for key, val in hotel_data.items():
+                if key == "displayName":
+                    if val:
+                        display_names.append(val['text'])
+                    else:
+                        display_names.append(None)
 
-            if key == "basicPropertyData":
-                if val:
-                    review_scores.append(val['reviewScore']['score'])
-                else:
-                    review_scores.append(None)
+                if key == "basicPropertyData":
+                    if val:
+                        review_scores.append(val['reviewScore']['score'])
+                    else:
+                        review_scores.append(None)
 
-            if key == "blocks":
-                if val:
-                    final_prices.append(val[0]['finalPrice']['amount'])
-                else:
-                    final_prices.append(None)
+                if key == "blocks":
+                    if val:
+                        final_prices.append(val[0]['finalPrice']['amount'])
+                    else:
+                        final_prices.append(None)
 
-        logger.debug("Create a Pandas Dataframe to store extracted data")
-        df = pd.DataFrame({
-            "Hotel": display_names,
-            "Review": review_scores,
-            "Price": final_prices
-        })
+            logger.debug("Create a Pandas Dataframe to store extracted data")
+            df = pd.DataFrame({
+                "Hotel": display_names,
+                "Review": review_scores,
+                "Price": final_prices
+            })
 
-        logger.debug("Append dataframe to a df_list")
-        df_list.append(df)
+            logger.debug("Append dataframe to a df_list")
+            df_list.append(df)
+    else:
+        logger.warning("No hotel data was found.")
 
 
 if __name__ == '__main__':

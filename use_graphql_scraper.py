@@ -22,10 +22,12 @@ if args.month:
     details = Details(month=month)
 
 
-def scrape_whole_month(details: Details, timezone=None) -> pd.DataFrame:
+def scrape_whole_month(details: Details, hotel_filter: bool = False, timezone=None) -> pd.DataFrame:
     """
     Scrape data from the whole month.
     :param details: Details dataclass object.
+    :param hotel_filter: If True, only scrape the hotel property data.
+                        Default is False.
     :param timezone: Timezone.
                     Default is None.
     :return: Pandas Dataframe.
@@ -61,7 +63,7 @@ def scrape_whole_month(details: Details, timezone=None) -> pd.DataFrame:
                     df = scrape_graphql(city=details.city, check_in=check_in, check_out=check_out,
                                         num_rooms=details.num_rooms, group_adults=details.group_adults,
                                         group_children=details.group_children,
-                                        selected_currency=details.selected_currency, hotel_filter=True)
+                                        selected_currency=details.selected_currency, hotel_filter=hotel_filter)
                     df_list.append(df)
 
             df = pd.concat(df_list)
@@ -74,6 +76,5 @@ if __name__ == '__main__':
     # check_out = '2024-07-02'
     # selected_currency = 'USD'
     # df = scrape_graphql(city, check_in, check_out, selected_currency)
-    df = scrape_whole_month(details)
+    df = scrape_whole_month(details=details, hotel_filter=True)
     save_scraped_data(dataframe=df, city=details.city, month=details.month, year=details.year)
-
