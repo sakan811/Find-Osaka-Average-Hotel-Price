@@ -459,23 +459,33 @@ def check_info(
             logger.error("Return 0 as total page number")
             total_page_num = 0
 
-        data_mapping = {
-            "city": data['data']['searchQueries']['search']['breadcrumbs'][2]['name'],
-            "check_in": data['data']['searchQueries']['search']['flexibleDatesConfig']['dateRangeCalendar']['checkin'][0],
-            "check_out": data['data']['searchQueries']['search']['flexibleDatesConfig']['dateRangeCalendar']['checkout'][0],
-            "num_adult": data['data']['searchQueries']['search']['searchMeta']['nbAdults'],
-            "num_children": data['data']['searchQueries']['search']['searchMeta']['nbChildren'],
-            "num_room": data['data']['searchQueries']['search']['searchMeta']['nbRooms'],
-            "selected_currency": data['data']['searchQueries']['search']['results'][0]['blocks'][0]['finalPrice']['currency']
-        }
+        if total_page_num:
+            data_mapping = {
+                "city": data['data']['searchQueries']['search']['breadcrumbs'][2]['name'],
+                "check_in": data['data']['searchQueries']['search']['flexibleDatesConfig']['dateRangeCalendar']['checkin'][0],
+                "check_out": data['data']['searchQueries']['search']['flexibleDatesConfig']['dateRangeCalendar']['checkout'][0],
+                "num_adult": data['data']['searchQueries']['search']['searchMeta']['nbAdults'],
+                "num_children": data['data']['searchQueries']['search']['searchMeta']['nbChildren'],
+                "num_room": data['data']['searchQueries']['search']['searchMeta']['nbRooms'],
+                "selected_currency": data['data']['searchQueries']['search']['results'][0]['blocks'][0]['finalPrice']['currency']
+            }
 
-        for key, value in data_mapping.items():
-            if locals()[f"entered_{key}"] != value:
-                logger.error(
-                    f"Error {key.replace('_', ' ').title()} not match: {locals()[f'entered_{key}']} != {value}")
-                raise SystemExit(
-                    f"Error {key.replace('_', ' ').title()} not match: {locals()[f'entered_{key}']} != {value}")
-
+            for key, value in data_mapping.items():
+                if locals()[f"entered_{key}"] != value:
+                    logger.error(
+                        f"Error {key.replace('_', ' ').title()} not match: {locals()[f'entered_{key}']} != {value}")
+                    raise SystemExit(
+                        f"Error {key.replace('_', ' ').title()} not match: {locals()[f'entered_{key}']} != {value}")
+        else:
+            data_mapping = {
+                "city": 'Not found',
+                "check_in": 'Not found',
+                "check_out": 'Not found',
+                "num_adult": 0,
+                "num_children": 0,
+                "num_room": 0,
+                "selected_currency": 'Not found'
+            }
         return total_page_num, data_mapping
     else:
         logger.error(f"Error: {response.status_code}")
