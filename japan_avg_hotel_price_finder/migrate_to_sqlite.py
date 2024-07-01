@@ -58,6 +58,15 @@ def migrate_data_to_sqlite(df_filtered: pd.DataFrame, details: Details) -> None:
 
         create_average_room_price_by_date_view(db)
 
+        create_avg_hotel_room_price_by_date_table(db)
+
+        create_avg_room_price_by_review_table(db)
+        create_avg_room_price_per_review_by_review_table(db)
+
+        create_avg_hotel_price_by_dow_table(db)
+
+        create_avg_hotel_price_by_month_table(db)
+
 
 def get_hotel_price_dtype() -> dict:
     """
@@ -111,15 +120,11 @@ def create_avg_hotel_room_price_by_date_table(db: str) -> None:
         '''
         con.execute(query)
 
+        query = '''
+        delete from AverageRoomPriceByDateTable 
+        '''
+        con.execute(query)
 
-def insert_to_avg_hotel_room_price_by_date_table(db: str) -> None:
-    """
-    Insert data into AverageHotelRoomPriceByDate table
-    :param db: SQLite database path
-    :return: None
-    """
-    logger.info("Insert data into AverageHotelRoomPriceByDate table...")
-    with sqlite3.connect(db) as con:
         query = '''
         insert into AverageRoomPriceByDateTable (Date, AveragePrice, City)
         select Date, avg(Price) as AveragePrice, City
@@ -129,16 +134,158 @@ def insert_to_avg_hotel_room_price_by_date_table(db: str) -> None:
         con.execute(query)
 
 
-def delete_from_avg_hotel_room_price_by_date_table(db: str) -> None:
+def create_avg_room_price_by_review_table(db: str) -> None:
     """
-    Insert data into AverageHotelRoomPriceByDate table
-    :param db: SQLite database path
+    Create AverageHotelRoomPriceByReview table.
+    :param db: SQLite database path.
     :return: None
     """
-    logger.info("Truncate AverageHotelRoomPriceByDate table...")
+    logger.info("Create AverageHotelRoomPriceByReview table...")
     with sqlite3.connect(db) as con:
         query = '''
-        delete from AverageRoomPriceByDateTable 
+        CREATE table IF NOT EXISTS AverageHotelRoomPriceByReview (
+            Review REAL NOT NULL PRIMARY KEY,
+            AveragePrice REAL NOT NULL
+        ) 
+        '''
+        con.execute(query)
+
+        query = '''
+        delete from AverageHotelRoomPriceByReview 
+        '''
+        con.execute(query)
+
+        query = '''
+        insert into AverageHotelRoomPriceByReview (Review, AveragePrice)
+        select Review, avg(Price)
+        FROM HotelPrice
+        group by Review
+        '''
+        con.execute(query)
+
+
+def create_avg_room_price_per_review_by_review_table(db: str) -> None:
+    """
+    Create AverageHotelRoomPricePerReviewByReview table.
+    :param db: SQLite database path.
+    :return: None
+    """
+    logger.info("Create AverageHotelRoomPricePerReviewByReview table...")
+    with sqlite3.connect(db) as con:
+        query = '''
+        CREATE table IF NOT EXISTS AverageHotelRoomPricePerReviewByReview (
+            Review REAL NOT NULL PRIMARY KEY,
+            AveragePricePerReview REAL NOT NULL
+        ) 
+        '''
+        con.execute(query)
+
+        query = '''
+        delete from AverageHotelRoomPricePerReviewByReview 
+        '''
+        con.execute(query)
+
+        query = '''
+        insert into AverageHotelRoomPricePerReviewByReview (Review, AveragePricePerReview)
+        select Review, avg("Price/Review")
+        FROM HotelPrice
+        group by Review
+        '''
+        con.execute(query)
+
+
+def create_avg_hotel_price_by_dow_table(db: str) -> None:
+    """
+    Create AverageHotelRoomPriceByDayOfWeek table.
+    :param db: SQLite database path.
+    :return: None
+    """
+    logger.info("Create AverageHotelRoomPriceByDayOfWeek table...")
+    with sqlite3.connect(db) as con:
+        query = '''
+        CREATE table IF NOT EXISTS AverageHotelRoomPriceByDayOfWeek (
+            DayOfWeek TEXT NOT NULL PRIMARY KEY,
+            AveragePrice REAL NOT NULL
+        ) 
+        '''
+        con.execute(query)
+
+        query = '''
+        delete from AverageHotelRoomPriceByDayOfWeek 
+        '''
+        con.execute(query)
+
+        query = '''
+        insert into AverageHotelRoomPriceByDayOfWeek (DayOfWeek, AveragePrice)
+        SELECT
+            CASE strftime('%w', Date)
+                WHEN '0' THEN 'Sunday'
+                WHEN '1' THEN 'Monday'
+                WHEN '2' THEN 'Tuesday'
+                WHEN '3' THEN 'Wednesday'
+                WHEN '4' THEN 'Thursday'
+                WHEN '5' THEN 'Friday'
+                WHEN '6' THEN 'Saturday'
+            END AS day_of_week,
+            AVG(Price) AS avg_price
+        FROM
+            HotelPrice
+        GROUP BY
+            day_of_week;
+        '''
+        con.execute(query)
+
+
+def create_avg_hotel_price_by_month_table(db: str) -> None:
+    """
+    Create AverageHotelRoomPriceByMonth table.
+    :param db: SQLite database path.
+    :return: None
+    """
+    logger.info("Create AverageHotelRoomPriceByMonth table...")
+    with sqlite3.connect(db) as con:
+        query = '''
+        CREATE table IF NOT EXISTS AverageHotelRoomPriceByMonth (
+            Month TEXT NOT NULL PRIMARY KEY,
+            AveragePrice REAL NOT NULL,
+            Quarter TEXT NOT NULL
+        ) 
+        '''
+        con.execute(query)
+
+        query = '''
+        delete from AverageHotelRoomPriceByMonth 
+        '''
+        con.execute(query)
+
+        query = '''
+        insert into AverageHotelRoomPriceByMonth (Month, AveragePrice, Quarter)
+        SELECT
+            CASE strftime('%m', Date)
+                WHEN '01' THEN 'January'
+                WHEN '02' THEN 'February'
+                WHEN '03' THEN 'March'
+                WHEN '04' THEN 'April'
+                WHEN '05' THEN 'May'
+                WHEN '06' THEN 'June'
+                WHEN '07' THEN 'July'
+                WHEN '08' THEN 'August'
+                WHEN '09' THEN 'September'
+                WHEN '10' THEN 'October'
+                WHEN '11' THEN 'November'
+                WHEN '12' THEN 'December'
+            END AS month,
+            AVG(Price) AS avg_price,
+            CASE
+                WHEN strftime('%m', Date) IN ('01', '02', '03') THEN 'Quarter1'
+                WHEN strftime('%m', Date) IN ('04', '05', '06') THEN 'Quarter2'
+                WHEN strftime('%m', Date) IN ('07', '08', '09') THEN 'Quarter3'
+                WHEN strftime('%m', Date) IN ('10', '11', '12') THEN 'Quarter4'
+            END AS quarter
+        FROM
+            HotelPrice
+        GROUP BY
+            month;
         '''
         con.execute(query)
 

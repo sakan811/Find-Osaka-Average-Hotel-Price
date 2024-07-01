@@ -451,7 +451,13 @@ def check_info(
     """
     if response.status_code == 200:
         data = response.json()
-        total_page_num = data['data']['searchQueries']['search']['pagination']['nbResultsTotal']
+
+        try:
+            total_page_num = data['data']['searchQueries']['search']['pagination']['nbResultsTotal']
+        except TypeError:
+            logger.error("TypeError: Total page number not found.")
+            logger.error("Return 0 as total page number")
+            total_page_num = 0
 
         data_mapping = {
             "city": data['data']['searchQueries']['search']['breadcrumbs'][2]['name'],
@@ -516,6 +522,7 @@ def scrape_graphql(
         total_page_num, hotel_data_dict = check_info(
             response, city, check_in, check_out, selected_currency, group_adults, group_children, num_rooms
         )
+
         logger.debug(f"Total page number: {total_page_num}")
         logger.debug(f"City: {hotel_data_dict['city']}")
         logger.debug(f"Check-in date: {hotel_data_dict['check_in']}")
@@ -525,38 +532,42 @@ def scrape_graphql(
         logger.debug(f"Number of rooms: {hotel_data_dict['num_room']}")
         logger.debug(f"Currency: {hotel_data_dict['selected_currency']}")
 
-        df_list = []
-        logger.info("Scraping data from GraphQL endpoint...")
-        for offset in range(0, total_page_num, 100):
-            graphql_query = get_graphql_query(city=city, check_in=check_in, check_out=check_out,
-                                              group_adults=group_adults,
-                                              group_children=group_children, num_rooms=num_rooms,
-                                              hotel_filter=hotel_filter,
-                                              page_offset=offset)
-            response = requests.post(url, headers=headers, json=graphql_query)
+        if total_page_num:
+            df_list = []
+            logger.info("Scraping data from GraphQL endpoint...")
+            for offset in range(0, total_page_num, 100):
+                graphql_query = get_graphql_query(city=city, check_in=check_in, check_out=check_out,
+                                                  group_adults=group_adults,
+                                                  group_children=group_children, num_rooms=num_rooms,
+                                                  hotel_filter=hotel_filter,
+                                                  page_offset=offset)
+                response = requests.post(url, headers=headers, json=graphql_query)
 
-            hotel_data_list = []
-            if response.status_code == 200:
-                data = response.json()
-                try:
-                    hotel_data_list: list = data['data']['searchQueries']['search']['results']
-                except ValueError:
-                    logger.error(f"ValueError: No hotel data was found.")
-                except KeyError:
-                    logger.error(f"KeyError: No hotel data was found.")
-                except Exception as e:
-                    logger.error(e)
-                    logger.error("Unexpected Error Occurred.")
+                hotel_data_list = []
+                if response.status_code == 200:
+                    data = response.json()
+                    try:
+                        hotel_data_list: list = data['data']['searchQueries']['search']['results']
+                    except ValueError:
+                        logger.error(f"ValueError: No hotel data was found.")
+                    except KeyError:
+                        logger.error(f"KeyError: No hotel data was found.")
+                    except Exception as e:
+                        logger.error(e)
+                        logger.error("Unexpected Error Occurred.")
 
-                extract_hotel_data(df_list, hotel_data_list)
+                    extract_hotel_data(df_list, hotel_data_list)
+                else:
+                    logger.error(f"Error: {response.status_code}")
+
+            if df_list:
+                df = concat_df_list(df_list)
+                return transform_data_in_df(check_in, city, df)
             else:
-                logger.error(f"Error: {response.status_code}")
-
-        if df_list:
-            df = concat_df_list(df_list)
-            return transform_data_in_df(check_in, city, df)
+                logger.warning("No hotel data was found. Return an empty DataFrame.")
+                return pd.DataFrame()
         else:
-            logger.warning("No hotel data was found. Return an empty DataFrame.")
+            logger.warning("Total page number not found. Return an empty DataFrame.")
             return pd.DataFrame()
     else:
         logger.warning("Error: city, check_in, check_out and selected_currency are required")
