@@ -18,9 +18,13 @@ def test_scrape_missing_dates() -> None:
         month = today.month + 1
         year = today.year
 
-    first_missing_date = f'{year}-{month}-01'
-    second_missing_date = f'{year}-{month}-11'
-    third_missing_date = f'{year}-{month}-20'
+    month_str = str(month)
+    if len(month_str) == 1:
+        month_str = '0' + month_str
+
+    first_missing_date = f'{year}-{month_str}-01'
+    second_missing_date = f'{year}-{month_str}-11'
+    third_missing_date = f'{year}-{month_str}-20'
     missing_dates = [first_missing_date, second_missing_date, third_missing_date]
     scrape_missing_dates(db=db, missing_dates=missing_dates, to_sqlite=True)
 

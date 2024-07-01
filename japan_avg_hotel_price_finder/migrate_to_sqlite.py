@@ -230,8 +230,6 @@ def create_avg_hotel_price_by_dow_table(db: str) -> None:
             AVG(Price) AS avg_price
         FROM
             HotelPrice
-        WHERE
-            Date IS NOT NULL
         GROUP BY
             day_of_week;
         '''
@@ -286,8 +284,6 @@ def create_avg_hotel_price_by_month_table(db: str) -> None:
             END AS quarter
         FROM
             HotelPrice
-        WHERE
-            Date IS NOT NULL
         GROUP BY
             month;
         '''
