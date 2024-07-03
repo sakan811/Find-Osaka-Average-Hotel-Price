@@ -462,7 +462,7 @@ def check_info(
         city_data = check_city_data(data)
         selected_currency_data = check_currency_data(data)
 
-        if total_page_num and city_data and selected_currency_data:
+        if total_page_num:
             data_mapping = {
                 "city": city_data,
                 "check_in": data['data']['searchQueries']['search']['flexibleDatesConfig']['dateRangeCalendar']['checkin'][0],
