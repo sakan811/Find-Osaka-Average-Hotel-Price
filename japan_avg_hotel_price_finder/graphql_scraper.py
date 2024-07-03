@@ -459,15 +459,18 @@ def check_info(
             logger.error("Return 0 as total page number")
             total_page_num = 0
 
-        if total_page_num:
+        city_data = check_city_data(data)
+        selected_currency_data = check_currency_data(data)
+
+        if total_page_num and city_data and selected_currency_data:
             data_mapping = {
-                "city": data['data']['searchQueries']['search']['breadcrumbs'][2]['name'],
+                "city": city_data,
                 "check_in": data['data']['searchQueries']['search']['flexibleDatesConfig']['dateRangeCalendar']['checkin'][0],
                 "check_out": data['data']['searchQueries']['search']['flexibleDatesConfig']['dateRangeCalendar']['checkout'][0],
                 "num_adult": data['data']['searchQueries']['search']['searchMeta']['nbAdults'],
                 "num_children": data['data']['searchQueries']['search']['searchMeta']['nbChildren'],
                 "num_room": data['data']['searchQueries']['search']['searchMeta']['nbRooms'],
-                "selected_currency": data['data']['searchQueries']['search']['results'][0]['blocks'][0]['finalPrice']['currency']
+                "selected_currency": selected_currency_data
             }
 
             for key, value in data_mapping.items():
@@ -680,6 +683,49 @@ def extract_hotel_data(df_list: list, hotel_data_list: list) -> None:
             df_list.append(df)
     else:
         logger.warning("No hotel data was found.")
+
+
+def check_currency_data(data) -> str:
+    """
+    Check currency data from the GraphQL response.
+    :param data: GraphQL response as JSON.
+    :return: City name.
+    """
+    logger.info("Checking currency data from the GraphQL response...")
+    selected_currency_data = None
+    try:
+        for result in data['data']['searchQueries']['search']['results']:
+            if 'blocks' in result:
+                for block in result['blocks']:
+                    if 'finalPrice' in block:
+                        selected_currency_data = block['finalPrice']['currency']
+                        break
+    except KeyError:
+        logger.error('KeyError: Currency data not found')
+    except IndexError:
+        logger.error('IndexError: Currency data not found')
+    return selected_currency_data
+
+
+def check_city_data(data) -> str:
+    """
+    Check city data from the GraphQL response.
+    :param data: GraphQL response as JSON.
+    :return: City name.
+    """
+    logger.info("Checking city data from the GraphQL response...")
+    city_data = None
+    try:
+        for breadcrumb in data['data']['searchQueries']['search']['breadcrumbs']:
+            if 'destType' in breadcrumb:
+                if breadcrumb['destType'] == 'CITY':
+                    city_data = breadcrumb['name']
+                    break
+    except KeyError:
+        logger.error('KeyError: City not found')
+    except IndexError:
+        logger.error('IndexError: City not found')
+    return city_data
 
 
 if __name__ == '__main__':
