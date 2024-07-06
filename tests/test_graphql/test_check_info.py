@@ -2,7 +2,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from japan_avg_hotel_price_finder.graphql_scraper import check_info
+from japan_avg_hotel_price_finder.graphql_scraper_func.graphql_utils_func import check_info
 
 
 def test_returns_correct_total_page_number_and_data_mapping():

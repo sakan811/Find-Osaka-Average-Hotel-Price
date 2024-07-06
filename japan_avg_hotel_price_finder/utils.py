@@ -7,8 +7,8 @@ from calendar import monthrange
 import pandas as pd
 
 from japan_avg_hotel_price_finder.configure_logging import configure_logging_with_file
+from japan_avg_hotel_price_finder.graphql_scraper import scrape_graphql
 from japan_avg_hotel_price_finder.migrate_to_sqlite import migrate_data_to_sqlite
-from japan_avg_hotel_price_finder.scrape import BasicScraper
 from set_details import Details
 
 logger = configure_logging_with_file('jp_hotel_data.log', 'jp_hotel_data')
@@ -28,11 +28,12 @@ def check_if_current_date_has_passed(year: int, month: int, day: int, timezone=N
         today = datetime.datetime.now(timezone)
     else:
         today = datetime.datetime.today()
-    today_for_check = today.strftime('%Y-%m-%d')
+
+    today_date = today.date()
 
     try:
-        current_date_for_check = datetime.datetime(year, month, day).strftime('%Y-%m-%d')
-        if current_date_for_check < today_for_check:
+        entered_date = datetime.date(year, month, day)
+        if entered_date < today_date:
             return True
         else:
             return False
@@ -64,8 +65,9 @@ def find_missing_dates_in_db(sqlite_db: str) -> list:
                 month = today.month
                 today_date = today.day
                 days_in_month = monthrange(year, month)[1]
-                scraped_date = days_in_month - today_date + 1
-                if scraped_date == row[1]:
+                expected_scraped_date = days_in_month - today_date + 1
+
+                if expected_scraped_date == row[1]:
                     logger.info(f"All date of {calendar.month_name[month]} {year} was scraped")
                 else:
                     logger.warning(f"Not all date of {calendar.month_name[month]} {year} was scraped")
@@ -162,26 +164,31 @@ def get_count_of_date_by_mth_asof_today_query():
 
 def scrape_with_basic_scraper(db: str, date, to_sqlite: bool = False):
     """
-    Scrape the date with BasicScraper.
+    Scrape the date with Basic GraphQL Scraper.
     :param db: SQLite database path.
     :param date: The given date to scrape.
     :param to_sqlite: If True, load the data to the SQLite database, else save to CSV.
                     Set to False as default.
     :return: None
     """
-    logger.info("Scrape the date with BasicScraper.")
-    check_in = date
+    logger.info("Scrape the date with Basic GraphQL Scraper.")
+    check_in: datetime = date
     check_out_datetime_obj = datetime.datetime.strptime(date, '%Y-%m-%d')
-    check_out = (check_out_datetime_obj + datetime.timedelta(days=1)).strftime('%Y-%m-%d')
+    check_out: str = (check_out_datetime_obj + datetime.timedelta(days=1)).strftime('%Y-%m-%d')
     details = Details(check_in=check_in, check_out=check_out, sqlite_name=db)
-    scraper = BasicScraper(details)
+
     if to_sqlite:
-        data_tuple = scraper.start_scraping_process(details.check_in, details.check_out)
-        df = data_tuple[0]
+        df = scrape_graphql(city=details.city, check_in=check_in, check_out=check_out, num_rooms=details.num_rooms,
+                            group_adults=details.group_adults,
+                            group_children=details.group_children, selected_currency=details.selected_currency,
+                            hotel_filter=details.scrape_only_hotel)
         save_scraped_data(dataframe=df, details_dataclass=details, to_sqlite=to_sqlite)
     else:
-        df, city, check_in, check_out = scraper.start_scraping_process(details.check_in, details.check_out)
-        save_scraped_data(dataframe=df, city=city, check_in=check_in,
+        df = scrape_graphql(city=details.city, check_in=check_in, check_out=check_out, num_rooms=details.num_rooms,
+                            group_adults=details.group_adults,
+                            group_children=details.group_children, selected_currency=details.selected_currency,
+                            hotel_filter=details.scrape_only_hotel)
+        save_scraped_data(dataframe=df, city=details.city, check_in=check_in,
                           check_out=check_out)
 
 

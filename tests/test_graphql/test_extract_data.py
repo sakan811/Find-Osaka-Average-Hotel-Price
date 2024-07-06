@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from japan_avg_hotel_price_finder.graphql_scraper import extract_hotel_data
+from japan_avg_hotel_price_finder.graphql_scraper_func.graphql_data_extractor import extract_hotel_data
 
 
 def test_extract_hotel_data_multiple_appends():

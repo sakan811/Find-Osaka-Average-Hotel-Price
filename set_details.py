@@ -16,6 +16,7 @@ class Details:
         num_rooms (str): Number of rooms.
         group_children (str): Number of children.
         selected_currency (str): Currency of the room price.
+        scrape_only_hotel (bool): Whether to scrape only the hotel property data.
         start_day (int): Day to start scraping.
                         Only consider this parameter when using Thread Pool or Month End Scraper.
         month (int): Month to start scraping.
@@ -35,6 +36,7 @@ class Details:
     num_rooms: int = 1
     group_children: int = 0
     selected_currency: str = 'USD'
+    scrape_only_hotel: bool = True
 
     # Set the start date and number of nights when using Thread Pool Scraper or Month End Scraper
     start_day: int = 1

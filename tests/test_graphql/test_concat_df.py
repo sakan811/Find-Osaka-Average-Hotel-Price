@@ -1,7 +1,7 @@
 import pandas as pd
 import pytest
 
-from japan_avg_hotel_price_finder.graphql_scraper import concat_df_list
+from japan_avg_hotel_price_finder.graphql_scraper_func.graphql_utils_func import concat_df_list
 
 
 def test_concatenate_multiple_non_empty_dataframes():

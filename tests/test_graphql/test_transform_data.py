@@ -1,6 +1,6 @@
 import pandas as pd
 
-from japan_avg_hotel_price_finder.graphql_scraper import transform_data_in_df
+from japan_avg_hotel_price_finder.graphql_scraper_func.graphql_data_transformer import transform_data_in_df
 
 
 def test_transform_data_in_df_basic():

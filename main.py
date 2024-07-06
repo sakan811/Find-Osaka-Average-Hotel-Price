@@ -15,72 +15,64 @@
 import argparse
 
 from japan_avg_hotel_price_finder.configure_logging import configure_logging_with_file
-from japan_avg_hotel_price_finder.scrape import BasicScraper
-from japan_avg_hotel_price_finder.thread_scrape import ThreadPoolScraper
+from japan_avg_hotel_price_finder.graphql_scraper import scrape_graphql, scrape_whole_month
 from japan_avg_hotel_price_finder.utils import save_scraped_data
 from set_details import Details
 
 logger = configure_logging_with_file('jp_hotel_data.log', 'jp_hotel_data')
+logger.setLevel(level="INFO")
 
 
 # Initialize argument parser
 parser = argparse.ArgumentParser(description='Parser that control which kind of scraper to use.')
-parser.add_argument('--thread_pool', type=bool, default=False, help='Use thread pool')
-parser.add_argument('--scraper', type=bool, default=True, help='Use basic scraper')
-parser.add_argument('--to_sqlite', type=bool, default=False, help='Use basic scraper')
+parser.add_argument('--scraper', type=bool, default=True, help='Use basic GraphQL scraper')
+parser.add_argument('--whole_mth', type=bool, default=False, help='Use Whole-Month GraphQL scraper')
+parser.add_argument('--to_sqlite', type=bool, default=False, help='Save data to SQLite database')
 parser.add_argument('--month', type=int, default=False, help='Month to scrape data for (1-12)')
-parser.add_argument('--workers', type=int, default=False,
-                    help='Number of thread to use when using Thread Pool Scraper')
+
 args = parser.parse_args()
 
 details = Details()
 
-if args.thread_pool and args.month_end:
-    logger.warning('Cannot use both --thread_pool and --month_end at the same time. Please use one of them at a time.')
-elif args.thread_pool:
-    logger.info('Using thread pool scraper')
+city = details.city
+check_in = details.check_in
+check_out = details.check_out
+group_adults = details.group_adults
+group_children = details.group_children
+num_rooms = details.num_rooms
+selected_currency = details.selected_currency
+hotel_filter = details.scrape_only_hotel
+
+if args.whole_mth:
+    logger.info('Using Whole-Month GraphQL scraper')
+    to_sqlite = args.to_sqlite
+
     if args.month:
         month = args.month
         details = Details(month=month)
 
-    thread_scrape = ThreadPoolScraper(details)
-    to_sqlite = args.to_sqlite
-
-    if args.workers:
-        workers = args.workers
-        if to_sqlite:
-            data_tuple = thread_scrape.thread_scrape(max_workers=workers)
-            df = data_tuple[0]
-            save_scraped_data(dataframe=df, details_dataclass=details, to_sqlite=to_sqlite)
-        else:
-            df, city, month_number, year = thread_scrape.thread_scrape(max_workers=workers)
-            save_scraped_data(dataframe=df, city=city, month=month_number, year=year)
-    else:
-        if to_sqlite:
-            data_tuple = thread_scrape.thread_scrape()
-            df = data_tuple[0]
-            save_scraped_data(dataframe=df, details_dataclass=details, to_sqlite=to_sqlite)
-        else:
-            df, city, month_number, year = thread_scrape.thread_scrape()
-            save_scraped_data(dataframe=df, city=city, month=month_number, year=year)
-elif args.scraper:
-    logger.info('Using basic scraper')
-    check_in = details.check_in
-    check_out = details.check_out
-    to_sqlite = args.to_sqlite
-    scraper = BasicScraper(details)
+    df = scrape_whole_month(details=details, hotel_filter=True)
 
     if to_sqlite:
-        data_tuple = scraper.start_scraping_process(check_in, check_out)
-        df = data_tuple[0]
         save_scraped_data(dataframe=df, details_dataclass=details, to_sqlite=to_sqlite)
     else:
-        df, city, check_in, check_out = scraper.start_scraping_process(check_in, check_out)
-        save_scraped_data(dataframe=df, city=city, check_in=check_in,
-                          check_out=check_out)
+        save_scraped_data(dataframe=df, city=city, month=details.month, year=details.year)
+
+elif args.scraper:
+    logger.info('Using basic GraphQL scraper')
+    to_sqlite = args.to_sqlite
+
+    df = scrape_graphql(city=city, check_in=check_in, check_out=check_out, num_rooms=num_rooms, group_adults=group_adults,
+                        group_children=group_children, selected_currency=selected_currency, hotel_filter=hotel_filter)
+
+    if to_sqlite:
+        save_scraped_data(dataframe=df, details_dataclass=details, to_sqlite=to_sqlite)
+    else:
+        save_scraped_data(dataframe=df, city=city, check_in=check_in, check_out=check_out)
 
 
-
+if __name__ == '__main__':
+    pass
 
 
 
