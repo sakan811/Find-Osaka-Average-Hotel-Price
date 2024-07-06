@@ -37,8 +37,8 @@ def scrape_whole_month(details: Details, hotel_filter: bool = False, timezone=No
                                 selected_currency=details.selected_currency, hotel_filter=hotel_filter)
             df_list.append(df)
 
-        df = pd.concat(df_list)
-        return df
+    df = pd.concat(df_list)
+    return df
 
 
 if __name__ == '__main__':
