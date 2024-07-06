@@ -15,8 +15,9 @@
 import argparse
 
 from japan_avg_hotel_price_finder.configure_logging import configure_logging_with_file
-from japan_avg_hotel_price_finder.graphql_scraper import scrape_graphql, scrape_whole_month
+from japan_avg_hotel_price_finder.graphql_scraper import scrape_graphql
 from japan_avg_hotel_price_finder.utils import save_scraped_data
+from japan_avg_hotel_price_finder.whole_mth_graphql_scraper import scrape_whole_month
 from set_details import Details
 
 logger = configure_logging_with_file('jp_hotel_data.log', 'jp_hotel_data')

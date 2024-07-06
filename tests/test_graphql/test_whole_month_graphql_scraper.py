@@ -2,7 +2,7 @@ import datetime
 
 import pytz
 
-from japan_avg_hotel_price_finder.graphql_scraper import scrape_whole_month
+from japan_avg_hotel_price_finder.whole_mth_graphql_scraper import scrape_whole_month
 from set_details import Details
 
 
