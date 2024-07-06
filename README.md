@@ -109,7 +109,10 @@ to find the missing dates.
 - Contain logging configuration functions
 
 [graphql_scraper.py](japan_avg_hotel_price_finder%2Fgraphql_scraper.py)
-- Contain GraphQL scrapers as functions
+- Contain Basic GraphQL scraper as a function
+
+[whole_mth_graphql_scraper.py](japan_avg_hotel_price_finder%2Fwhole_mth_graphql_scraper.py)
+- Contain Whole-Month GraphQL scraper as a function
 
 [migrate_to_sqlite.py](japan_avg_hotel_price_finder%2Fmigrate_to_sqlite.py)
 - Migrate data to SQLite table using sqlite3 module.
