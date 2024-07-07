@@ -18,3 +18,15 @@ def test_whole_month_graphql_scraper():
     assert not df.empty
     # Check column
     assert df.shape[1] == 7
+
+
+def test_whole_month_graphql_scraper_past_date():
+    timezone = pytz.timezone('Asia/Tokyo')
+    today = datetime.datetime.now(timezone)
+    past_mth = today.month - 1
+
+    details = Details(month=past_mth)
+
+    df = scrape_whole_month(details=details, hotel_filter=True)
+
+    assert df.empty
