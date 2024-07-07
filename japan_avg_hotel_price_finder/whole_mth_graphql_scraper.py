@@ -2,11 +2,13 @@ import calendar
 import datetime
 
 import pandas as pd
-from loguru import logger
 
+from japan_avg_hotel_price_finder.configure_logging import configure_logging_with_file
 from japan_avg_hotel_price_finder.graphql_scraper import scrape_graphql
 from japan_avg_hotel_price_finder.utils import check_if_current_date_has_passed
 from set_details import Details
+
+logger = configure_logging_with_file('jp_hotel_data.log', 'jp_hotel_data')
 
 
 def scrape_whole_month(details: Details, hotel_filter: bool = False, timezone=None) -> pd.DataFrame:

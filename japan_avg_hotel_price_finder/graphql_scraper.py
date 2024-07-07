@@ -8,7 +8,6 @@ from japan_avg_hotel_price_finder.graphql_scraper_func.graphql_request_func impo
 from japan_avg_hotel_price_finder.graphql_scraper_func.graphql_utils_func import check_info, concat_df_list
 
 logger = configure_logging_with_file('jp_hotel_data.log', 'jp_hotel_data')
-logger.setLevel(level="DEBUG")
 
 
 def scrape_graphql(

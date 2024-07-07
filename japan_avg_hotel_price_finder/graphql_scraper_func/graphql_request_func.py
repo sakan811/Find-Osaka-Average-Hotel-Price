@@ -1,4 +1,6 @@
-from loguru import logger
+from japan_avg_hotel_price_finder.configure_logging import configure_logging_with_file
+
+logger = configure_logging_with_file('jp_hotel_data.log', 'jp_hotel_data')
 
 
 def get_header() -> dict:
