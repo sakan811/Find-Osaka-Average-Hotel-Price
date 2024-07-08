@@ -11,7 +11,7 @@ from set_details import Details
 logger = configure_logging_with_file('jp_hotel_data.log', 'jp_hotel_data')
 
 
-def scrape_whole_month(details: Details, hotel_filter: bool = False, timezone=None) -> pd.DataFrame:
+async def scrape_whole_month(details: Details, hotel_filter: bool = False, timezone=None) -> pd.DataFrame:
     """
     Scrape data from the GraphQL endpoint for the whole month.
     :param details: Details dataclass object.
@@ -33,10 +33,10 @@ def scrape_whole_month(details: Details, hotel_filter: bool = False, timezone=No
             current_date: datetime = datetime.datetime(details.year, details.month, day)
             check_in: str = current_date.strftime('%Y-%m-%d')
             check_out: str = (current_date + datetime.timedelta(days=details.nights)).strftime('%Y-%m-%d')
-            df = scrape_graphql(city=details.city, check_in=check_in, check_out=check_out,
-                                num_rooms=details.num_rooms, group_adults=details.group_adults,
-                                group_children=details.group_children,
-                                selected_currency=details.selected_currency, hotel_filter=hotel_filter)
+            df = await scrape_graphql(city=details.city, check_in=check_in, check_out=check_out,
+                                      num_rooms=details.num_rooms, group_adults=details.group_adults,
+                                      group_children=details.group_children,
+                                      selected_currency=details.selected_currency, hotel_filter=hotel_filter)
             df_list.append(df)
 
     if df_list:

@@ -1,16 +1,19 @@
+import asyncio
+
+import aiohttp
 import pandas as pd
-import requests
 
 from japan_avg_hotel_price_finder.configure_logging import configure_logging_with_file
 from japan_avg_hotel_price_finder.graphql_scraper_func.graphql_data_extractor import extract_hotel_data
 from japan_avg_hotel_price_finder.graphql_scraper_func.graphql_data_transformer import transform_data_in_df
-from japan_avg_hotel_price_finder.graphql_scraper_func.graphql_request_func import get_header, get_graphql_query
+from japan_avg_hotel_price_finder.graphql_scraper_func.graphql_request_func import get_header, get_graphql_query, \
+    fetch_hotel_data
 from japan_avg_hotel_price_finder.graphql_scraper_func.graphql_utils_func import check_info, concat_df_list
 
 logger = configure_logging_with_file('jp_hotel_data.log', 'jp_hotel_data')
 
 
-def scrape_graphql(
+async def scrape_graphql(
         city: str = None,
         check_in: str = None,
         check_out: str = None,
@@ -20,20 +23,7 @@ def scrape_graphql(
         group_children: int = 0,
         hotel_filter: bool = False) -> pd.DataFrame:
     """
-    Scrape hotel data from GraphQL endpoint.
-    :param city: City where the hotels are located.
-    :param check_in: Check-in date.
-    :param check_out: Check-out date.
-    :param selected_currency: Currency of the room price.
-    :param group_adults: Number of adults.
-                        Default is 1.
-    :param num_rooms: Number of rooms.
-                    Default is 1.
-    :param group_children: Number of children.
-                        Default is 0.
-    :param hotel_filter: If True, scrape only hotel properties, else scrape all properties.
-                        Default is False.
-    :return: Pandas DataFrame with hotel data.
+    Scrape hotel data from GraphQL endpoint using async.
     """
     logger.info("Start scraping data from GraphQL endpoint")
     logger.info(f"City: {city} | Check-in: {check_in} | Check-out: {check_out} | Currency: {selected_currency}")
@@ -41,16 +31,21 @@ def scrape_graphql(
     logger.info(f"Only hotel properties: {hotel_filter}")
 
     if city and check_in and check_out and selected_currency:
-        # GraphQL endpoint URL
         url = f'https://www.booking.com/dml/graphql?selected_currency={selected_currency}'
         headers = get_header()
         graphql_query = get_graphql_query(city=city, check_in=check_in, check_out=check_out, group_adults=group_adults,
                                           group_children=group_children, num_rooms=num_rooms, hotel_filter=hotel_filter)
-        response = requests.post(url, headers=headers, json=graphql_query)
 
-        total_page_num, hotel_data_dict = check_info(
-            response, city, check_in, check_out, selected_currency, group_adults, group_children, num_rooms
-        )
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, headers=headers, json=graphql_query) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    total_page_num, hotel_data_dict = await check_info(
+                        data, city, check_in, check_out, selected_currency, group_adults, group_children, num_rooms
+                    )
+                else:
+                    logger.error(f"Error: {response.status}")
+                    return pd.DataFrame()
 
         logger.debug(f"Total page number: {total_page_num}")
         logger.debug(f"City: {hotel_data_dict['city']}")
@@ -64,30 +59,22 @@ def scrape_graphql(
         if total_page_num:
             df_list = []
             logger.info("Scraping data from GraphQL endpoint...")
-            for offset in range(0, total_page_num, 100):
-                graphql_query = get_graphql_query(city=city, check_in=check_in, check_out=check_out,
-                                                  group_adults=group_adults,
-                                                  group_children=group_children, num_rooms=num_rooms,
-                                                  hotel_filter=hotel_filter,
-                                                  page_offset=offset)
-                response = requests.post(url, headers=headers, json=graphql_query)
 
-                hotel_data_list = []
-                if response.status_code == 200:
-                    data = response.json()
-                    try:
-                        hotel_data_list: list = data['data']['searchQueries']['search']['results']
-                    except ValueError:
-                        logger.error(f"ValueError: No hotel data was found.")
-                    except KeyError:
-                        logger.error(f"KeyError: No hotel data was found.")
-                    except Exception as e:
-                        logger.error(e)
-                        logger.error("Unexpected Error Occurred.")
+            async with aiohttp.ClientSession() as session:
+                tasks = []
+                for offset in range(0, total_page_num, 100):
+                    graphql_query = get_graphql_query(city=city, check_in=check_in, check_out=check_out,
+                                                      group_adults=group_adults,
+                                                      group_children=group_children, num_rooms=num_rooms,
+                                                      hotel_filter=hotel_filter,
+                                                      page_offset=offset)
+                    tasks.append(fetch_hotel_data(session, url, headers, graphql_query))
 
+                results = await asyncio.gather(*tasks)
+
+            for hotel_data_list in results:
+                if hotel_data_list:
                     extract_hotel_data(df_list, hotel_data_list)
-                else:
-                    logger.error(f"Error: {response.status_code}")
 
             if df_list:
                 df = concat_df_list(df_list)
@@ -100,6 +87,7 @@ def scrape_graphql(
             return pd.DataFrame()
     else:
         logger.warning("Error: city, check_in, check_out and selected_currency are required")
+        return pd.DataFrame()
 
 
 if __name__ == '__main__':

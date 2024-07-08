@@ -1,15 +1,12 @@
-from unittest.mock import Mock
-
 import pytest
 
 from japan_avg_hotel_price_finder.graphql_scraper_func.graphql_utils_func import check_info
 
 
-def test_returns_correct_total_page_number_and_data_mapping():
+@pytest.mark.asyncio
+async def test_returns_correct_total_page_number_and_data_mapping():
     # Given
-    response_mock = Mock()
-    response_mock.status_code = 200
-    response_mock.json.return_value = {
+    data = {
         'data': {
             'searchQueries': {
                 'search': {
@@ -44,8 +41,8 @@ def test_returns_correct_total_page_number_and_data_mapping():
     entered_num_room = 1
 
     # When
-    result = check_info(
-        response_mock, entered_city, entered_check_in, entered_check_out,
+    result = await check_info(
+        data, entered_city, entered_check_in, entered_check_out,
         entered_selected_currency, entered_num_adult, entered_num_children,
         entered_num_room
     )
@@ -62,11 +59,10 @@ def test_returns_correct_total_page_number_and_data_mapping():
     })
 
 
-def test_handles_response_with_missing_or_null_fields_gracefully():
+@pytest.mark.asyncio
+async def test_handles_response_with_missing_or_null_fields_gracefully():
     # Given
-    response_mock = Mock()
-    response_mock.status_code = 200
-    response_mock.json.return_value = {
+    data = {
         'data': {
             'searchQueries': {
                 'search': {
@@ -103,8 +99,8 @@ def test_handles_response_with_missing_or_null_fields_gracefully():
     # When
     error_message = ''
     try:
-        check_info(
-            response_mock, entered_city, entered_check_in, entered_check_out,
+        await check_info(
+            data, entered_city, entered_check_in, entered_check_out,
             entered_selected_currency, entered_num_adult, entered_num_children,
             entered_num_room
         )
@@ -115,11 +111,10 @@ def test_handles_response_with_missing_or_null_fields_gracefully():
     assert error_message == "Error City not match: Test City != None"
 
 
-def test_handles_response_with_currency_is_none():
+@pytest.mark.asyncio
+async def test_handles_response_with_currency_is_none():
     # Given
-    response_mock = Mock()
-    response_mock.status_code = 200
-    response_mock.json.return_value = {
+    data = {
         'data': {
             'searchQueries': {
                 'search': {
@@ -156,8 +151,8 @@ def test_handles_response_with_currency_is_none():
     # When
     error_message = ''
     try:
-        check_info(
-            response_mock, entered_city, entered_check_in, entered_check_out,
+        await check_info(
+            data, entered_city, entered_check_in, entered_check_out,
             entered_selected_currency, entered_num_adult, entered_num_children,
             entered_num_room
         )
@@ -167,11 +162,11 @@ def test_handles_response_with_currency_is_none():
     # Then
     assert error_message == "Error Selected Currency not match: USD != None"
 
-def test_data_mapping_dictionary_keys():
+
+@pytest.mark.asyncio
+async def test_data_mapping_dictionary_keys():
     # Given
-    response_mock = Mock()
-    response_mock.status_code = 200
-    response_mock.json.return_value = {
+    data = {
         'data': {
             'searchQueries': {
                 'search': {
@@ -206,8 +201,8 @@ def test_data_mapping_dictionary_keys():
     entered_num_room = 1
 
     # When
-    result = check_info(
-        response_mock, entered_city, entered_check_in, entered_check_out,
+    result = await check_info(
+        data, entered_city, entered_check_in, entered_check_out,
         entered_selected_currency, entered_num_adult, entered_num_children,
         entered_num_room
     )
@@ -224,11 +219,10 @@ def test_data_mapping_dictionary_keys():
     })
 
 
-def test_data_mapping_check_in_not_match():
+@pytest.mark.asyncio
+async def test_data_mapping_check_in_not_match():
     # Given
-    response_mock = Mock()
-    response_mock.status_code = 200
-    response_mock.json.return_value = {
+    data = {
         'data': {
             'searchQueries': {
                 'search': {
@@ -263,18 +257,17 @@ def test_data_mapping_check_in_not_match():
     entered_num_room = 1
 
     with pytest.raises(SystemExit):
-        check_info(
-            response_mock, entered_city, entered_check_in, entered_check_out,
+        await check_info(
+            data, entered_city, entered_check_in, entered_check_out,
             entered_selected_currency, entered_num_adult, entered_num_children,
             entered_num_room
         )
 
 
-def test_data_mapping_check_out_not_match():
+@pytest.mark.asyncio
+async def test_data_mapping_check_out_not_match():
     # Given
-    response_mock = Mock()
-    response_mock.status_code = 200
-    response_mock.json.return_value = {
+    data = {
         'data': {
             'searchQueries': {
                 'search': {
@@ -309,18 +302,17 @@ def test_data_mapping_check_out_not_match():
     entered_num_room = 1
 
     with pytest.raises(SystemExit):
-        check_info(
-            response_mock, entered_city, entered_check_in, entered_check_out,
+        await check_info(
+            data, entered_city, entered_check_in, entered_check_out,
             entered_selected_currency, entered_num_adult, entered_num_children,
             entered_num_room
         )
 
 
-def test_data_mapping_adult_not_match():
+@pytest.mark.asyncio
+async def test_data_mapping_adult_not_match():
     # Given
-    response_mock = Mock()
-    response_mock.status_code = 200
-    response_mock.json.return_value = {
+    data = {
         'data': {
             'searchQueries': {
                 'search': {
@@ -355,18 +347,17 @@ def test_data_mapping_adult_not_match():
     entered_num_room = 1
 
     with pytest.raises(SystemExit):
-        check_info(
-            response_mock, entered_city, entered_check_in, entered_check_out,
+        await check_info(
+            data, entered_city, entered_check_in, entered_check_out,
             entered_selected_currency, entered_num_adult, entered_num_children,
             entered_num_room
         )
 
 
-def test_data_mapping_room_not_match():
+@pytest.mark.asyncio
+async def test_data_mapping_room_not_match():
     # Given
-    response_mock = Mock()
-    response_mock.status_code = 200
-    response_mock.json.return_value = {
+    data = {
         'data': {
             'searchQueries': {
                 'search': {
@@ -401,17 +392,16 @@ def test_data_mapping_room_not_match():
     entered_num_room = 1
 
     with pytest.raises(SystemExit):
-        check_info(
-            response_mock, entered_city, entered_check_in, entered_check_out,
+        await check_info(
+            data, entered_city, entered_check_in, entered_check_out,
             entered_selected_currency, entered_num_adult, entered_num_children,
             entered_num_room
         )
 
-def test_data_mapping_children_not_match():
-    # Given
-    response_mock = Mock()
-    response_mock.status_code = 200
-    response_mock.json.return_value = {
+
+@pytest.mark.asyncio
+async def test_data_mapping_children_not_match():
+    data = {
         'data': {
             'searchQueries': {
                 'search': {
@@ -446,18 +436,17 @@ def test_data_mapping_children_not_match():
     entered_num_room = 1
 
     with pytest.raises(SystemExit):
-        check_info(
-            response_mock, entered_city, entered_check_in, entered_check_out,
+        await check_info(
+            data, entered_city, entered_check_in, entered_check_out,
             entered_selected_currency, entered_num_adult, entered_num_children,
             entered_num_room
         )
 
 
-def test_data_mapping_currency_not_match():
+@pytest.mark.asyncio
+async def test_data_mapping_currency_not_match():
     # Given
-    response_mock = Mock()
-    response_mock.status_code = 200
-    response_mock.json.return_value = {
+    data = {
         'data': {
             'searchQueries': {
                 'search': {
@@ -492,18 +481,17 @@ def test_data_mapping_currency_not_match():
     entered_num_room = 1
 
     with pytest.raises(SystemExit):
-        check_info(
-            response_mock, entered_city, entered_check_in, entered_check_out,
+        await check_info(
+            data, entered_city, entered_check_in, entered_check_out,
             entered_selected_currency, entered_num_adult, entered_num_children,
             entered_num_room
         )
 
 
-def test_data_mapping_city_not_match():
+@pytest.mark.asyncio
+async def test_data_mapping_city_not_match():
     # Given
-    response_mock = Mock()
-    response_mock.status_code = 200
-    response_mock.json.return_value = {
+    data = {
         'data': {
             'searchQueries': {
                 'search': {
@@ -538,20 +526,17 @@ def test_data_mapping_city_not_match():
     entered_num_room = 1
 
     with pytest.raises(SystemExit):
-        check_info(
-            response_mock, entered_city, entered_check_in, entered_check_out,
+        await check_info(
+            data, entered_city, entered_check_in, entered_check_out,
             entered_selected_currency, entered_num_adult, entered_num_children,
             entered_num_room
         )
 
 
-
-
-def test_data_mapping_extraction():
+@pytest.mark.asyncio
+async def test_data_mapping_extraction():
     # Given
-    response_mock = Mock()
-    response_mock.status_code = 200
-    response_mock.json.return_value = {
+    data = {
         'data': {
             'searchQueries': {
                 'search': {
@@ -586,8 +571,8 @@ def test_data_mapping_extraction():
     entered_num_room = 1
 
     # When
-    result = check_info(
-        response_mock, entered_city, entered_check_in, entered_check_out,
+    result = await check_info(
+        data, entered_city, entered_check_in, entered_check_out,
         entered_selected_currency, entered_num_adult, entered_num_children,
         entered_num_room
     )

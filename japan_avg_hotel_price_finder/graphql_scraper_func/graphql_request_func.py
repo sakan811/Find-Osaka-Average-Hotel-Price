@@ -1,3 +1,5 @@
+from aiohttp import ClientSession
+
 from japan_avg_hotel_price_finder.configure_logging import configure_logging_with_file
 
 logger = configure_logging_with_file('jp_hotel_data.log', 'jp_hotel_data')
@@ -420,3 +422,28 @@ def get_graphql_query(
                  " }\n      ... on MerchCarouselIrene @include(if: $carouselLowCodeExp) {\n        carouselCampaignId\n     "
                  "   __typename\n      }\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n"
     }
+
+
+async def fetch_hotel_data(session: ClientSession, url: str, headers: dict, graphql_query: dict) -> list:
+    """
+    Fetch hotel data from GraphQL response.
+    :param session: client session.
+    :param url: Url to fetch data from.
+    :param headers: Request headers.
+    :param graphql_query: GraphQL query.
+    :return: List of hotel data.
+    """
+    async with session.post(url, headers=headers, json=graphql_query) as response:
+        if response.status == 200:
+            data = await response.json()
+            try:
+                return data['data']['searchQueries']['search']['results']
+            except (ValueError, KeyError) as e:
+                logger.error(f"Error extracting hotel data: {e}")
+                return []
+            except Exception as e:
+                logger.error(f"Unexpected error: {e}")
+                return []
+        else:
+            logger.error(f"Error: {response.status}")
+            return []

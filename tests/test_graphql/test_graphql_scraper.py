@@ -6,13 +6,14 @@ import pytz
 from japan_avg_hotel_price_finder.graphql_scraper import scrape_graphql
 
 
-def test_graphql_scraper():
+@pytest.mark.asyncio
+async def test_graphql_scraper():
     timezone = pytz.timezone('Asia/Tokyo')
     today = datetime.datetime.now(timezone)
     check_in = today.strftime('%Y-%m-%d')
     tomorrow = today + datetime.timedelta(days=1)
     check_out = tomorrow.strftime('%Y-%m-%d')
-    df = scrape_graphql(city='Osaka', check_in=check_in, check_out=check_out, selected_currency='USD')
+    df = await scrape_graphql(city='Osaka', check_in=check_in, check_out=check_out, selected_currency='USD')
 
     assert not df.empty
     # Check column
