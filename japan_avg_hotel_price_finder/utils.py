@@ -93,7 +93,7 @@ def find_missing_dates_in_db(sqlite_db: str) -> list:
     return missing_dates
 
 
-def check_in_db_if_all_date_was_scraped(db: str, to_sqlite: bool = False) -> None:
+async def check_in_db_if_all_date_was_scraped(db: str, to_sqlite: bool = False) -> None:
     """
     Check inside the SQLite database if all dates of each month were scraped today.
     :param db: Path to the SQLite database.
@@ -103,10 +103,10 @@ def check_in_db_if_all_date_was_scraped(db: str, to_sqlite: bool = False) -> Non
     """
     logger.info(f"Checking in the SQLite database '{db}' if any date was not scraped today...")
     missing_dates = find_missing_dates_in_db(db)
-    scrape_missing_dates(db=db, missing_dates=missing_dates, to_sqlite=to_sqlite)
+    await scrape_missing_dates(db=db, missing_dates=missing_dates, to_sqlite=to_sqlite)
 
 
-def check_in_csv_dir_if_all_date_was_scraped(directory: str = 'scraped_hotel_data_csv') -> None:
+async def check_in_csv_dir_if_all_date_was_scraped(directory: str = 'scraped_hotel_data_csv') -> None:
     """
     Check inside the CSV files directory if all dates of each month were scraped today.
     :param directory: Path to the CSV files directory.
@@ -125,7 +125,7 @@ def check_in_csv_dir_if_all_date_was_scraped(directory: str = 'scraped_hotel_dat
             with sqlite3.connect(temp_db) as con:
                 df.to_sql('HotelPrice', con, if_exists='replace', index=False)
 
-            check_in_db_if_all_date_was_scraped(temp_db)
+            await check_in_db_if_all_date_was_scraped(temp_db)
         else:
             logger.warning("No CSV files were found")
     except FileNotFoundError as e:
@@ -145,7 +145,7 @@ def check_in_csv_dir_if_all_date_was_scraped(directory: str = 'scraped_hotel_dat
             logger.info("Truncate the HotelPrice table in the temporary database.")
             with sqlite3.connect(temp_db) as con:
                 con.execute("DELETE FROM HotelPrice")
-            logger.warning("Please delete the temporary database manually after the web-scraping process finishes.")
+            logger.warning("Please delete the temporary database manually.")
 
 
 def get_count_of_date_by_mth_asof_today_query():
@@ -259,7 +259,7 @@ def find_dates_of_the_month_in_db(db: str, days_in_month, month, year) -> tuple:
     return dates_in_db, end_date, start_date
 
 
-def scrape_missing_dates(db: str = None, missing_dates: list = None, to_sqlite: bool = False):
+async def scrape_missing_dates(db: str = None, missing_dates: list = None, to_sqlite: bool = False):
     """
     Scrape missing dates with BasicScraper.
     :param db: SQLite database path.
@@ -268,9 +268,10 @@ def scrape_missing_dates(db: str = None, missing_dates: list = None, to_sqlite: 
                 Set to False as default.
     :return: None
     """
+    logger.info("Scraping missing dates...")
     if missing_dates:
         for date in missing_dates:
-            scrape_with_basic_scraper(db, date, to_sqlite)
+            await scrape_with_basic_scraper(db, date, to_sqlite)
     else:
         logger.warning(f"Missing dates is None. No missing dates to scrape.")
 

@@ -54,6 +54,8 @@ def migrate_data_to_sqlite(df_filtered: pd.DataFrame, details: Details) -> None:
         # Save the DataFrame to a table named 'HotelPrice'
         df_filtered.to_sql('HotelPrice', con=con, if_exists='append', index=False, dtype=hotel_price_dtype)
 
+        con.commit()
+
         logger.info(f'Data has been saved to {db}')
 
         create_average_room_price_by_date_view(db)
