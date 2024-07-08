@@ -162,7 +162,7 @@ def get_count_of_date_by_mth_asof_today_query():
     return query
 
 
-def scrape_with_basic_scraper(db: str, date, to_sqlite: bool = False):
+async def scrape_with_basic_scraper(db: str, date, to_sqlite: bool = False):
     """
     Scrape the date with Basic GraphQL Scraper.
     :param db: SQLite database path.
@@ -178,16 +178,18 @@ def scrape_with_basic_scraper(db: str, date, to_sqlite: bool = False):
     details = Details(check_in=check_in, check_out=check_out, sqlite_name=db)
 
     if to_sqlite:
-        df = scrape_graphql(city=details.city, check_in=check_in, check_out=check_out, num_rooms=details.num_rooms,
-                            group_adults=details.group_adults,
-                            group_children=details.group_children, selected_currency=details.selected_currency,
-                            hotel_filter=details.scrape_only_hotel)
+        df = await scrape_graphql(city=details.city, check_in=check_in, check_out=check_out,
+                                  num_rooms=details.num_rooms,
+                                  group_adults=details.group_adults,
+                                  group_children=details.group_children, selected_currency=details.selected_currency,
+                                  hotel_filter=details.scrape_only_hotel)
         save_scraped_data(dataframe=df, details_dataclass=details, to_sqlite=to_sqlite)
     else:
-        df = scrape_graphql(city=details.city, check_in=check_in, check_out=check_out, num_rooms=details.num_rooms,
-                            group_adults=details.group_adults,
-                            group_children=details.group_children, selected_currency=details.selected_currency,
-                            hotel_filter=details.scrape_only_hotel)
+        df = await scrape_graphql(city=details.city, check_in=check_in, check_out=check_out,
+                                  num_rooms=details.num_rooms,
+                                  group_adults=details.group_adults,
+                                  group_children=details.group_children, selected_currency=details.selected_currency,
+                                  hotel_filter=details.scrape_only_hotel)
         save_scraped_data(dataframe=df, city=details.city, check_in=check_in,
                           check_out=check_out)
 
