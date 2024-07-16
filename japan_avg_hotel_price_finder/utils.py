@@ -74,7 +74,7 @@ def find_missing_dates_in_db(sqlite_db: str) -> list:
                     dates_in_db, end_date, start_date = find_dates_of_the_month_in_db(sqlite_db, days_in_month, month,
                                                                                       year)
 
-                    missing_dates = find_missing_dates(dates_in_db, days_in_month, month, year)
+                    missing_dates += find_missing_dates(dates_in_db, days_in_month, month, year)
                     logger.warning(f"Missing dates in {start_date} to {end_date}: {missing_dates}")
             else:
                 date_obj = datetime.datetime.strptime(row[0], '%Y-%m')
@@ -87,7 +87,7 @@ def find_missing_dates_in_db(sqlite_db: str) -> list:
                     dates_in_db, end_date, start_date = find_dates_of_the_month_in_db(sqlite_db, days_in_month, month,
                                                                                       year)
 
-                    missing_dates = find_missing_dates(dates_in_db, days_in_month, month, year)
+                    missing_dates += find_missing_dates(dates_in_db, days_in_month, month, year)
                     logger.warning(f"Missing dates in {start_date} to {end_date}: {missing_dates}")
 
     return missing_dates

@@ -29,6 +29,35 @@ def test_find_missing_dates():
     assert result == expected_missing_dates
 
 
+def test_find_missing_dates_of_different_months():
+    result = []
+    expected_result = []
+    today = datetime.datetime.today()
+    month = today.month
+    year = today.year
+    for i in range(1, 3):
+        month = month + i
+
+        if month > 12:
+            month = 1
+            year += 1
+
+        days_in_month = monthrange(year, i)[1]
+
+        date1 = datetime.date(year, month, 1).strftime('%Y-%m-%d')
+        date2 = datetime.date(year, month, 5).strftime('%Y-%m-%d')
+
+        dates_in_db = {date1, date2}
+        result += find_missing_dates(dates_in_db, days_in_month, month, year)
+
+        for day in range(1, days_in_month + 1):
+            date_str = datetime.datetime(year, month, day).strftime('%Y-%m-%d')
+            if date_str not in dates_in_db:
+                expected_result.append(date_str)
+
+    assert result == expected_result
+
+
 def test_handles_empty_set_of_dates():
     # Given
     dates_in_db = set()
