@@ -589,5 +589,61 @@ async def test_data_mapping_extraction():
     })
 
 
+@pytest.mark.asyncio
+async def test_total_page_num_is_zero():
+    # Given
+    data = {
+        'data': {
+            'searchQueries': {
+                'search': {
+                    'pagination': {'nbResultsTotal': 0},
+                    'breadcrumbs': [{}, {}, {'name': 'Test City', 'destType': 'CITY'}],
+                    'flexibleDatesConfig': {
+                        'dateRangeCalendar': {
+                            'checkin': ['2023-01-01'],
+                            'checkout': ['2023-01-02']
+                        }
+                    },
+                    'searchMeta': {
+                        'nbAdults': 2,
+                        'nbChildren': 1,
+                        'nbRooms': 1
+                    },
+                    'results': [{
+                        'blocks': [{
+                            'finalPrice': {'currency': 'USD'}
+                        }]
+                    }]
+                }
+            }
+        }
+    }
+    entered_city = "Test City"
+    entered_check_in = "2023-01-01"
+    entered_check_out = "2023-01-02"
+    entered_selected_currency = "USD"
+    entered_num_adult = 2
+    entered_num_children = 1
+    entered_num_room = 1
+
+    # When
+    result = await check_info(
+        data, entered_city, entered_check_in, entered_check_out,
+        entered_selected_currency, entered_num_adult, entered_num_children,
+        entered_num_room
+    )
+
+    # Then
+    assert result == (0, {
+        "city": 'Not found',
+        "check_in": 'Not found',
+        "check_out": 'Not found',
+        "num_adult": 0,
+        "num_children": 0,
+        "num_room": 0,
+        "selected_currency": 'Not found'
+    })
+
+
 if __name__ == '__main__':
     pytest.main()

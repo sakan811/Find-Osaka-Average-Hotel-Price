@@ -33,10 +33,10 @@ async def check_info(
         logger.error("Return 0 as total page number")
         total_page_num = 0
 
-    city_data = check_city_data(data)
-    selected_currency_data = check_currency_data(data)
-
     if total_page_num:
+        city_data = check_city_data(data)
+        selected_currency_data = check_currency_data(data)
+
         data_mapping = {
             "city": city_data,
             "check_in":
