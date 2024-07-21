@@ -43,10 +43,10 @@ This script can also be used to scrape data from other cities.
   ```
 - Get the values from Booking.com:
   - Go to Booking.com, and perform a search for any location with any booking details.
-  - Right-click anywhere on the webpage and select Inspect to open the developer tools.
-  - Navigate to the Network tab.
-  - Scroll through the network requests until you find one with a name starting with graphql?ss=.
-  - Click on this request and navigate to the Headers tab.
+  - Right-click anywhere on the webpage and select **Inspect** to open the developer tools.
+  - Navigate to the **Network** tab.
+  - Scroll through the network requests until you find one with a name starting with **graphql?ss=**.
+  - Click on this request and navigate to the **Headers** tab.
   - Find the values for the following headers and enter them into your **.env** file:
     - User-Agent ➡ USER_AGENT
     - X-Booking-Csrf-Token ➡ X_BOOKING_CSRF_TOKEN
@@ -90,9 +90,9 @@ This script can also be used to scrape data from other cities.
     ```
   - Scrape data start from the given start date to the end of the same month.
   - Month to scrape can be specified using ```--month=(month number as int)``` for Whole-Month GraphQL Scraper.
-    - For example, to scrape data from June of the current year using Thread Pool Scraper, run the following command line:
+    - For example, to scrape data from June of the given year, run the following command line:
     ```  
-    python main.py --thread_pool=True --month=6
+    python main.py --whole_mth=True --month=6
     ``` 
   - Be careful with 'start_day' variable in [set_details.py](set_details.py), 
   as using --month will make the scraper starts from the day specified in 'start_day' variable 
@@ -104,27 +104,17 @@ This script can also be used to scrape data from other cities.
     python main.py 
     ```
   - Scrape data based on the given check-in and check-out date.
-- Data is saved to CSV by default.
-  - CSV is saved to 'scraped_hotel_data_csv' folder. 
-- Add ```--to_sqlite=True``` to save data to SQLite database.
-  ```  
-  python main.py --to_sqlite=True
-  ```
+- Data is saved to SQLite.
+  - The SQLite database is created automatically if it doesn't exist in the given path.
 
-### To find the missing dates in the database or in the CSV files directory
-To ensure that all dates of the month were scraped when using the Thread Pool scraper, functions in
-[check_missing_dates.py](check_missing_dates.py) will check in the given SQLite database or CSV files directory
-to find the missing dates.
+### To find the missing dates in the database
+To ensure that all dates of the month were scraped, a function in
+[check_missing_dates.py](check_missing_dates.py) will check in the given SQLite database to find the missing dates.
 - To check in the database, use the following command line as an example:
   ```  
   python check_missing_dates.py --check_db=hotel_data.db
   ``` 
   - ```--check_db``` should be follow by the path of the database, without any quote.
-- To check in the CSV files directory, use the following command line as an example:
-  ```  
-  python check_missing_dates.py --check_csv=scraped_hotel_data_csv
-  ``` 
-  - ```--check_csv``` should be follow by the path of the CSV files directory, without any quote.
 - If there are missing dates, a Basic Scraper will automatically start to scrape those dates.
 - Only check the missing dates of the data that was scraped today.
 
@@ -165,7 +155,7 @@ to find the missing dates.
 - Contain utility functions of GraphQL scrapers
 
 ### [check_missing_dates.py](check_missing_dates.py)
-- Check the missing dates in the database or in the CSV files directory.
+- Check the missing dates in the database.
 
 ### Automated Hotel Scraper
 - Scrape Osaka hotel data daily using GitHub action for all 12 months.

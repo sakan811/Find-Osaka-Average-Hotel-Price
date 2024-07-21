@@ -103,49 +103,7 @@ async def check_in_db_if_all_date_was_scraped(db: str, to_sqlite: bool = False) 
     """
     logger.info(f"Checking in the SQLite database '{db}' if any date was not scraped today...")
     missing_dates = find_missing_dates_in_db(db)
-    await scrape_missing_dates(db=db, missing_dates=missing_dates, to_sqlite=to_sqlite)
-
-
-async def check_in_csv_dir_if_all_date_was_scraped(directory: str = 'scraped_hotel_data_csv') -> None:
-    """
-    Check inside the CSV files directory if all dates of each month were scraped today.
-    :param directory: Path to the CSV files directory.
-                    Default is 'scraped_hotel_data_csv' folder.
-    :returns: None
-    """
-    logger.info(f"Checking CSV files in the {directory} directory if all date was scraped today...")
-    temp_db = 'temp_db.db'
-    try:
-        csv_files: list = find_csv_files(directory)
-        if csv_files:
-            df = convert_csv_to_df(csv_files)
-
-            logger.info("Create a temporary SQLite database to insert the data to check if all date was scraped today.")
-
-            with sqlite3.connect(temp_db) as con:
-                df.to_sql('HotelPrice', con, if_exists='replace', index=False)
-
-            await check_in_db_if_all_date_was_scraped(temp_db)
-        else:
-            logger.warning("No CSV files were found")
-    except FileNotFoundError as e:
-        logger.error(e)
-        logger.error(f"{directory} folder not found.")
-    except Exception as e:
-        logger.error(e)
-        logger.error(f"An unexpected error occurred")
-
-    if os.path.exists(temp_db):
-        try:
-            os.remove(temp_db)
-            logger.info("Temporary database deleted.")
-        except PermissionError as e:
-            logger.error(e)
-            logger.error(f"Could not remove {temp_db}. it is being used by another process.")
-            logger.info("Truncate the HotelPrice table in the temporary database.")
-            with sqlite3.connect(temp_db) as con:
-                con.execute("DELETE FROM HotelPrice")
-            logger.warning("Please delete the temporary database manually.")
+    await scrape_missing_dates(db=db, missing_dates=missing_dates)
 
 
 def get_count_of_date_by_mth_asof_today_query():
