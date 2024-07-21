@@ -162,7 +162,7 @@ def get_count_of_date_by_mth_asof_today_query():
     return query
 
 
-async def scrape_with_basic_scraper(db: str, date) -> None:
+async def scrape_with_basic_scraper(db: str, date: str) -> None:
     """
     Scrape the date with Basic GraphQL Scraper.
     :param db: SQLite database path.
@@ -248,19 +248,17 @@ def find_dates_of_the_month_in_db(db: str, days_in_month, month, year) -> tuple:
     return dates_in_db, end_date, start_date
 
 
-async def scrape_missing_dates(db: str = None, missing_dates: list = None, to_sqlite: bool = False):
+async def scrape_missing_dates(db: str = None, missing_dates: list[str] = None):
     """
     Scrape missing dates with BasicScraper.
     :param db: SQLite database path.
     :param missing_dates: Missing dates.
-    :param to_sqlite: If True, load the data to the SQLite database, else save to CSV.
-                Set to False as default.
     :return: None
     """
     logger.info("Scraping missing dates...")
     if missing_dates:
         for date in missing_dates:
-            await scrape_with_basic_scraper(db, date, to_sqlite)
+            await scrape_with_basic_scraper(db, date)
     else:
         logger.warning(f"Missing dates is None. No missing dates to scrape.")
 
