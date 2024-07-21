@@ -1,8 +1,14 @@
+import os
+
 from aiohttp import ClientSession
+from dotenv import load_dotenv
 
 from japan_avg_hotel_price_finder.configure_logging import configure_logging_with_file
 
 logger = configure_logging_with_file('jp_hotel_data.log', 'jp_hotel_data')
+
+# Load environment variables from .env file
+load_dotenv()
 
 
 def get_header() -> dict:
@@ -14,14 +20,14 @@ def get_header() -> dict:
     return {
         "Content-Type": "application/json",
         "Accept": "*/*",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
-        "X-Booking-Csrf-Token": "eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJjb250ZXh0LWVucmljaG1lbnQtYXBpIiwic3ViIjoiY3NyZi10b2tlbiIsImlhdCI6MTcxODYyNTQ2NywiZXhwIjoxNzE4NzExODY3fQ.CAooc42_J_78rrJe-e2kgLUyRvd_JBzuo2G8MP2V6veKwH5-TfikWdjTK2yBOfEe_Xl_IxDMFZOl-Q3qgvWp5A",
-        "X-Booking-Context-Action-Name": "searchresults_irene",
-        "X-Booking-Context-Aid": "304142",
-        'X-Booking-Et-Serialized-State': 'EjwSq9PIMG0Wo3kB1frx34bv9-QpErp-BGeatPFobVv6jCzqqAw4Gg8OdLtw5fMdx',
-        'X-Booking-Pageview-Id': '0d89890d0ede00d9',
-        'X-Booking-Site-Type-Id': '1',
-        'X-Booking-Topic': 'capla_browser_b-search-web-searchresults'
+        "User-Agent": os.getenv("USER_AGENT"),
+        "X-Booking-Csrf-Token": os.getenv("X_BOOKING_CSRF_TOKEN"),
+        "X-Booking-Context-Action-Name": os.getenv("X_BOOKING_CONTEXT_ACTION_NAME"),
+        "X-Booking-Context-Aid": os.getenv("X_BOOKING_CONTEXT_AID"),
+        "X-Booking-Et-Serialized-State": os.getenv("X_BOOKING_ET_SERIALIZED_STATE"),
+        "X-Booking-Pageview-Id": os.getenv("X_BOOKING_PAGEVIEW_ID"),
+        "X-Booking-Site-Type-Id": os.getenv("X_BOOKING_SITE_TYPE_ID"),
+        "X-Booking-Topic": os.getenv("X_BOOKING_TOPIC")
     }
 
 

@@ -30,7 +30,6 @@ async def main():
     parser = argparse.ArgumentParser(description='Parser that control which kind of scraper to use.')
     parser.add_argument('--scraper', type=bool, default=True, help='Use basic GraphQL scraper')
     parser.add_argument('--whole_mth', type=bool, default=False, help='Use Whole-Month GraphQL scraper')
-    parser.add_argument('--to_sqlite', type=bool, default=False, help='Save data to SQLite database')
     parser.add_argument('--month', type=int, default=False, help='Month to scrape data for (1-12)')
     args = parser.parse_args()
     details = Details()
@@ -44,7 +43,6 @@ async def main():
     hotel_filter = details.scrape_only_hotel
     if args.whole_mth:
         logger.info('Using Whole-Month GraphQL scraper')
-        to_sqlite = args.to_sqlite
 
         if args.month:
             month = args.month
@@ -52,24 +50,17 @@ async def main():
 
         df = await scrape_whole_month(details=details, hotel_filter=True)
 
-        if to_sqlite:
-            save_scraped_data(dataframe=df, details_dataclass=details, to_sqlite=to_sqlite)
-        else:
-            save_scraped_data(dataframe=df, city=city, month=details.month, year=details.year)
+        save_scraped_data(dataframe=df, details_dataclass=details)
 
     elif args.scraper:
         logger.info('Using basic GraphQL scraper')
-        to_sqlite = args.to_sqlite
 
         df = await scrape_graphql(city=city, check_in=check_in, check_out=check_out, num_rooms=num_rooms,
                                   group_adults=group_adults,
                                   group_children=group_children, selected_currency=selected_currency,
                                   hotel_filter=hotel_filter)
 
-        if to_sqlite:
-            save_scraped_data(dataframe=df, details_dataclass=details, to_sqlite=to_sqlite)
-        else:
-            save_scraped_data(dataframe=df, city=city, check_in=check_in, check_out=check_out)
+        save_scraped_data(dataframe=df, details_dataclass=details)
 
 
 if __name__ == '__main__':

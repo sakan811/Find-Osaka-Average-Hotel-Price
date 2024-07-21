@@ -162,13 +162,11 @@ def get_count_of_date_by_mth_asof_today_query():
     return query
 
 
-async def scrape_with_basic_scraper(db: str, date, to_sqlite: bool = False):
+async def scrape_with_basic_scraper(db: str, date) -> None:
     """
     Scrape the date with Basic GraphQL Scraper.
     :param db: SQLite database path.
     :param date: The given date to scrape.
-    :param to_sqlite: If True, load the data to the SQLite database, else save to CSV.
-                    Set to False as default.
     :return: None
     """
     logger.info("Scrape the date with Basic GraphQL Scraper.")
@@ -177,21 +175,12 @@ async def scrape_with_basic_scraper(db: str, date, to_sqlite: bool = False):
     check_out: str = (check_out_datetime_obj + datetime.timedelta(days=1)).strftime('%Y-%m-%d')
     details = Details(check_in=check_in, check_out=check_out, sqlite_name=db)
 
-    if to_sqlite:
-        df = await scrape_graphql(city=details.city, check_in=check_in, check_out=check_out,
-                                  num_rooms=details.num_rooms,
-                                  group_adults=details.group_adults,
-                                  group_children=details.group_children, selected_currency=details.selected_currency,
-                                  hotel_filter=details.scrape_only_hotel)
-        save_scraped_data(dataframe=df, details_dataclass=details, to_sqlite=to_sqlite)
-    else:
-        df = await scrape_graphql(city=details.city, check_in=check_in, check_out=check_out,
-                                  num_rooms=details.num_rooms,
-                                  group_adults=details.group_adults,
-                                  group_children=details.group_children, selected_currency=details.selected_currency,
-                                  hotel_filter=details.scrape_only_hotel)
-        save_scraped_data(dataframe=df, city=details.city, check_in=check_in,
-                          check_out=check_out)
+    df = await scrape_graphql(city=details.city, check_in=check_in, check_out=check_out,
+                              num_rooms=details.num_rooms,
+                              group_adults=details.group_adults,
+                              group_children=details.group_children, selected_currency=details.selected_currency,
+                              hotel_filter=details.scrape_only_hotel)
+    save_scraped_data(dataframe=df, details_dataclass=details)
 
 
 def find_missing_dates(
@@ -324,63 +313,16 @@ def convert_csv_to_df(csv_files: list) -> pd.DataFrame:
         return pd.concat(df_list)
 
 
-def save_scraped_data(
-        dataframe: pd.DataFrame,
-        details_dataclass: Details = None,
-        city: str = None,
-        check_in: str = None,
-        check_out: str = None,
-        month: int = None,
-        year: int = None,
-        to_sqlite: bool = False,
-        save_dir='scraped_hotel_data_csv') -> None:
+def save_scraped_data(dataframe: pd.DataFrame, details_dataclass: Details = None) -> None:
     """
-    Save scraped data to CSV or SQLite database.
-    The CSV files directory is created automatically if it doesn't exist.
-    The default CSV files directory name is depended on the default value of 'save_dir' parameter.
+    Save scraped data to SQLite database.
     :param dataframe: Pandas DataFrame.
     :param details_dataclass: Details dataclass object.
-                            Only needed if saving to SQLite database.
-    :param city: City where the hotels are located.
-                Only needed if saving to CSV file.
-    :param check_in: Check-in date.
-                    Only needed if saving to CSV file for Basic Scraper.
-    :param check_out: Check-out date.
-                    Only needed if saving to CSV file for Basic Scraper.
-    :param month: Month number.
-                Only needed if saving to CSV file for Thread Pool Scraper.
-    :param year: Year.
-                Only needed if saving to CSV file for Thread Pool Scraper.
-    :param to_sqlite: If True, save the scraped data to a SQLite database, else save it to CSV.
-    :param save_dir: Directory to save the scraped data as CSV.
-                    Default is 'scraped_hotel_data_csv' folder.
     :return: None
     """
     logger.info("Saving scraped data...")
     if not dataframe.empty:
-        if to_sqlite:
-            logger.info('Save data to SQLite database')
-            migrate_data_to_sqlite(dataframe, details_dataclass)
-        else:
-            logger.info('Save data to CSV')
-            try:
-                # Attempt to create the directory
-                os.makedirs(save_dir)
-                logger.info(f'Created {save_dir} directory')
-            except FileExistsError:
-                # If the directory already exists, log a message and continue
-                logger.error(f'FileExistsError: {save_dir} directory already exists')
-
-            if city and month and year:
-                month_name = calendar.month_name[month]
-                file_path = os.path.join(save_dir, f'{city}_hotel_data_{month_name}_{year}.csv')
-                dataframe.to_csv(file_path, index=False)
-            elif city and check_in and check_out:
-                file_path = os.path.join(save_dir, f'{city}_hotel_data_{check_in}_to_{check_out}.csv')
-                dataframe.to_csv(file_path, index=False)
-            else:
-                logger.warning("Cannot save data to CSV. "
-                               "If a basic scraper was used, please enter city, check-in or check-out date. "
-                               "If a thread pool scraper was used, please enter month and year. ")
+        logger.info('Save data to SQLite database')
+        migrate_data_to_sqlite(dataframe, details_dataclass)
     else:
         logger.warning('The dataframe is empty. No data to save')
