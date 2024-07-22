@@ -12,7 +12,7 @@ Latest Project Update: 22 July 2024
 ## Visualizations
 [Power BI](https://app.powerbi.com/view?r=eyJrIjoiOGFiNzQ1Y2UtZTVlOS00MzkyLTlmN2EtMDY2YWVlNzFiNTIyIiwidCI6ImZlMzViMTA3LTdjMmYtNGNjMy1hZDYzLTA2NTY0MzcyMDg3OCIsImMiOjEwfQ%3D%3D)  
 
-Data as of 22 July 2024
+Data as of 22 July 2024:
 
 [Instagram](https://www.instagram.com/p/C9uvDanPaTQ/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==)  
 
