@@ -158,6 +158,7 @@ To ensure that all dates of the month were scraped, a function in
 - Check the missing dates in the database.
 
 ### Automated Hotel Scraper
+- Use [automated_scraper.py](automated_scraper.py)
 - Scrape Osaka hotel data daily using GitHub action for all 12 months.
 - Save to CSV for each month.
 - Save CSV to Google Cloud Storage.

@@ -33,40 +33,40 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Run Scraper For January
-        run: python main.py --whole_mth=True --month=1
+        run: python automated_scraper.py --whole_mth=True --month=1
 
       - name: Run Scraper For February
-        run: python main.py --whole_mth=True --month=2
+        run: python automated_scraper.py --whole_mth=True --month=2
 
       - name: Run Scraper For March
-        run: python main.py --whole_mth=True --month=3
+        run: python automated_scraper.py --whole_mth=True --month=3
 
       - name: Run Scraper For April
-        run: python main.py --whole_mth=True --month=4
+        run: python automated_scraper.py --whole_mth=True --month=4
 
       - name: Run Scraper For May
-        run: python main.py --whole_mth=True --month=5
+        run: python automated_scraper.py --whole_mth=True --month=5
 
       - name: Run Scraper For June
-        run: python main.py --whole_mth=True --month=6
+        run: python automated_scraper.py --whole_mth=True --month=6
 
       - name: Run Scraper For July
-        run: python main.py --whole_mth=True --month=7
+        run: python automated_scraper.py --whole_mth=True --month=7
 
       - name: Run Scraper For August
-        run: python main.py --whole_mth=True --month=8
+        run: python automated_scraper.py --whole_mth=True --month=8
 
       - name: Run Scraper For September
-        run: python main.py --whole_mth=True --month=9
+        run: python automated_scraper.py --whole_mth=True --month=9
 
       - name: Run Scraper For October
-        run: python main.py --whole_mth=True --month=10
+        run: python automated_scraper.py --whole_mth=True --month=10
 
       - name: Run Scraper For November
-        run: python main.py --whole_mth=True --month=11
+        run: python automated_scraper.py --whole_mth=True --month=11
 
       - name: Run Scraper For December
-        run: python main.py --whole_mth=True --month=12
+        run: python automated_scraper.py --whole_mth=True --month=12
 
       - id: 'auth'
         uses: 'google-github-actions/auth@v2'
