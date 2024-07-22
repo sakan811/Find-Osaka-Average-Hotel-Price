@@ -63,7 +63,6 @@ def migrate_data_to_sqlite(df_filtered: pd.DataFrame, details: Details) -> None:
         create_avg_hotel_room_price_by_date_table(db)
 
         create_avg_room_price_by_review_table(db)
-        create_avg_room_price_per_review_by_review_table(db)
 
         create_avg_hotel_price_by_dow_table(db)
 
@@ -160,36 +159,6 @@ def create_avg_room_price_by_review_table(db: str) -> None:
         query = '''
         insert into AverageHotelRoomPriceByReview (Review, AveragePrice)
         select Review, avg(Price)
-        FROM HotelPrice
-        group by Review
-        '''
-        con.execute(query)
-
-
-def create_avg_room_price_per_review_by_review_table(db: str) -> None:
-    """
-    Create AverageHotelRoomPricePerReviewByReview table.
-    :param db: SQLite database path.
-    :return: None
-    """
-    logger.info("Create AverageHotelRoomPricePerReviewByReview table...")
-    with sqlite3.connect(db) as con:
-        query = '''
-        CREATE table IF NOT EXISTS AverageHotelRoomPricePerReviewByReview (
-            Review REAL NOT NULL PRIMARY KEY,
-            AveragePricePerReview REAL NOT NULL
-        ) 
-        '''
-        con.execute(query)
-
-        query = '''
-        delete from AverageHotelRoomPricePerReviewByReview 
-        '''
-        con.execute(query)
-
-        query = '''
-        insert into AverageHotelRoomPricePerReviewByReview (Review, AveragePricePerReview)
-        select Review, avg("Price/Review")
         FROM HotelPrice
         group by Review
         '''
