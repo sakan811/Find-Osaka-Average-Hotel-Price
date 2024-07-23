@@ -38,7 +38,7 @@ This script can also be used to scrape data from other cities.
   ```
 - Find your User Agent:
   - Go to https://www.whatismybrowser.com/detect/what-is-my-user-agent/
-  - Enter your User Agent into your **.env** file in the **backend** folder:
+  - Enter your User Agent into your **.env** file:
     - User-Agent ➡ USER_AGENT
 - Go to [set_details.py](set_details.py)
 - Set the parameters of the 'Details' dataclass as needed.
