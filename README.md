@@ -3,7 +3,7 @@
 Showcase visualizations about the hotel's Average Room Price in Osaka.
 
 ## Status
-Latest Project Update: 22 July 2024
+Latest Project Update: 23 July 2024
 
 [![CodeQL](https://github.com/sakan811/Find-Osaka-Average-Hotel-Price/actions/workflows/codeql.yml/badge.svg)](https://github.com/sakan811/Find-Osaka-Average-Hotel-Price/actions/workflows/codeql.yml)    
 [![Scraper Test](https://github.com/sakan811/Find-Osaka-Average-Hotel-Price/actions/workflows/scraper-test.yml/badge.svg)](https://github.com/sakan811/Find-Osaka-Average-Hotel-Price/actions/workflows/scraper-test.yml)  
@@ -21,7 +21,7 @@ Data as of 22 July 2024:
 ## Project Details
 Collect Osaka hotel property data from Booking.com
 
-Data collecting start date: May 16th, 2024.
+Data collecting start date: 16 May 2024.
 
 Data was collected daily using GitHub action.
 
@@ -35,29 +35,11 @@ This script can also be used to scrape data from other cities.
 - Create a **.env** file in the root of your project directory with the following content:
   ```
   USER_AGENT=
-  X_BOOKING_CSRF_TOKEN=
-  X_BOOKING_CONTEXT_ACTION_NAME=
-  X_BOOKING_CONTEXT_AID=
-  X_BOOKING_ET_SERIALIZED_STATE=
-  X_BOOKING_PAGEVIEW_ID=
-  X_BOOKING_SITE_TYPE_ID=
-  X_BOOKING_TOPIC=
   ```
-- Get the values from Booking.com:
-  - Go to Booking.com, and perform a search for any location with any booking details.
-  - Right-click anywhere on the webpage and select **Inspect** to open the developer tools.
-  - Navigate to the **Network** tab.
-  - Scroll through the network requests until you find one with a name starting with **graphql?ss=**.
-  - Click on this request and navigate to the **Headers** tab.
-  - Find the values for the following headers and enter them into your **.env** file:
+- Find your User Agent:
+  - Go to https://www.whatismybrowser.com/detect/what-is-my-user-agent/
+  - Enter your User Agent into your **.env** file in the **backend** folder:
     - User-Agent ➡ USER_AGENT
-    - X-Booking-Csrf-Token ➡ X_BOOKING_CSRF_TOKEN
-    - X-Booking-Context-Action-Name ➡ X_BOOKING_CONTEXT_ACTION_NAME
-    - X-Booking-Context-Aid ➡ X_BOOKING_CONTEXT_AID
-    - X-Booking-Et-Serialized-State ➡ X_BOOKING_ET_SERIALIZED_STATE
-    - X-Booking-Pageview-Id ➡ X_BOOKING_PAGEVIEW_ID
-    - X-Booking-Site-Type-Id ➡ X_BOOKING_SITE_TYPE_ID
-    - X-Booking-Topic ➡ X_BOOKING_TOPIC
 - Go to [set_details.py](set_details.py)
 - Set the parameters of the 'Details' dataclass as needed.
   - Example:
