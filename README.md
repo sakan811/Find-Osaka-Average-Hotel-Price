@@ -29,8 +29,8 @@ Data was collected daily using GitHub action.
 
 This script can also be used to scrape data from other cities.
 
-## Code Base Details 
-### To scrape hotel data
+## To scrape hotel data
+### Setup Project
 - Clone this repo: https://github.com/sakan811/Find-Osaka-Average-Hotel-Price.git
 - Create a virtual environment and activate it.
 - Install all dependencies listed in [requirements.txt](requirements.txt)
@@ -42,6 +42,9 @@ This script can also be used to scrape data from other cities.
   - Go to https://www.whatismybrowser.com/detect/what-is-my-user-agent/
   - Enter your User Agent into your **.env** file:
     - User-Agent ➡ USER_AGENT
+
+### Set Booking Details
+[set_details.py](set_details.py) is where you set the details of the hotel data you want to scrape.
 - Go to [set_details.py](set_details.py)
   - Set the parameters of the 'Details' dataclass as needed.
     - Example:
@@ -69,26 +72,26 @@ This script can also be used to scrape data from other cities.
     # Set SQLite database name
     sqlite_name: str = 'avg_japan_hotel_price_test.db'
     ```
-- To scrape using Whole-Month GraphQL Scraper:
-  - Run the following command via command line terminal:
-    ```  
-    python main.py --whole_mth=True
-    ```
-  - Scrape data start from the given start date to the end of the same month.
-  - Be **careful** with **start_day** variable in [set_details.py](set_details.py), 
-  as the **Whole-Month Scraper** starts from the day specified in **start_day** variable 
-  in [set_details.py](set_details.py) 
+### To scrape using Whole-Month GraphQL Scraper:
+- Run the following command via command line terminal:
+  ```  
+  python main.py --whole_mth=True
+  ```
+- Scrape data start from the given start date to the end of the same month.
+- Be **careful** with **start_day** variable in [set_details.py](set_details.py), 
+as the **Whole-Month Scraper** starts from the day specified in **start_day** variable 
+in [set_details.py](set_details.py) 
 
-- To scrape using Basic GraphQL Scraper:
-  - Run the following command via command line terminal:
-    ```  
-    python main.py 
-    ```
-  - Scrape data based on the given **check-in** and **check-out date** in [set_details.py](set_details.py).
+### To scrape using Basic GraphQL Scraper:
+- Run the following command via command line terminal:
+  ```  
+  python main.py 
+  ```
+- Scrape data based on the given **check-in** and **check-out date** in [set_details.py](set_details.py).
 - Data is saved to SQLite.
   - The SQLite database is created automatically if it doesn't exist in the given path set in [set_details.py](set_details.py).
 
-### To find the missing dates in the database
+## To find the missing dates in the database
 To ensure that all dates of the month were scraped, a function in
 [check_missing_dates.py](check_missing_dates.py) will check in the given SQLite database to find the missing dates.
 - To check in the database, use the following command line:
@@ -100,6 +103,8 @@ To ensure that all dates of the month were scraped, a function in
 - Only check the missing dates of the data that was scraped today.
 - Only check the months that were scraped and loaded to the database.
 - Check the database specified in [set_details.py](set_details.py) via the **sqlite_name** variable.
+
+## Code Base Details 
 
 ### Dataclass
 [set_details.py](set_details.py)
