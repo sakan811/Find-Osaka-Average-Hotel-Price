@@ -2,7 +2,7 @@ import pandas as pd
 
 from japan_avg_hotel_price_finder.configure_logging import configure_logging_with_file
 
-logger = configure_logging_with_file('jp_hotel_data.log', 'jp_hotel_data')
+logger = configure_logging_with_file(log_dir='logs', log_file='graphql_data_extractor.log', logger_name='graphql_data_extractor')
 
 
 def extract_hotel_data(df_list: list, hotel_data_list: list) -> None:

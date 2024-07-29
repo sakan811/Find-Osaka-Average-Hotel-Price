@@ -3,8 +3,8 @@ import sqlite3
 
 import pytest
 
-from japan_avg_hotel_price_finder.utils import get_count_of_date_by_mth_asof_today_query, \
-    scrape_missing_dates
+from check_missing_dates import scrape_missing_dates
+from japan_avg_hotel_price_finder.utils import get_count_of_date_by_mth_asof_today_query
 
 
 @pytest.mark.asyncio
@@ -27,7 +27,7 @@ async def test_scrape_missing_dates() -> None:
     second_missing_date = f'{year}-{month_str}-11'
     third_missing_date = f'{year}-{month_str}-20'
     missing_dates = [first_missing_date, second_missing_date, third_missing_date]
-    await scrape_missing_dates(db=db, missing_dates=missing_dates)
+    await scrape_missing_dates(missing_dates=missing_dates, is_test=True, test_db=db)
 
     with sqlite3.connect(db) as con:
         query = get_count_of_date_by_mth_asof_today_query()

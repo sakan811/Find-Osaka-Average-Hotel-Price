@@ -1,17 +1,12 @@
-import calendar
 import datetime
 import os
-import sqlite3
-from calendar import monthrange
 
 import pandas as pd
 
 from japan_avg_hotel_price_finder.configure_logging import configure_logging_with_file
-from japan_avg_hotel_price_finder.graphql_scraper import scrape_graphql
 from japan_avg_hotel_price_finder.migrate_to_sqlite import migrate_data_to_sqlite
-from set_details import Details
 
-logger = configure_logging_with_file('jp_hotel_data.log', 'jp_hotel_data')
+logger = configure_logging_with_file(log_dir='logs', log_file='utils.log', logger_name='utils')
 
 
 def check_if_current_date_has_passed(year: int, month: int, day: int, timezone=None) -> bool:
@@ -42,74 +37,10 @@ def check_if_current_date_has_passed(year: int, month: int, day: int, timezone=N
         return False
 
 
-def find_missing_dates_in_db(sqlite_db: str) -> list:
-    """
-    Find the missing dates in the SQlite database that were scraped today.
-    Only check for the data that were scraped today.
-    :param sqlite_db: Path to the SQLite database.
-    :returns: List of missing dates of each month.
-    """
-    logger.info("Checking if all date was scraped...")
-    missing_dates = []
-    with sqlite3.connect(sqlite_db) as con:
-        query = get_count_of_date_by_mth_asof_today_query()
-        cursor = con.execute(query)
-        result = cursor.fetchall()
-        cursor.close()
-
-        today = datetime.datetime.today()
-        year = today.year
-        formatted_today = today.strftime('%Y-%m')
-        for row in result:
-            if row[0] == formatted_today:
-                month = today.month
-                today_date = today.day
-                days_in_month = monthrange(year, month)[1]
-                expected_scraped_date = days_in_month - today_date + 1
-
-                if expected_scraped_date == row[1]:
-                    logger.info(f"All date of {calendar.month_name[month]} {year} was scraped")
-                else:
-                    logger.warning(f"Not all date of {calendar.month_name[month]} {year} was scraped")
-                    dates_in_db, end_date, start_date = find_dates_of_the_month_in_db(sqlite_db, days_in_month, month,
-                                                                                      year)
-
-                    missing_dates += find_missing_dates(dates_in_db, days_in_month, month, year)
-                    logger.warning(f"Missing dates in {start_date} to {end_date}: {missing_dates}")
-            else:
-                date_obj = datetime.datetime.strptime(row[0], '%Y-%m')
-                month = date_obj.month
-                days_in_month = monthrange(year, month)[1]
-                if days_in_month == row[1]:
-                    logger.info(f"All date of {calendar.month_name[month]} {year} was scraped")
-                else:
-                    logger.warning(f"Not all date of {calendar.month_name[month]} {year} was scraped")
-                    dates_in_db, end_date, start_date = find_dates_of_the_month_in_db(sqlite_db, days_in_month, month,
-                                                                                      year)
-
-                    missing_dates += find_missing_dates(dates_in_db, days_in_month, month, year)
-                    logger.warning(f"Missing dates in {start_date} to {end_date}: {missing_dates}")
-
-    return missing_dates
-
-
-async def check_in_db_if_all_date_was_scraped(db: str, to_sqlite: bool = False) -> None:
-    """
-    Check inside the SQLite database if all dates of each month were scraped today.
-    :param db: Path to the SQLite database.
-    :param to_sqlite: If True, after scraping the missing dates, load the scraped data to the SQLite database,
-                    else save to CSV.
-    :returns: None.
-    """
-    logger.info(f"Checking in the SQLite database '{db}' if any date was not scraped today...")
-    missing_dates = find_missing_dates_in_db(db)
-    await scrape_missing_dates(db=db, missing_dates=missing_dates)
-
-
 def get_count_of_date_by_mth_asof_today_query():
     """
-    Query a count of dates of each month, where the AsOf is today.
-    returns: SQLite query.
+    Return SQLite query to count distinct dates for each month from the HotelPrice table, where the AsOf date is today.
+    :returns: SQLite query.
     """
     query = '''
         SELECT strftime('%Y-%m', Date) AS Month, count(distinct Date) AS DistinctDateCount, date(AsOf) AS AsOfDate
@@ -120,118 +51,17 @@ def get_count_of_date_by_mth_asof_today_query():
     return query
 
 
-async def scrape_with_basic_scraper(db: str, date: str) -> None:
-    """
-    Scrape the date with Basic GraphQL Scraper.
-    :param db: SQLite database path.
-    :param date: The given date to scrape.
-    :return: None
-    """
-    logger.info("Scrape the date with Basic GraphQL Scraper.")
-    check_in: datetime = date
-    check_out_datetime_obj = datetime.datetime.strptime(date, '%Y-%m-%d')
-    check_out: str = (check_out_datetime_obj + datetime.timedelta(days=1)).strftime('%Y-%m-%d')
-    details = Details(check_in=check_in, check_out=check_out, sqlite_name=db)
-
-    df = await scrape_graphql(city=details.city, check_in=check_in, check_out=check_out,
-                              num_rooms=details.num_rooms,
-                              group_adults=details.group_adults,
-                              group_children=details.group_children, selected_currency=details.selected_currency,
-                              hotel_filter=details.scrape_only_hotel)
-    save_scraped_data(dataframe=df, details_dataclass=details)
-
-
-def find_missing_dates(
-        dates_in_db: set[str],
-        days_in_month: int,
-        month: int,
-        year: int,
-        timezone=None) -> list[str]:
-    """
-    Find missing dates of the given month.
-    Only check date from today onward.
-    :param dates_in_db: Dates of that month in the database of the current AsOf Date.
-                        Date format: '%Y-%m-%d'.
-    :param days_in_month: Total days in the given month.
-    :param month: Month.
-    :param year: Year.
-    :param timezone: Timezone, default is None, mostly for testing purpose.
-    :returns: Missing Dates as a list.
-    """
-    logger.info(f"Find missing date of {calendar.month_name[month]} {year}.")
-    if timezone:
-        today = datetime.datetime.now(timezone)
-    else:
-        today = datetime.datetime.today()
-
-    dates_in_db_date_obj = [datetime.datetime.strptime(date, '%Y-%m-%d').date() for date in dates_in_db]
-    filtered_dates = [date for date in dates_in_db_date_obj if date >= today.date()]
-
-    today_date_obj = today.date()
-    missing_dates = []
-    for day in range(1, days_in_month + 1):
-        date_to_check = datetime.datetime(year, month, day)
-        date_to_check_str = date_to_check.strftime('%Y-%m-%d')
-        date_to_check_date_obj = date_to_check.date()
-        if date_to_check_date_obj < today_date_obj:
-            logger.warning(f"{date_to_check_str} has passed. Skip this date.")
-        else:
-            if date_to_check_date_obj not in filtered_dates:
-                missing_dates.append(date_to_check_str)
-    return missing_dates
-
-
-def find_dates_of_the_month_in_db(db: str, days_in_month, month, year) -> tuple:
-    """
-    Find Dates of the month on the Database.
-
-    :param db: Sqlite database path.
-    :param days_in_month: Total days in the given month.
-    :param month: Month.
-    :param year: Year.
-
-    :return: Tuple of (Dates in the database, End Date, Start Date).
-            Date format for all values in the Tuple: '%Y-%m-%d'.
-    """
-    query = get_dates_of_each_month_asof_today_query()
-    start_date = datetime.datetime(year, month, 1).strftime('%Y-%m-%d')
-    end_date = datetime.datetime(year, month, days_in_month).strftime('%Y-%m-%d')
-
-    with sqlite3.connect(db) as con:
-        cursor = con.execute(query, (start_date, end_date))
-        result = cursor.fetchall()
-        cursor.close()
-
-    dates_in_db = set([row[0] for row in result])
-    return dates_in_db, end_date, start_date
-
-
-async def scrape_missing_dates(db: str = None, missing_dates: list[str] = None):
-    """
-    Scrape missing dates with BasicScraper.
-    :param db: SQLite database path.
-    :param missing_dates: Missing dates.
-    :return: None
-    """
-    logger.info("Scraping missing dates...")
-    if missing_dates:
-        for date in missing_dates:
-            await scrape_with_basic_scraper(db, date)
-    else:
-        logger.warning(f"Missing dates is None. No missing dates to scrape.")
-
-
 def get_dates_of_each_month_asof_today_query():
     """
     Query dates of each month, where the AsOf is today.
     returns: SQLite query.
     """
     query = '''
-                    SELECT strftime('%Y-%m-%d', Date) AS Date, date(AsOf) AS AsOfDate
-                    FROM HotelPrice
-                    WHERE AsOf LIKE date('now') || '%' and Date BETWEEN ? AND ?
-                    GROUP BY Date;
-                    '''
+            SELECT strftime('%Y-%m-%d', Date) AS Date, date(AsOf) AS AsOfDate
+            FROM HotelPrice
+            WHERE AsOf LIKE date('now') || '%' and Date BETWEEN ? AND ?
+            GROUP BY Date;
+            '''
     return query
 
 
@@ -269,16 +99,16 @@ def convert_csv_to_df(csv_files: list) -> pd.DataFrame:
         return pd.concat(df_list)
 
 
-def save_scraped_data(dataframe: pd.DataFrame, details_dataclass: Details = None) -> None:
+def save_scraped_data(dataframe: pd.DataFrame, db: str) -> None:
     """
     Save scraped data to SQLite database.
     :param dataframe: Pandas DataFrame.
-    :param details_dataclass: Details dataclass object.
+    :param db: SQLite database path.
     :return: None
     """
     logger.info("Saving scraped data...")
     if not dataframe.empty:
         logger.info('Save data to SQLite database')
-        migrate_data_to_sqlite(dataframe, details_dataclass)
+        migrate_data_to_sqlite(dataframe, db)
     else:
         logger.warning('The dataframe is empty. No data to save')

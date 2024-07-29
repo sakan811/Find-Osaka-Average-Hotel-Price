@@ -11,57 +11,34 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
-
 import argparse
 import asyncio
 
 from japan_avg_hotel_price_finder.configure_logging import configure_logging_with_file
-from japan_avg_hotel_price_finder.graphql_scraper import scrape_graphql
+from japan_avg_hotel_price_finder.graphql_scraper import BasicGraphQLScraper
 from japan_avg_hotel_price_finder.utils import save_scraped_data
-from japan_avg_hotel_price_finder.whole_mth_graphql_scraper import scrape_whole_month
-from set_details import Details
+from japan_avg_hotel_price_finder.whole_mth_graphql_scraper import WholeMonthGraphQLScraper
 
-logger = configure_logging_with_file('jp_hotel_data.log', 'jp_hotel_data')
-logger.setLevel(level="INFO")
+logger = configure_logging_with_file(log_dir='logs', log_file='main.log', logger_name='main')
 
-
-async def main():
-    # Initialize argument parser
-    parser = argparse.ArgumentParser(description='Parser that control which kind of scraper to use.')
-    parser.add_argument('--scraper', type=bool, default=True, help='Use basic GraphQL scraper')
-    parser.add_argument('--whole_mth', type=bool, default=False, help='Use Whole-Month GraphQL scraper')
-    parser.add_argument('--month', type=int, default=False, help='Month to scrape data for (1-12)')
-    args = parser.parse_args()
-    details = Details()
-    city = details.city
-    check_in = details.check_in
-    check_out = details.check_out
-    group_adults = details.group_adults
-    group_children = details.group_children
-    num_rooms = details.num_rooms
-    selected_currency = details.selected_currency
-    hotel_filter = details.scrape_only_hotel
-    if args.whole_mth:
-        logger.info('Using Whole-Month GraphQL scraper')
-
-        if args.month:
-            month = args.month
-            details = Details(month=month)
-
-        df = await scrape_whole_month(details=details, hotel_filter=True)
-
-        save_scraped_data(dataframe=df, details_dataclass=details)
-
-    elif args.scraper:
-        logger.info('Using basic GraphQL scraper')
-
-        df = await scrape_graphql(city=city, check_in=check_in, check_out=check_out, num_rooms=num_rooms,
-                                  group_adults=group_adults,
-                                  group_children=group_children, selected_currency=selected_currency,
-                                  hotel_filter=hotel_filter)
-
-        save_scraped_data(dataframe=df, details_dataclass=details)
-
+# Initialize argument parser
+parser = argparse.ArgumentParser(description='Parser that control which kind of scraper to use.')
+parser.add_argument('--scraper', type=bool, default=True, help='Use basic GraphQL scraper')
+parser.add_argument('--whole_mth', type=bool, default=False, help='Use Whole-Month GraphQL scraper')
+args = parser.parse_args()
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    if args.whole_mth:
+        logger.info('Using Whole-Month GraphQL scraper...')
+        scraper = WholeMonthGraphQLScraper()
+
+        df = asyncio.run(scraper.scrape_whole_month())
+
+        save_scraped_data(dataframe=df, db=scraper.sqlite_name)
+    else:
+        logger.info('Using basic GraphQL scraper...')
+        scraper = BasicGraphQLScraper()
+
+        df = asyncio.run(scraper.scrape_graphql())
+
+        save_scraped_data(dataframe=df, db=scraper.sqlite_name)

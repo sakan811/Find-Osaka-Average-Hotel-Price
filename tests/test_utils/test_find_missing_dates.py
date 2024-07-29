@@ -2,7 +2,7 @@ import calendar
 import datetime
 from calendar import monthrange
 
-from japan_avg_hotel_price_finder.utils import find_missing_dates
+from check_missing_dates import find_missing_dates
 
 
 def test_find_missing_dates():

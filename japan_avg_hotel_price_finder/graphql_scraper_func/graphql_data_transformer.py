@@ -4,7 +4,7 @@ import pandas as pd
 
 from japan_avg_hotel_price_finder.configure_logging import configure_logging_with_file
 
-logger = configure_logging_with_file('jp_hotel_data.log', 'jp_hotel_data')
+logger = configure_logging_with_file(log_dir='logs', log_file='graphql_data_transformer.log', logger_name='graphql_data_transformer')
 
 
 def transform_data_in_df(check_in, city, dataframe) -> pd.DataFrame:
