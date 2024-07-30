@@ -8,3 +8,4 @@ aiohttp~=3.9.5
 pytest-asyncio~=0.23.7
 aioresponses~=0.7.6
 python-dotenv~=1.0.1
+pytest-mock~=3.14.0
