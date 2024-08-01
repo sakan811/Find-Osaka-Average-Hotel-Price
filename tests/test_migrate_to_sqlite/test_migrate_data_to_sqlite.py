@@ -5,7 +5,7 @@ import pandas as pd
 from japan_avg_hotel_price_finder.migrate_to_sqlite import migrate_data_to_sqlite
 
 
-def test_successful_connection_to_sqlite(mocker):
+def test_successful_connection_to_sqlite():
     # Given
     df_filtered = pd.DataFrame({
         'Hotel': ['Hotel A', 'Hotel B'],
@@ -18,9 +18,6 @@ def test_successful_connection_to_sqlite(mocker):
     })
     db = 'test_successful_connection_to_sqlite.db'
 
-    # Mock the logger to avoid actual logging
-    mocker.patch('japan_avg_hotel_price_finder.migrate_to_sqlite.logger')
-
     # When
     migrate_data_to_sqlite(df_filtered, db)
 
@@ -32,13 +29,10 @@ def test_successful_connection_to_sqlite(mocker):
         assert len(result) > 0
 
 
-def test_handle_empty_dataframe(mocker):
+def test_handle_empty_dataframe():
     # Given
     df_filtered = pd.DataFrame(columns=['Hotel', 'Price', 'Review', 'Price/Review', 'City', 'Date', 'AsOf'])
     db = 'test_handle_empty_dataframe.db'
-
-    # Mock the logger to avoid actual logging
-    mocker.patch('japan_avg_hotel_price_finder.migrate_to_sqlite.logger')
 
     # When
     migrate_data_to_sqlite(df_filtered, db)

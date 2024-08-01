@@ -32,17 +32,19 @@ def test_find_missing_dates():
 def test_find_missing_dates_of_different_months():
     result = []
     expected_result = []
+
     today = datetime.datetime.today()
     month = today.month
     year = today.year
+
     for i in range(1, 3):
-        month = month + i
+        month += i
 
         if month > 12:
             month = 1
             year += 1
 
-        days_in_month = monthrange(year, i)[1]
+        days_in_month = monthrange(year, month)[1]
 
         date1 = datetime.date(year, month, 1).strftime('%Y-%m-%d')
         date2 = datetime.date(year, month, 5).strftime('%Y-%m-%d')
