@@ -3,9 +3,9 @@ import os
 from aiohttp import ClientSession
 from dotenv import load_dotenv
 
-from japan_avg_hotel_price_finder.configure_logging import configure_logging_with_file
+from japan_avg_hotel_price_finder.configure_logging import configure_logging_with_file, main_logger
 
-logger = configure_logging_with_file(log_dir='logs', log_file='graphql_request_func.log', logger_name='graphql_request_func')
+script_logger = configure_logging_with_file(log_dir='logs', log_file='graphql_request_func.log', logger_name='graphql_request_func')
 
 
 # Load environment variables from .env file
@@ -17,7 +17,7 @@ def get_header() -> dict:
     Return header.
     :return: Header as a dictionary.
     """
-    logger.info("Getting header...")
+    main_logger.info("Getting header...")
     return {
         "User-Agent": os.getenv("USER_AGENT"),
     }
@@ -38,11 +38,11 @@ async def fetch_hotel_data(session: ClientSession, url: str, headers: dict, grap
             try:
                 return data['data']['searchQueries']['search']['results']
             except (ValueError, KeyError) as e:
-                logger.error(f"Error extracting hotel data: {e}")
+                main_logger.error(f"Error extracting hotel data: {e}")
                 return []
             except Exception as e:
-                logger.error(f"Unexpected error: {e}")
+                main_logger.error(f"Unexpected error: {e}")
                 return []
         else:
-            logger.error(f"Error: {response.status}")
+            main_logger.error(f"Error: {response.status}")
             return []

@@ -3,10 +3,10 @@ import os
 
 import pandas as pd
 
-from japan_avg_hotel_price_finder.configure_logging import configure_logging_with_file
+from japan_avg_hotel_price_finder.configure_logging import configure_logging_with_file, main_logger
 from japan_avg_hotel_price_finder.migrate_to_sqlite import migrate_data_to_sqlite
 
-logger = configure_logging_with_file(log_dir='logs', log_file='utils.log', logger_name='utils')
+script_logger = configure_logging_with_file(log_dir='logs', log_file='utils.log', logger_name='utils')
 
 
 def check_if_current_date_has_passed(year: int, month: int, day: int, timezone=None) -> bool:
@@ -33,7 +33,7 @@ def check_if_current_date_has_passed(year: int, month: int, day: int, timezone=N
         else:
             return False
     except ValueError:
-        logger.error("Invalid date. Returning False")
+        main_logger.error("Invalid date. Returning False")
         return False
 
 
@@ -73,10 +73,11 @@ def find_csv_files(directory) -> list:
     """
     csv_files = []
 
-    logger.info("Find all .csv files in the directory and its subdirectories")
+    main_logger.info("Find all .csv files in the directory and its subdirectories")
     for root, dirs, files in os.walk(directory):
         for file in files:
             if file.endswith(".csv"):
+                script_logger.debug(f'Found CSV file: {file}')
                 csv_files.append(os.path.join(root, file))
 
     return csv_files
@@ -88,10 +89,10 @@ def convert_csv_to_df(csv_files: list) -> pd.DataFrame:
     :param csv_files: List of CSV files.
     :returns: Pandas DataFrame.
     """
-    logger.info("Converting CSV files to Pandas DataFrame...")
+    main_logger.info("Converting CSV files to Pandas DataFrame...")
     df_list = []
     for csv_file in csv_files:
-        logger.info(f'Convert CSV: {csv_file} to DataFrame.')
+        main_logger.info(f'Convert CSV: {csv_file} to DataFrame.')
         df = pd.read_csv(csv_file)
         df_list.append(df)
 
@@ -106,9 +107,9 @@ def save_scraped_data(dataframe: pd.DataFrame, db: str) -> None:
     :param db: SQLite database path.
     :return: None
     """
-    logger.info("Saving scraped data...")
+    main_logger.info("Saving scraped data...")
     if not dataframe.empty:
-        logger.info('Save data to SQLite database')
+        main_logger.info(f'Save data to SQLite database: {db}')
         migrate_data_to_sqlite(dataframe, db)
     else:
-        logger.warning('The dataframe is empty. No data to save')
+        main_logger.warning('The dataframe is empty. No data to save')

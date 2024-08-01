@@ -2,9 +2,9 @@ import sqlite3
 
 import pandas as pd
 
-from japan_avg_hotel_price_finder.configure_logging import configure_logging_with_file
+from japan_avg_hotel_price_finder.configure_logging import configure_logging_with_file, main_logger
 
-logger = configure_logging_with_file(log_dir='logs', log_file='migrate_to_sqlite.log', logger_name='migrate_to_sqlite')
+script_logger = configure_logging_with_file(log_dir='logs', log_file='migrate_to_sqlite.log', logger_name='migrate_to_sqlite')
 
 
 def migrate_data_to_sqlite(df_filtered: pd.DataFrame, db: str) -> None:
@@ -14,7 +14,7 @@ def migrate_data_to_sqlite(df_filtered: pd.DataFrame, db: str) -> None:
     :param db: SQLite database path.
     :return: None
     """
-    logger.info('Connecting to SQLite database (or create it if it doesn\'t exist)...')
+    main_logger.info('Connecting to SQLite database (or create it if it doesn\'t exist)...')
 
     with sqlite3.connect(db) as con:
         query = '''
@@ -39,7 +39,7 @@ def migrate_data_to_sqlite(df_filtered: pd.DataFrame, db: str) -> None:
 
         con.commit()
 
-        logger.info(f'Data has been saved to {db}')
+        main_logger.info(f'Data has been saved to {db}')
 
         create_average_room_price_by_date_view(db)
 
@@ -57,7 +57,7 @@ def get_hotel_price_dtype() -> dict:
     Get HotelPrice datatype.
     :return: HotelPrice datatype.
     """
-    logger.info('Get HotelPrice datatype...')
+    main_logger.info('Get HotelPrice datatype...')
     hotel_price_dtype = {
         'Hotel': 'text not null primary key',
         'Price': 'real not null',
@@ -76,7 +76,7 @@ def create_average_room_price_by_date_view(db: str) -> None:
     :param db: SQLite database path
     :return: None
     """
-    logger.info('Create AverageRoomPriceByDate view...')
+    main_logger.info('Create AverageRoomPriceByDate view...')
     with sqlite3.connect(db) as con:
         query = '''
         CREATE VIEW IF NOT EXISTS AverageRoomPriceByDate AS 
@@ -93,7 +93,7 @@ def create_avg_hotel_room_price_by_date_table(db: str) -> None:
     :param db: SQLite database path
     :return: None
     """
-    logger.info('Create AverageRoomPriceByDate table...')
+    main_logger.info('Create AverageRoomPriceByDate table...')
     with sqlite3.connect(db) as con:
         query = '''
         CREATE table IF NOT EXISTS AverageRoomPriceByDateTable (
@@ -124,7 +124,7 @@ def create_avg_room_price_by_review_table(db: str) -> None:
     :param db: SQLite database path.
     :return: None
     """
-    logger.info("Create AverageHotelRoomPriceByReview table...")
+    main_logger.info("Create AverageHotelRoomPriceByReview table...")
     with sqlite3.connect(db) as con:
         query = '''
         CREATE table IF NOT EXISTS AverageHotelRoomPriceByReview (
@@ -154,7 +154,7 @@ def create_avg_hotel_price_by_dow_table(db: str) -> None:
     :param db: SQLite database path.
     :return: None
     """
-    logger.info("Create AverageHotelRoomPriceByDayOfWeek table...")
+    main_logger.info("Create AverageHotelRoomPriceByDayOfWeek table...")
     with sqlite3.connect(db) as con:
         query = '''
         CREATE table IF NOT EXISTS AverageHotelRoomPriceByDayOfWeek (
@@ -196,7 +196,7 @@ def create_avg_hotel_price_by_month_table(db: str) -> None:
     :param db: SQLite database path.
     :return: None
     """
-    logger.info("Create AverageHotelRoomPriceByMonth table...")
+    main_logger.info("Create AverageHotelRoomPriceByMonth table...")
     with sqlite3.connect(db) as con:
         query = '''
         CREATE table IF NOT EXISTS AverageHotelRoomPriceByMonth (

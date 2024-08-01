@@ -4,7 +4,7 @@ from dataclasses import dataclass
 import aiohttp
 import pandas as pd
 
-from japan_avg_hotel_price_finder.configure_logging import configure_logging_with_file
+from japan_avg_hotel_price_finder.configure_logging import configure_logging_with_file, main_logger
 from japan_avg_hotel_price_finder.graphql_scraper_func.graphql_data_extractor import extract_hotel_data
 from japan_avg_hotel_price_finder.graphql_scraper_func.graphql_data_transformer import transform_data_in_df
 from japan_avg_hotel_price_finder.graphql_scraper_func.graphql_request_func import get_header, fetch_hotel_data
@@ -12,7 +12,7 @@ from japan_avg_hotel_price_finder.graphql_scraper_func.graphql_utils_func import
     check_currency_data, check_hotel_filter_data
 from set_details import Details
 
-logger = configure_logging_with_file(log_dir='logs', log_file='graphql_scraper.log', logger_name='graphql_scraper')
+script_logger = configure_logging_with_file(log_dir='logs', log_file='graphql_scraper.log', logger_name='graphql_scraper')
 
 
 @dataclass
@@ -25,35 +25,40 @@ class BasicGraphQLScraper(Details):
         Scrape hotel data from GraphQL endpoint using async.
         :return: DataFrame containing hotel data from GraphQL endpoint
         """
-        logger.info("Start scraping data from GraphQL endpoint...")
-        logger.info(
+        main_logger.info("Start scraping data from GraphQL endpoint...")
+
+        script_logger.debug(
             f"City: {self.city} | Check-in: {self.check_in} | Check-out: {self.check_out} | Currency: {self.selected_currency}")
-        logger.info(f"Adults: {self.group_adults} | Children: {self.group_children} | Rooms: {self.num_rooms}")
-        logger.info(f"Only hotel properties: {self.scrape_only_hotel}")
+        script_logger.debug(f"Adults: {self.group_adults} | Children: {self.group_children} | Rooms: {self.num_rooms}")
+        script_logger.debug(f"Only hotel properties: {self.scrape_only_hotel}")
 
         if self.city and self.check_in and self.check_out and self.selected_currency:
             url = f'https://www.booking.com/dml/graphql?selected_currency={self.selected_currency}'
             headers = get_header()
             graphql_query = self.get_graphql_query()
 
+            # get a response with Async
             async with aiohttp.ClientSession() as session:
                 async with session.post(url, headers=headers, json=graphql_query) as response:
                     if response.status == 200:
                         data = await response.json()
                         total_page_num, hotel_data_dict = await self.check_info(data)
                     else:
-                        logger.error(f"Error: {response.status}")
+                        main_logger.error(f"Error: {response.status}")
                         return pd.DataFrame()
 
-            logger.debug(f"Total page number: {total_page_num}")
+            script_logger.debug(f"Total page number: {total_page_num}")
 
             if total_page_num:
                 df_list = []
-                logger.info("Scraping data from GraphQL endpoint...")
+                main_logger.info("Scraping data from GraphQL endpoint...")
 
+                # fetch hotel data with Async
                 async with aiohttp.ClientSession() as session:
                     tasks = []
                     for offset in range(0, total_page_num, 100):
+                        script_logger.debug(f'Fetch data from page-offset: {offset}')
+
                         graphql_query = self.get_graphql_query(page_offset=offset)
                         tasks.append(fetch_hotel_data(session, url, headers, graphql_query))
 
@@ -67,13 +72,13 @@ class BasicGraphQLScraper(Details):
                     df = concat_df_list(df_list)
                     return transform_data_in_df(self.check_in, self.city, df)
                 else:
-                    logger.warning("No hotel data was found. Return an empty DataFrame.")
+                    main_logger.warning("No hotel data was found. Return an empty DataFrame.")
                     return pd.DataFrame()
             else:
-                logger.warning("Total page number not found. Return an empty DataFrame.")
+                main_logger.warning("Total page number not found. Return an empty DataFrame.")
                 return pd.DataFrame()
         else:
-            logger.warning("Error: city, check_in, check_out and selected_currency are required")
+            main_logger.warning("Error: city, check_in, check_out and selected_currency are required")
             return pd.DataFrame()
 
     def get_graphql_query(self, page_offset: int = 0) -> dict:
@@ -82,7 +87,7 @@ class BasicGraphQLScraper(Details):
         :param page_offset: The offset for pagination, default is 0.
         :return: Graphql query as a dictionary.
         """
-        logger.debug("Getting graphql query...")
+        script_logger.debug("Getting graphql query...")
         if self.scrape_only_hotel:
             selected_filter = {"selectedFilters": "ht_id=204"}
         else:
@@ -463,11 +468,12 @@ class BasicGraphQLScraper(Details):
         :param data: Data from GraphQL response.
         :return: Total page number and hotel data as a dictionary.
         """
+        main_logger.info('Checking whether entered data matches the data from GraphQL response...')
         try:
             total_page_num = data['data']['searchQueries']['search']['pagination']['nbResultsTotal']
         except TypeError:
-            logger.error("TypeError: Total page number not found.")
-            logger.error("Return 0 as total page number")
+            main_logger.error("TypeError: Total page number not found.")
+            main_logger.error("Return 0 as total page number")
             total_page_num = 0
 
         if total_page_num:
@@ -490,11 +496,11 @@ class BasicGraphQLScraper(Details):
 
             for key, value in data_mapping.items():
                 entered_value = getattr(self, key, None)
-                logger.debug(f'Entered Value {key}: {entered_value}')
-                logger.debug(f'Response Value {key}: {value}')
+                script_logger.debug(f'Entered Value {key}: {entered_value}')
+                script_logger.debug(f'Response Value {key}: {value}')
                 if entered_value != value:
                     error_message = f"Error {key.replace('_', ' ').title()} not match: {entered_value} != {value}"
-                    logger.error(error_message)
+                    main_logger.error(error_message)
                     raise SystemExit(error_message)
         else:
             data_mapping = {

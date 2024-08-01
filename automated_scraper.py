@@ -4,10 +4,10 @@ import calendar
 import os
 from dataclasses import dataclass
 
-from japan_avg_hotel_price_finder.configure_logging import configure_logging_with_file
+from japan_avg_hotel_price_finder.configure_logging import configure_logging_with_file, main_logger
 from japan_avg_hotel_price_finder.whole_mth_graphql_scraper import WholeMonthGraphQLScraper
 
-logger = configure_logging_with_file(log_dir='logs', log_file='automated_scraper.log', logger_name='automated_scraper')
+script_logger = configure_logging_with_file(log_dir='logs', log_file='automated_scraper.log', logger_name='automated_scraper')
 
 # Initialize argument parser
 parser = argparse.ArgumentParser(description='Parser that control which kind of scraper to use.')
@@ -26,7 +26,7 @@ class AutomatedScraper(WholeMonthGraphQLScraper):
         try:
             os.makedirs(path, exist_ok=True)
         except OSError as e:
-            logger.error(f"Error creating directory '{path}': {e}")
+            main_logger.error(f"Error creating directory '{path}': {e}")
 
         csv_file_name = f'{self.city}_hotel_data_{month_name}_{self.year}.csv'
         csv_file_path = os.path.join(path, csv_file_name)
@@ -38,7 +38,7 @@ if __name__ == '__main__':
     scraper = AutomatedScraper()
 
     if args.month:
-        logger.info(f'Setting month to scrape to {args.month} for {scraper.__class__.__name__}...')
+        main_logger.info(f'Setting month to scrape to {args.month} for {scraper.__class__.__name__}...')
         scraper = AutomatedScraper(month=args.month)
 
     asyncio.run(scraper.main())
