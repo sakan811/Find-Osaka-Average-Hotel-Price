@@ -2,9 +2,7 @@ import sqlite3
 
 import pandas as pd
 
-from japan_avg_hotel_price_finder.configure_logging import configure_logging_with_file, main_logger
-
-script_logger = configure_logging_with_file(log_dir='logs', log_file='migrate_to_sqlite.log', logger_name='migrate_to_sqlite')
+from japan_avg_hotel_price_finder.configure_logging import main_logger
 
 
 def migrate_data_to_sqlite(df_filtered: pd.DataFrame, db: str) -> None:

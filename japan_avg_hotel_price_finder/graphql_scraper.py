@@ -4,15 +4,13 @@ from dataclasses import dataclass
 import aiohttp
 import pandas as pd
 
-from japan_avg_hotel_price_finder.configure_logging import configure_logging_with_file, main_logger
+from japan_avg_hotel_price_finder.configure_logging import main_logger
 from japan_avg_hotel_price_finder.graphql_scraper_func.graphql_data_extractor import extract_hotel_data
 from japan_avg_hotel_price_finder.graphql_scraper_func.graphql_data_transformer import transform_data_in_df
 from japan_avg_hotel_price_finder.graphql_scraper_func.graphql_request_func import get_header, fetch_hotel_data
 from japan_avg_hotel_price_finder.graphql_scraper_func.graphql_utils_func import concat_df_list, check_city_data, \
     check_currency_data, check_hotel_filter_data
 from set_details import Details
-
-script_logger = configure_logging_with_file(log_dir='logs', log_file='graphql_scraper.log', logger_name='graphql_scraper')
 
 
 @dataclass
@@ -27,10 +25,10 @@ class BasicGraphQLScraper(Details):
         """
         main_logger.info("Start scraping data from GraphQL endpoint...")
 
-        script_logger.debug(
+        main_logger.debug(
             f"City: {self.city} | Check-in: {self.check_in} | Check-out: {self.check_out} | Currency: {self.selected_currency}")
-        script_logger.debug(f"Adults: {self.group_adults} | Children: {self.group_children} | Rooms: {self.num_rooms}")
-        script_logger.debug(f"Only hotel properties: {self.scrape_only_hotel}")
+        main_logger.debug(f"Adults: {self.group_adults} | Children: {self.group_children} | Rooms: {self.num_rooms}")
+        main_logger.debug(f"Only hotel properties: {self.scrape_only_hotel}")
 
         if self.city and self.check_in and self.check_out and self.selected_currency:
             url = f'https://www.booking.com/dml/graphql?selected_currency={self.selected_currency}'
@@ -47,7 +45,7 @@ class BasicGraphQLScraper(Details):
                         main_logger.error(f"Error: {response.status}")
                         return pd.DataFrame()
 
-            script_logger.debug(f"Total page number: {total_page_num}")
+            main_logger.debug(f"Total page number: {total_page_num}")
 
             if total_page_num:
                 df_list = []
@@ -57,7 +55,7 @@ class BasicGraphQLScraper(Details):
                 async with aiohttp.ClientSession() as session:
                     tasks = []
                     for offset in range(0, total_page_num, 100):
-                        script_logger.debug(f'Fetch data from page-offset: {offset}')
+                        main_logger.debug(f'Fetch data from page-offset: {offset}')
 
                         graphql_query = self.get_graphql_query(page_offset=offset)
                         tasks.append(fetch_hotel_data(session, url, headers, graphql_query))
@@ -87,7 +85,7 @@ class BasicGraphQLScraper(Details):
         :param page_offset: The offset for pagination, default is 0.
         :return: Graphql query as a dictionary.
         """
-        script_logger.debug("Getting graphql query...")
+        main_logger.debug("Getting graphql query...")
         if self.scrape_only_hotel:
             selected_filter = {"selectedFilters": "ht_id=204"}
         else:
@@ -496,8 +494,8 @@ class BasicGraphQLScraper(Details):
 
             for key, value in data_mapping.items():
                 entered_value = getattr(self, key, None)
-                script_logger.debug(f'Entered Value {key}: {entered_value}')
-                script_logger.debug(f'Response Value {key}: {value}')
+                main_logger.debug(f'Entered Value {key}: {entered_value}')
+                main_logger.debug(f'Response Value {key}: {value}')
                 if entered_value != value:
                     error_message = f"Error {key.replace('_', ' ').title()} not match: {entered_value} != {value}"
                     main_logger.error(error_message)

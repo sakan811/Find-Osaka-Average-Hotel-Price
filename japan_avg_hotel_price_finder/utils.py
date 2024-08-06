@@ -3,10 +3,8 @@ import os
 
 import pandas as pd
 
-from japan_avg_hotel_price_finder.configure_logging import configure_logging_with_file, main_logger
+from japan_avg_hotel_price_finder.configure_logging import main_logger
 from japan_avg_hotel_price_finder.migrate_to_sqlite import migrate_data_to_sqlite
-
-script_logger = configure_logging_with_file(log_dir='logs', log_file='utils.log', logger_name='utils')
 
 
 def check_if_current_date_has_passed(year: int, month: int, day: int, timezone=None) -> bool:
@@ -77,7 +75,7 @@ def find_csv_files(directory) -> list:
     for root, dirs, files in os.walk(directory):
         for file in files:
             if file.endswith(".csv"):
-                script_logger.debug(f'Found CSV file: {file}')
+                main_logger.debug(f'Found CSV file: {file}')
                 csv_files.append(os.path.join(root, file))
 
     return csv_files

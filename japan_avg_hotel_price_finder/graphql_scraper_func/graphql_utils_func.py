@@ -1,9 +1,6 @@
 import pandas as pd
 
-from japan_avg_hotel_price_finder.configure_logging import configure_logging_with_file, main_logger
-
-script_logger = configure_logging_with_file(log_dir='logs', log_file='graphql_utils_func.log',
-                                            logger_name='graphql_utils_func')
+from japan_avg_hotel_price_finder.configure_logging import main_logger
 
 
 def concat_df_list(df_list: list[pd.DataFrame]) -> pd.DataFrame:
@@ -74,7 +71,7 @@ def check_hotel_filter_data(data) -> bool:
 
     try:
         for option in data['data']['searchQueries']['search']['appliedFilterOptions']:
-            script_logger.debug(f'Filter options: {option}')
+            main_logger.debug(f'Filter options: {option}')
 
             if 'urlId' in option:
                 if option['urlId'] == "ht_id=204":

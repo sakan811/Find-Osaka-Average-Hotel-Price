@@ -3,10 +3,7 @@ import os
 from aiohttp import ClientSession
 from dotenv import load_dotenv
 
-from japan_avg_hotel_price_finder.configure_logging import configure_logging_with_file, main_logger
-
-script_logger = configure_logging_with_file(log_dir='logs', log_file='graphql_request_func.log', logger_name='graphql_request_func')
-
+from japan_avg_hotel_price_finder.configure_logging import main_logger
 
 # Load environment variables from .env file
 load_dotenv()

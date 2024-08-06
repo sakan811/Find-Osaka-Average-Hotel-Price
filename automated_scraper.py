@@ -4,10 +4,8 @@ import calendar
 import os
 from dataclasses import dataclass
 
-from japan_avg_hotel_price_finder.configure_logging import configure_logging_with_file, main_logger
+from japan_avg_hotel_price_finder.configure_logging import main_logger
 from japan_avg_hotel_price_finder.whole_mth_graphql_scraper import WholeMonthGraphQLScraper
-
-script_logger = configure_logging_with_file(log_dir='logs', log_file='automated_scraper.log', logger_name='automated_scraper')
 
 # Initialize argument parser
 parser = argparse.ArgumentParser(description='Parser that control which kind of scraper to use.')
