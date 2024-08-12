@@ -50,6 +50,8 @@ def migrate_data_to_sqlite(df_filtered: pd.DataFrame, db: str) -> None:
 
         create_avg_hotel_price_by_month_table(db)
 
+        create_avg_room_price_by_location(db)
+
 
 def get_hotel_price_dtype() -> dict:
     """
@@ -240,6 +242,36 @@ def create_avg_hotel_price_by_month_table(db: str) -> None:
             HotelPrice
         GROUP BY
             month;
+        '''
+        con.execute(query)
+
+
+def create_avg_room_price_by_location(db: str) -> None:
+    """
+    Create AverageHotelRoomPriceByLocation table.
+    :param db: SQLite database path.
+    :return: None
+    """
+    main_logger.info("Create AverageHotelRoomPriceByLocation table...")
+    with sqlite3.connect(db) as con:
+        query = '''
+        CREATE table IF NOT EXISTS AverageHotelRoomPriceByLocation (
+            Location TEXT NOT NULL PRIMARY KEY,
+            AveragePrice REAL NOT NULL
+        ) 
+        '''
+        con.execute(query)
+
+        query = '''
+        delete from AverageHotelRoomPriceByLocation
+        '''
+        con.execute(query)
+
+        query = '''
+        insert into AverageHotelRoomPriceByLocation (Location, AveragePrice)
+        select Location, avg(Price)
+        FROM HotelPrice
+        group by Location
         '''
         con.execute(query)
 
