@@ -3,7 +3,7 @@ import pandas as pd
 from japan_avg_hotel_price_finder.configure_logging import main_logger
 
 
-def extract_hotel_data(df_list: list, hotel_data_list: list) -> None:
+def extract_hotel_data(df_list: list[pd.DataFrame], hotel_data_list: list[dict]) -> None:
     """
     Extract data from a list of hotel data.
     :param df_list: A list to store Pandas Dataframes.
@@ -17,6 +17,7 @@ def extract_hotel_data(df_list: list, hotel_data_list: list) -> None:
             display_names = []
             review_scores = []
             final_prices = []
+            location = []
             for key, val in hotel_data.items():
                 if key == "displayName":
                     if val:
@@ -36,11 +37,18 @@ def extract_hotel_data(df_list: list, hotel_data_list: list) -> None:
                     else:
                         final_prices.append(None)
 
+                if key == "location":
+                    if val:
+                        location.append(val['displayLocation'])
+                    else:
+                        location.append(None)
+
             main_logger.debug("Create a Pandas Dataframe to store extracted data")
             df = pd.DataFrame({
                 "Hotel": display_names,
                 "Review": review_scores,
-                "Price": final_prices
+                "Price": final_prices,
+                "Location": location
             })
 
             main_logger.debug("Append dataframe to a df_list")

@@ -17,7 +17,7 @@ async def test_whole_month_graphql_scraper():
 
     assert not df.empty
     # Check column
-    assert df.shape[1] == 7
+    assert df.shape[1] == 8
 
 
 @pytest.mark.asyncio

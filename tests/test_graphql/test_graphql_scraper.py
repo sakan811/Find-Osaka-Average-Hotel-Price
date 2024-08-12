@@ -19,7 +19,7 @@ async def test_graphql_scraper():
 
     assert not df.empty
     # Check column
-    assert df.shape[1] == 7
+    assert df.shape[1] == 8
 
 
 @pytest.mark.asyncio
@@ -35,7 +35,7 @@ async def test_graphql_scraper_only_hotel():
 
     assert not df.empty
     # Check column
-    assert df.shape[1] == 7
+    assert df.shape[1] == 8
 
 
 if __name__ == '__main__':
