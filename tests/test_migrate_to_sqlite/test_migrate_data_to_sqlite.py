@@ -12,6 +12,7 @@ def test_successful_connection_to_sqlite():
         'Price': [100, 150],
         'Review': [4.5, 3.8],
         'Price/Review': [22.2, 39.5],
+        'Location': ['San Francisco', 'San Francisco'],
         'City': ['City X', 'City Y'],
         'Date': ['2022-01-01', '2022-01-02'],
         'AsOf': ['2022-01-01', '2022-01-02']
@@ -31,7 +32,7 @@ def test_successful_connection_to_sqlite():
 
 def test_handle_empty_dataframe():
     # Given
-    df_filtered = pd.DataFrame(columns=['Hotel', 'Price', 'Review', 'Price/Review', 'City', 'Date', 'AsOf'])
+    df_filtered = pd.DataFrame(columns=['Hotel', 'Price', 'Review', 'Location', 'Price/Review', 'City', 'Date', 'AsOf'])
     db = 'test_handle_empty_dataframe.db'
 
     # When

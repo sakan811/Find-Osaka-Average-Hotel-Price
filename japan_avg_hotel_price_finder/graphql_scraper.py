@@ -1,5 +1,6 @@
 import asyncio
 from dataclasses import dataclass
+from typing import Any
 
 import aiohttp
 import pandas as pd
@@ -18,6 +19,9 @@ class BasicGraphQLScraper(Details):
     """
     A dataclass designed to scrape hotel booking details from a GraphQL endpoint
     """
+    url = f'https://www.booking.com/dml/graphql?selected_currency={Details().selected_currency}'
+    headers = get_header()
+
     async def scrape_graphql(self) -> pd.DataFrame:
         """
         Scrape hotel data from GraphQL endpoint using async.
@@ -30,54 +34,73 @@ class BasicGraphQLScraper(Details):
         main_logger.debug(f"Adults: {self.group_adults} | Children: {self.group_children} | Rooms: {self.num_rooms}")
         main_logger.debug(f"Only hotel properties: {self.scrape_only_hotel}")
 
-        if self.city and self.check_in and self.check_out and self.selected_currency:
-            url = f'https://www.booking.com/dml/graphql?selected_currency={self.selected_currency}'
-            headers = get_header()
-            graphql_query = self.get_graphql_query()
-
-            # get a response with Async
-            async with aiohttp.ClientSession() as session:
-                async with session.post(url, headers=headers, json=graphql_query) as response:
-                    if response.status == 200:
-                        data = await response.json()
-                        total_page_num, hotel_data_dict = await self.check_info(data)
-                    else:
-                        main_logger.error(f"Error: {response.status}")
-                        return pd.DataFrame()
-
-            main_logger.debug(f"Total page number: {total_page_num}")
-
-            if total_page_num:
-                df_list = []
-                main_logger.info("Scraping data from GraphQL endpoint...")
-
-                # fetch hotel data with Async
-                async with aiohttp.ClientSession() as session:
-                    tasks = []
-                    for offset in range(0, total_page_num, 100):
-                        main_logger.debug(f'Fetch data from page-offset: {offset}')
-
-                        graphql_query = self.get_graphql_query(page_offset=offset)
-                        tasks.append(fetch_hotel_data(session, url, headers, graphql_query))
-
-                    results = await asyncio.gather(*tasks)
-
-                for hotel_data_list in results:
-                    if hotel_data_list:
-                        extract_hotel_data(df_list, hotel_data_list)
-
-                if df_list:
-                    df = concat_df_list(df_list)
-                    return transform_data_in_df(self.check_in, self.city, df)
-                else:
-                    main_logger.warning("No hotel data was found. Return an empty DataFrame.")
-                    return pd.DataFrame()
-            else:
-                main_logger.warning("Total page number not found. Return an empty DataFrame.")
-                return pd.DataFrame()
-        else:
+        if not self._validate_inputs():
             main_logger.warning("Error: city, check_in, check_out and selected_currency are required")
             return pd.DataFrame()
+
+        graphql_query = self.get_graphql_query()
+
+        data: dict = self._get_response_data(graphql_query)
+
+        total_page_num, hotel_data_dict = await self.check_info(data)
+        main_logger.debug(f"Total page number: {total_page_num}")
+
+        if not total_page_num:
+            main_logger.warning("Total page number not found. Return an empty DataFrame.")
+            return pd.DataFrame()
+
+        df_list = []
+        main_logger.info("Scraping data from GraphQL endpoint...")
+
+        results: tuple[Any] = self._fetch_hotel_data(total_page_num)
+
+        for hotel_data_list in results:
+            if hotel_data_list:
+                extract_hotel_data(df_list, hotel_data_list)
+
+        if df_list:
+            df = concat_df_list(df_list)
+            return transform_data_in_df(self.check_in, self.city, df)
+        else:
+            main_logger.warning("No hotel data was found. Return an empty DataFrame.")
+            return pd.DataFrame()
+
+    async def _get_response_data(self, graphql_query: dict) -> dict:
+        """
+        Get hotel data from a response with Async.
+        :param graphql_query: GraphQL query as a dictionary.
+        :return: Hotel data as a dictionary.
+        """
+        async with aiohttp.ClientSession() as session:
+            async with session.post(self.url, headers=self.headers, json=graphql_query) as response:
+                if response.status == 200:
+                    return await response.json()
+                else:
+                    main_logger.error(f"Error: {response.status}")
+                    return {}
+
+    async def _fetch_hotel_data(self, total_page_num: int) -> tuple[Any]:
+        """
+        Scrape hotel data from GraphQL endpoint with Async.
+        :param total_page_num: Total page of the hotel data.
+        :return: Hotel data as Tuple.
+        """
+        async with aiohttp.ClientSession() as session:
+            tasks = []
+            for offset in range(0, total_page_num, 100):
+                main_logger.debug(f'Fetch data from page-offset: {offset}')
+
+                graphql_query = self.get_graphql_query(page_offset=offset)
+                tasks.append(fetch_hotel_data(session, self.url, self.headers, graphql_query))
+
+            return await asyncio.gather(*tasks)
+
+    def _validate_inputs(self) -> bool:
+        """
+        Validate if all required inputs are provided.
+        :return: True if all required inputs are provided, False otherwise
+        """
+        return all([self.city, self.check_in, self.check_out, self.selected_currency])
 
     def get_graphql_query(self, page_offset: int = 0) -> dict:
         """
@@ -460,7 +483,7 @@ class BasicGraphQLScraper(Details):
                      "   __typename\n      }\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n"
         }
 
-    async def check_info(self, data: dict) -> tuple:
+    async def check_info(self, data: dict) -> tuple[int, dict]:
         """
         Check whether the user-entered data matches with the data from GraphQL response.
         :param data: Data from GraphQL response.

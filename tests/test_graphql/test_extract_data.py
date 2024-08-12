@@ -10,14 +10,16 @@ def test_extract_hotel_data_multiple_appends():
         {
             "displayName": {"text": "Hotel A"},
             "basicPropertyData": {"reviewScore": {"score": 4.5}},
-            "blocks": [{"finalPrice": {"amount": 150}}]
+            "blocks": [{"finalPrice": {"amount": 150}}],
+            "location": {'displayLocation': 'Osaka'}
         }
     ]
     hotel_data_list_2 = [
         {
             "displayName": {"text": "Hotel B"},
             "basicPropertyData": {"reviewScore": {"score": 4.0}},
-            "blocks": [{"finalPrice": {"amount": 200}}]
+            "blocks": [{"finalPrice": {"amount": 200}}],
+            "location": {'displayLocation': 'Tokyo'}
         }
     ]
 
@@ -32,15 +34,17 @@ def test_extract_hotel_data_multiple_appends():
     df1 = df_list[0]
     df2 = df_list[1]
 
-    assert df1.shape == (1, 3)
+    assert df1.shape == (1, 4)
     assert df1['Hotel'].tolist() == ['Hotel A']
     assert df1['Review'].tolist() == [4.5]
     assert df1['Price'].tolist() == [150]
+    assert df1['Location'].tolist() == ['Osaka']
 
-    assert df2.shape == (1, 3)
+    assert df2.shape == (1, 4)
     assert df2['Hotel'].tolist() == ['Hotel B']
     assert df2['Review'].tolist() == [4.0]
     assert df2['Price'].tolist() == [200]
+    assert df2['Location'].tolist() == ['Tokyo']
 
 
 def test_extract_hotel_data_missing_values():
@@ -49,12 +53,14 @@ def test_extract_hotel_data_missing_values():
         {
             "displayName": None,
             "basicPropertyData": {"reviewScore": {"score": 4.5}},
-            "blocks": [{"finalPrice": {"amount": 150}}]
+            "blocks": [{"finalPrice": {"amount": 150}}],
+            "location": {'displayLocation': 'Osaka'}
         },
         {
             "displayName": {"text": "Hotel B"},
             "basicPropertyData": None,
-            "blocks": None
+            "blocks": None,
+            "location": None
         }
     ]
 
@@ -65,9 +71,11 @@ def test_extract_hotel_data_missing_values():
 
     # Assertions
     assert len(df_list) == 2
+
     df = pd.concat(df_list, ignore_index=True)
-    assert df.shape == (2, 3)
+    assert df.shape == (2, 4)
     assert df['Hotel'].tolist() == [None, 'Hotel B']
+    assert df['Location'].tolist() == ['Osaka', None]
 
     # Convert columns to numeric, coercing errors to NaN
     df['Review'] = pd.to_numeric(df['Review'], errors='coerce')
@@ -100,12 +108,14 @@ def test_extract_hotel_data_basic():
         {
             "displayName": {"text": "Hotel A"},
             "basicPropertyData": {"reviewScore": {"score": 4.5}},
-            "blocks": [{"finalPrice": {"amount": 150}}]
+            "blocks": [{"finalPrice": {"amount": 150}}],
+            'location': {'displayLocation': 'Osaka'}
         },
         {
             "displayName": {"text": "Hotel B"},
             "basicPropertyData": {"reviewScore": {"score": 4.0}},
-            "blocks": [{"finalPrice": {"amount": 200}}]
+            "blocks": [{"finalPrice": {"amount": 200}}],
+            'location': {'displayLocation': 'Tokyo'}
         }
     ]
 
@@ -117,7 +127,8 @@ def test_extract_hotel_data_basic():
     # Assertions
     assert len(df_list) == 2
     df = pd.concat(df_list, ignore_index=True)
-    assert df.shape == (2, 3)
+    assert df.shape == (2, 4)
     assert df['Hotel'].tolist() == ['Hotel A', 'Hotel B']
     assert df['Review'].tolist() == [4.5, 4.0]
     assert df['Price'].tolist() == [150, 200]
+    assert df['Location'].tolist() == ['Osaka', 'Tokyo']
