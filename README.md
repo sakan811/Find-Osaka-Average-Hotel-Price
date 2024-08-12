@@ -98,7 +98,7 @@ To ensure that all dates of the month were scraped, a function in
   ``` 
   - ```--check_db``` should be follow by the path of the database, without any quote.
 - If there are missing dates, a Basic Scraper will automatically start to scrape those dates.
-- Only check the missing dates of the data that was scraped today.
+- Only check the missing dates of the data that was scraped today in UTC time.
 - Only check the months that were scraped and loaded to the database.
 - Check the database specified in [set_details.py](set_details.py) via the **sqlite_name** variable.
 

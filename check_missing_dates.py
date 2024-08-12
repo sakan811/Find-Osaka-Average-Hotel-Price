@@ -87,6 +87,7 @@ async def scrape_missing_dates(missing_dates: list[str] = None, is_test: bool = 
 class MissingDateChecker(Details):
     """
     Scrape missing hotel booking dates from a database using a BasicGraphQLScraper.
+    It only checks the data scraped today, UTC Time.
 
     Attributes:
         sqlite_name: Path to SQLite database, default is SQLite path defined in 'set_details.py'.
@@ -97,7 +98,7 @@ class MissingDateChecker(Details):
         """
         Find the missing dates in the SQlite database.
         Only check the months that were scraped and loaded into the database.
-        Only check for the data that were scraped today.
+        Only check for the data that were scraped today, UTC time.
         :returns: List of missing dates of each month.
         """
         main_logger.info(f"Checking if all date was scraped in {self.sqlite_name}...")

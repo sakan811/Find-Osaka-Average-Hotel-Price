@@ -37,7 +37,8 @@ def check_if_current_date_has_passed(year: int, month: int, day: int, timezone=N
 
 def get_count_of_date_by_mth_asof_today_query():
     """
-    Return SQLite query to count distinct dates for each month from the HotelPrice table, where the AsOf date is today.
+    Return SQLite query to count distinct dates for each month from the HotelPrice table,
+    where the AsOf date is today, UTC Time.
     :returns: SQLite query.
     """
     query = '''
@@ -51,7 +52,7 @@ def get_count_of_date_by_mth_asof_today_query():
 
 def get_dates_of_each_month_asof_today_query():
     """
-    Query dates of each month, where the AsOf is today.
+    Query dates of each month, where the AsOf is today, UTC Time.
     returns: SQLite query.
     """
     query = '''
