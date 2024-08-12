@@ -40,7 +40,7 @@ class BasicGraphQLScraper(Details):
 
         graphql_query = self.get_graphql_query()
 
-        data: dict = self._get_response_data(graphql_query)
+        data: dict = await self._get_response_data(graphql_query)
 
         total_page_num, hotel_data_dict = await self.check_info(data)
         main_logger.debug(f"Total page number: {total_page_num}")
@@ -52,7 +52,7 @@ class BasicGraphQLScraper(Details):
         df_list = []
         main_logger.info("Scraping data from GraphQL endpoint...")
 
-        results: tuple[Any] = self._fetch_hotel_data(total_page_num)
+        results: tuple[Any] = await self._fetch_hotel_data(total_page_num)
 
         for hotel_data_list in results:
             if hotel_data_list:
