@@ -257,7 +257,9 @@ def create_avg_room_price_by_location(db: str) -> None:
         query = '''
         CREATE table IF NOT EXISTS AverageHotelRoomPriceByLocation (
             Location TEXT NOT NULL PRIMARY KEY,
-            AveragePrice REAL NOT NULL
+            AveragePrice REAL NOT NULL,
+            City TEXT NOT NULL,
+            HotelCount REAL NOT NULL
         ) 
         '''
         con.execute(query)
@@ -268,10 +270,10 @@ def create_avg_room_price_by_location(db: str) -> None:
         con.execute(query)
 
         query = '''
-        insert into AverageHotelRoomPriceByLocation (Location, AveragePrice)
-        select Location, avg(Price)
+        insert into AverageHotelRoomPriceByLocation (Location, AveragePrice, City, HotelCount)
+        select Location, avg(Price), City, count(Location)
         FROM HotelPrice
-        group by Location
+        group by Location;
         '''
         con.execute(query)
 
