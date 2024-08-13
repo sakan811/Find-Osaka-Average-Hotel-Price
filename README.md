@@ -95,8 +95,7 @@ To ensure that all dates of the month were scraped, a function in
 - To check in the database, use the following command line:
   ```  
   python check_missing_dates.py 
-  ``` 
-  - ```--check_db``` should be follow by the path of the database, without any quote.
+  ```
 - If there are missing dates, a Basic Scraper will automatically start to scrape those dates.
 - Only check the missing dates of the data that was scraped today in UTC time.
 - Only check the months that were scraped and loaded to the database.
