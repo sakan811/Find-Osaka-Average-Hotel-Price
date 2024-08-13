@@ -12,11 +12,11 @@ Showcase visualizations about the hotel's Average Room Price in Osaka.
 ## Visualizations
 [Power BI](https://app.powerbi.com/view?r=eyJrIjoiOGFiNzQ1Y2UtZTVlOS00MzkyLTlmN2EtMDY2YWVlNzFiNTIyIiwidCI6ImZlMzViMTA3LTdjMmYtNGNjMy1hZDYzLTA2NTY0MzcyMDg3OCIsImMiOjEwfQ%3D%3D)  
 
-Data as of 22 July 2024:
+Data as of 8 Aug 2024:
 
-[Instagram](https://www.instagram.com/p/C9uvDanPaTQ/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==)  
+[Instagram](https://www.instagram.com/p/C-mqUHJvnsM/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==)  
 
-[Facebook](https://www.facebook.com/permalink.php?story_fbid=pfbid07vR488Jh2SZVAZTC51FfYUNVUabxq7Yu3aQzVRVeFqwfQeZUmy5z1NFHTCjV7uc6l&id=61553626169836)
+[Facebook](https://www.facebook.com/permalink.php?story_fbid=pfbid0o5zpeChkd3cLQByBQ583cP3hDp4aJmY3aB8MpHJRagS13JGhZ9wYLVVU3uiUFVRDl&id=61553626169836)
 
 ## Project Details
 Collect Osaka hotel property data from Booking.com

@@ -182,3 +182,4 @@ cython_debug/
 /*.db-shm
 /back_jp_hotel_data_2024/
 /data/
+/local_code.ipynb
