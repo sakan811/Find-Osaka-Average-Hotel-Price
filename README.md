@@ -1,6 +1,10 @@
 # Find the Hotel's Average Room Price in Osaka 
 
-Showcase visualizations about the hotel's Average Room Price in Osaka.
+Showcase **visualizations** about the hotel's **Average Room Price** in **Osaka**.
+
+**Average Room Price** of one night, one adult, and one room.
+
+Price in **USD**.
 
 ## Status
 [![CodeQL](https://github.com/sakan811/Find-Osaka-Average-Hotel-Price/actions/workflows/codeql.yml/badge.svg)](https://github.com/sakan811/Find-Osaka-Average-Hotel-Price/actions/workflows/codeql.yml)    

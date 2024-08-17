@@ -9,8 +9,7 @@ from japan_avg_hotel_price_finder.configure_logging import main_logger
 from japan_avg_hotel_price_finder.graphql_scraper_func.graphql_data_extractor import extract_hotel_data
 from japan_avg_hotel_price_finder.graphql_scraper_func.graphql_data_transformer import transform_data_in_df
 from japan_avg_hotel_price_finder.graphql_scraper_func.graphql_request_func import get_header, fetch_hotel_data
-from japan_avg_hotel_price_finder.graphql_scraper_func.graphql_utils_func import concat_df_list, check_city_data, \
-    check_currency_data, check_hotel_filter_data
+from japan_avg_hotel_price_finder.graphql_scraper_func.graphql_utils_func import concat_df_list
 from set_details import Details
 
 
@@ -21,6 +20,7 @@ class BasicGraphQLScraper(Details):
     """
     url = f'https://www.booking.com/dml/graphql?selected_currency={Details().selected_currency}'
     headers = get_header()
+    data = {}
 
     async def scrape_graphql(self) -> pd.DataFrame:
         """
@@ -40,9 +40,9 @@ class BasicGraphQLScraper(Details):
 
         graphql_query = self.get_graphql_query()
 
-        data: dict = await self._get_response_data(graphql_query)
+        self.data: dict = await self._get_response_data(graphql_query)
 
-        total_page_num, hotel_data_dict = await self.check_info(data)
+        total_page_num, hotel_data_dict = await self.check_info()
         main_logger.debug(f"Total page number: {total_page_num}")
 
         if not total_page_num:
@@ -483,34 +483,90 @@ class BasicGraphQLScraper(Details):
                      "   __typename\n      }\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n"
         }
 
-    async def check_info(self, data: dict) -> tuple[int, dict]:
+    def _check_currency_data(self) -> str:
+        """
+        Check currency data from the GraphQL response.
+        :return: City name.
+        """
+        main_logger.info("Checking currency data from the GraphQL response...")
+        selected_currency_data = None
+        try:
+            for result in self.data['data']['searchQueries']['search']['results']:
+                if 'blocks' in result:
+                    for block in result['blocks']:
+                        if 'finalPrice' in block:
+                            selected_currency_data = block['finalPrice']['currency']
+                            break
+        except KeyError:
+            main_logger.error('KeyError: Currency data not found')
+        except IndexError:
+            main_logger.error('IndexError: Currency data not found')
+        return selected_currency_data
+
+    def _check_city_data(self) -> str:
+        """
+        Check city data from the GraphQL response.
+        :return: City name.
+        """
+        main_logger.info("Checking city data from the GraphQL response...")
+        city_data = None
+        try:
+            for breadcrumb in self.data['data']['searchQueries']['search']['breadcrumbs']:
+                if 'destType' in breadcrumb:
+                    if breadcrumb['destType'] == 'CITY':
+                        city_data = breadcrumb['name']
+                        break
+        except KeyError:
+            main_logger.error('KeyError: City not found')
+        except IndexError:
+            main_logger.error('IndexError: City not found')
+        return city_data
+
+    def _check_hotel_filter_data(self) -> bool:
+        """
+        Check hotel filter data from the GraphQL response.
+        :return: Hotel filter indicator.
+        """
+        main_logger.info("Checking hotel filter data from the GraphQL response...")
+
+        try:
+            for option in self.data['data']['searchQueries']['search']['appliedFilterOptions']:
+                main_logger.debug(f'Filter options: {option}')
+
+                if 'urlId' in option:
+                    if option['urlId'] == "ht_id=204":
+                        return True
+        except KeyError:
+            main_logger.error('KeyError: hotel_filter not found')
+            return False
+        except IndexError:
+            main_logger.error('IndexError: hotel_filter not found')
+            return False
+
+        return False
+
+    async def check_info(self) -> tuple[int, dict]:
         """
         Check whether the user-entered data matches with the data from GraphQL response.
-        :param data: Data from GraphQL response.
         :return: Total page number and hotel data as a dictionary.
         """
         main_logger.info('Checking whether entered data matches the data from GraphQL response...')
-        try:
-            total_page_num = data['data']['searchQueries']['search']['pagination']['nbResultsTotal']
-        except TypeError:
-            main_logger.error("TypeError: Total page number not found.")
-            main_logger.error("Return 0 as total page number")
-            total_page_num = 0
+        total_page_num = await self._find_total_page_num()
 
         if total_page_num:
-            city_data = check_city_data(data)
-            selected_currency_data = check_currency_data(data)
-            scrape_only_hotel = check_hotel_filter_data(data)
+            city_data = self._check_city_data()
+            selected_currency_data = self._check_currency_data()
+            scrape_only_hotel = self._check_hotel_filter_data()
 
             data_mapping = {
                 "city": city_data,
                 "check_in":
-                    data['data']['searchQueries']['search']['flexibleDatesConfig']['dateRangeCalendar']['checkin'][0],
+                    self.data['data']['searchQueries']['search']['flexibleDatesConfig']['dateRangeCalendar']['checkin'][0],
                 "check_out":
-                    data['data']['searchQueries']['search']['flexibleDatesConfig']['dateRangeCalendar']['checkout'][0],
-                "group_adults": data['data']['searchQueries']['search']['searchMeta']['nbAdults'],
-                "group_children": data['data']['searchQueries']['search']['searchMeta']['nbChildren'],
-                "num_rooms": data['data']['searchQueries']['search']['searchMeta']['nbRooms'],
+                    self.data['data']['searchQueries']['search']['flexibleDatesConfig']['dateRangeCalendar']['checkout'][0],
+                "group_adults": self.data['data']['searchQueries']['search']['searchMeta']['nbAdults'],
+                "group_children": self.data['data']['searchQueries']['search']['searchMeta']['nbChildren'],
+                "num_rooms": self.data['data']['searchQueries']['search']['searchMeta']['nbRooms'],
                 "selected_currency": selected_currency_data,
                 "scrape_only_hotel": scrape_only_hotel
             }
@@ -534,6 +590,19 @@ class BasicGraphQLScraper(Details):
                 "selected_currency": 'Not found'
             }
         return total_page_num, data_mapping
+
+    async def _find_total_page_num(self) -> int:
+        """
+        Find the total page number of the hotel data from the GraphQL response.
+        :return: Total page number.
+        """
+        try:
+            total_page_num = self.data['data']['searchQueries']['search']['pagination']['nbResultsTotal']
+        except TypeError:
+            main_logger.error("TypeError: Total page number not found.")
+            main_logger.error("Return 0 as total page number")
+            total_page_num = 0
+        return total_page_num
 
 
 if __name__ == '__main__':

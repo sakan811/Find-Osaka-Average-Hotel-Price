@@ -47,7 +47,9 @@ async def test_returns_correct_total_page_number_and_data_mapping():
                                   selected_currency=entered_selected_currency, group_adults=entered_num_adult,
                                   group_children=entered_num_children, num_rooms=entered_num_room,
                                   scrape_only_hotel=entered_hotel_filter)
-    result = await scraper.check_info(data)
+    scraper.data = data
+
+    result = await scraper.check_info()
 
     # Then
     assert result == (1, {
@@ -105,7 +107,8 @@ async def test_handles_response_with_missing_or_null_fields_gracefully():
         scraper = BasicGraphQLScraper(city=entered_city, check_in=entered_check_in, check_out=entered_check_out,
                                       selected_currency=entered_selected_currency, group_adults=entered_num_adult,
                                       group_children=entered_num_children, num_rooms=entered_num_room)
-        result = await scraper.check_info(data)
+        scraper.data = data
+        result = await scraper.check_info()
     except SystemExit as e:
         error_message = str(e)
 
@@ -156,7 +159,8 @@ async def test_handles_response_with_currency_is_none():
         scraper = BasicGraphQLScraper(city=entered_city, check_in=entered_check_in, check_out=entered_check_out,
                                       selected_currency=entered_selected_currency, group_adults=entered_num_adult,
                                       group_children=entered_num_children, num_rooms=entered_num_room)
-        result = await scraper.check_info(data)
+        scraper.data = data
+        result = await scraper.check_info()
     except SystemExit as e:
         error_message = str(e)
 
@@ -205,7 +209,8 @@ async def test_data_mapping_check_in_not_match():
         scraper = BasicGraphQLScraper(city=entered_city, check_in=entered_check_in, check_out=entered_check_out,
                                       selected_currency=entered_selected_currency, group_adults=entered_num_adult,
                                       group_children=entered_num_children, num_rooms=entered_num_room)
-        result = await scraper.check_info(data)
+        scraper.data = data
+        result = await scraper.check_info()
 
 
 @pytest.mark.asyncio
@@ -249,7 +254,8 @@ async def test_data_mapping_check_out_not_match():
         scraper = BasicGraphQLScraper(city=entered_city, check_in=entered_check_in, check_out=entered_check_out,
                                       selected_currency=entered_selected_currency, group_adults=entered_num_adult,
                                       group_children=entered_num_children, num_rooms=entered_num_room)
-        result = await scraper.check_info(data)
+        scraper.data = data
+        result = await scraper.check_info()
 
 
 @pytest.mark.asyncio
@@ -293,7 +299,8 @@ async def test_data_mapping_adult_not_match():
         scraper = BasicGraphQLScraper(city=entered_city, check_in=entered_check_in, check_out=entered_check_out,
                                       selected_currency=entered_selected_currency, group_adults=entered_num_adult,
                                       group_children=entered_num_children, num_rooms=entered_num_room)
-        result = await scraper.check_info(data)
+        scraper.data = data
+        result = await scraper.check_info()
 
 
 @pytest.mark.asyncio
@@ -337,7 +344,8 @@ async def test_data_mapping_room_not_match():
         scraper = BasicGraphQLScraper(city=entered_city, check_in=entered_check_in, check_out=entered_check_out,
                                       selected_currency=entered_selected_currency, group_adults=entered_num_adult,
                                       group_children=entered_num_children, num_rooms=entered_num_room)
-        result = await scraper.check_info(data)
+        scraper.data = data
+        result = await scraper.check_info()
 
 
 @pytest.mark.asyncio
@@ -380,7 +388,8 @@ async def test_data_mapping_children_not_match():
         scraper = BasicGraphQLScraper(city=entered_city, check_in=entered_check_in, check_out=entered_check_out,
                                       selected_currency=entered_selected_currency, group_adults=entered_num_adult,
                                       group_children=entered_num_children, num_rooms=entered_num_room)
-        result = await scraper.check_info(data)
+        scraper.data = data
+        result = await scraper.check_info()
 
 
 @pytest.mark.asyncio
@@ -424,7 +433,8 @@ async def test_data_mapping_currency_not_match():
         scraper = BasicGraphQLScraper(city=entered_city, check_in=entered_check_in, check_out=entered_check_out,
                                       selected_currency=entered_selected_currency, group_adults=entered_num_adult,
                                       group_children=entered_num_children, num_rooms=entered_num_room)
-        result = await scraper.check_info(data)
+        scraper.data = data
+        result = await scraper.check_info()
 
 
 @pytest.mark.asyncio
@@ -468,7 +478,8 @@ async def test_data_mapping_city_not_match():
         scraper = BasicGraphQLScraper(city=entered_city, check_in=entered_check_in, check_out=entered_check_out,
                                       selected_currency=entered_selected_currency, group_adults=entered_num_adult,
                                       group_children=entered_num_children, num_rooms=entered_num_room)
-        result = await scraper.check_info(data)
+        scraper.data = data
+        result = await scraper.check_info()
 
 
 @pytest.mark.asyncio
@@ -512,7 +523,8 @@ async def test_total_page_num_is_zero():
     scraper = BasicGraphQLScraper(city=entered_city, check_in=entered_check_in, check_out=entered_check_out,
                                   selected_currency=entered_selected_currency, group_adults=entered_num_adult,
                                   group_children=entered_num_children, num_rooms=entered_num_room)
-    result = await scraper.check_info(data)
+    scraper.data = data
+    result = await scraper.check_info()
 
     # Then
     assert result == (0, {
@@ -570,7 +582,8 @@ async def test_data_mapping_hotel_filter_not_match():
                                       selected_currency=entered_selected_currency, group_adults=entered_num_adult,
                                       group_children=entered_num_children, num_rooms=entered_num_room,
                                       scrape_only_hotel=entered_hotel_filter)
-        result = await scraper.check_info(data)
+        scraper.data = data
+        result = await scraper.check_info()
 
 if __name__ == '__main__':
     pytest.main()

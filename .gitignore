@@ -167,8 +167,8 @@ cython_debug/
 /visuals/
 /weekly_file/
 /Find-Osaka-Average-Hotel-Price-master.zip
-/prototype.py
-/prototype.py
+/proto/prototype.py
+/proto/prototype.py
 /avg_japan_hotel_price_test.db
 /load_to_sqlite.py
 /*.json
@@ -182,4 +182,5 @@ cython_debug/
 /*.db-shm
 /back_jp_hotel_data_2024/
 /data/
-/local_code.ipynb
+/proto/local_code.ipynb
+/proto/
