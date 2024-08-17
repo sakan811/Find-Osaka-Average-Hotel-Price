@@ -25,6 +25,7 @@ class AutomatedScraper(WholeMonthGraphQLScraper):
             os.makedirs(path, exist_ok=True)
         except OSError as e:
             main_logger.error(f"Error creating directory '{path}': {e}")
+            raise OSError
 
         csv_file_name = f'{self.city}_hotel_data_{month_name}_{self.year}.csv'
         csv_file_path = os.path.join(path, csv_file_name)

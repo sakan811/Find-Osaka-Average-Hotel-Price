@@ -499,8 +499,10 @@ class BasicGraphQLScraper(Details):
                             break
         except KeyError:
             main_logger.error('KeyError: Currency data not found')
+            raise KeyError
         except IndexError:
             main_logger.error('IndexError: Currency data not found')
+            raise IndexError
         return selected_currency_data
 
     def _check_city_data(self) -> str:
@@ -518,8 +520,10 @@ class BasicGraphQLScraper(Details):
                         break
         except KeyError:
             main_logger.error('KeyError: City not found')
+            raise KeyError
         except IndexError:
             main_logger.error('IndexError: City not found')
+            raise IndexError
         return city_data
 
     def _check_hotel_filter_data(self) -> bool:
