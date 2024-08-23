@@ -50,7 +50,9 @@ Consists of room price from **16 May 2024** to **31 Dec 2024**.
 
 Data was collected daily using GitHub action.
 
-This script can also be used to scrape data from other cities in Japan.
+Consists of **Basic GraphQL** and **Whole-Month GraphQL** scraper.
+
+These scrapers can also be used to scrape data from other cities in Japan.
 
 #### Collected Data:
 [Osaka Hotel Room Price Record](https://drive.google.com/file/d/1NE0zhRcm1Y8PCpsoY5H5fSsTXu01nF10/view?usp=sharing)
@@ -64,6 +66,8 @@ This script can also be used to scrape data from other cities in Japan.
 Collect **Japan hotel** property data for all **Prefectures** from Booking.com
 
 Data collecting dates: 23 Aug 2024.
+
+Use **Japan GraphQL** scraper to scrape data.
 
 Data was collected daily using GitHub action.
 

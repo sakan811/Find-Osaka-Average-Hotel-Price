@@ -6,6 +6,8 @@ import pytz
 from japan_avg_hotel_price_finder.graphql_scraper import BasicGraphQLScraper
 
 
+country = 'Japan'
+
 @pytest.mark.asyncio
 async def test_graphql_scraper():
     timezone = pytz.timezone('Asia/Tokyo')
@@ -14,7 +16,7 @@ async def test_graphql_scraper():
     tomorrow = today + datetime.timedelta(days=1)
     check_out = tomorrow.strftime('%Y-%m-%d')
     scraper = BasicGraphQLScraper(city='Osaka', num_rooms=1, group_adults=1, group_children=0, sqlite_name='', check_out=check_out,
-                                  check_in=check_in, selected_currency='USD', scrape_only_hotel=True)
+                                  check_in=check_in, selected_currency='USD', scrape_only_hotel=True, country=country)
 
     df = await scraper.scrape_graphql()
 
@@ -31,7 +33,7 @@ async def test_graphql_scraper_incorrect_date():
     yesterday = today - datetime.timedelta(days=1)
     check_out = yesterday.strftime('%Y-%m-%d')
     scraper = BasicGraphQLScraper(city='Osaka', num_rooms=1, group_adults=1, group_children=0, sqlite_name='', check_out=check_out,
-                                  check_in=check_in, selected_currency='USD', scrape_only_hotel=True)
+                                  check_in=check_in, selected_currency='USD', scrape_only_hotel=True, country=country)
 
     with pytest.raises(SystemExit):
         df = await scraper.scrape_graphql()
