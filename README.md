@@ -30,11 +30,9 @@ Built on top of [Find the Hotel's Average Room Price in Osaka](#find-the-hotels-
 
 * [Power BI](https://app.powerbi.com/view?r=eyJrIjoiOGFiNzQ1Y2UtZTVlOS00MzkyLTlmN2EtMDY2YWVlNzFiNTIyIiwidCI6ImZlMzViMTA3LTdjMmYtNGNjMy1hZDYzLTA2NTY0MzcyMDg3OCIsImMiOjEwfQ%3D%3D)  
 
-Data as of 8 Aug 2024:
+* [Instagram](https://www.instagram.com/p/C_AztNthXYp/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==)  
 
-* [Instagram](https://www.instagram.com/p/C-mqUHJvnsM/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==)  
-
-* [Facebook](https://www.facebook.com/permalink.php?story_fbid=pfbid0o5zpeChkd3cLQByBQ583cP3hDp4aJmY3aB8MpHJRagS13JGhZ9wYLVVU3uiUFVRDl&id=61553626169836)
+* [Facebook](https://www.facebook.com/permalink.php?story_fbid=pfbid0iDFxeneepr94f9ymRbhwuCaJx7Udo433W17Q4WYua4ckzBjUoX8M19m6ZY7hZxGCl&id=61553626169836)
 
 ### Average Room Price for all Prefectures in Japan: 
 
