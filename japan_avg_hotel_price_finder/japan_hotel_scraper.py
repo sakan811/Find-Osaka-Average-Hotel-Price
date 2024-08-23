@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 import duckdb
 import pandas as pd
 
-from whole_mth_graphql_scraper import WholeMonthGraphQLScraper
+from japan_avg_hotel_price_finder.whole_mth_graphql_scraper import WholeMonthGraphQLScraper
 from japan_avg_hotel_price_finder.configure_logging import main_logger
 
 
