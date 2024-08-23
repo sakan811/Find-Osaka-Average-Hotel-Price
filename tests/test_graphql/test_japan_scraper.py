@@ -3,7 +3,7 @@ import datetime
 
 import duckdb
 
-from japan_hotel_scraper import JapanScraper
+from japan_avg_hotel_price_finder.japan_hotel_scraper import JapanScraper
 
 
 def test_japan_scraper():
