@@ -1,5 +1,5 @@
 import asyncio
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 import aiohttp
@@ -10,17 +10,42 @@ from japan_avg_hotel_price_finder.graphql_scraper_func.graphql_data_extractor im
 from japan_avg_hotel_price_finder.graphql_scraper_func.graphql_data_transformer import transform_data_in_df
 from japan_avg_hotel_price_finder.graphql_scraper_func.graphql_request_func import get_header, fetch_hotel_data
 from japan_avg_hotel_price_finder.graphql_scraper_func.graphql_utils_func import concat_df_list
-from set_details import Details
 
 
 @dataclass
-class BasicGraphQLScraper(Details):
+class BasicGraphQLScraper:
     """
     A dataclass designed to scrape hotel booking details from a GraphQL endpoint
+
+    Attributes:
+        city (str): The city where the hotels are located.
+        country (str): The country where the hotels are located.
+        check_in (str): The check-in date.
+        check_out (str): The check-out date.
+        group_adults (str): Number of adults.
+        num_rooms (str): Number of rooms.
+        group_children (str): Number of children.
+        selected_currency (str): Currency of the room price.
+        scrape_only_hotel (bool): Whether to scrape only the hotel property data.
+        sqlite_name (str): Name of SQLite database to store the scraped data.
     """
-    url = f'https://www.booking.com/dml/graphql?selected_currency={Details().selected_currency}'
-    headers = get_header()
-    data = {}
+    # Set SQLite database name
+    sqlite_name: str
+
+    # Set booking details.
+    city: str
+    country: str
+    check_in: str
+    check_out: str
+    group_adults: int = 1
+    num_rooms: int = 1
+    group_children: int = 0
+    selected_currency: str = 'USD'
+    scrape_only_hotel: bool = True
+
+    url: str = ''
+    headers: dict = field(default_factory=dict)
+    data: dict = field(default_factory=dict)
 
     async def scrape_graphql(self) -> pd.DataFrame:
         """
@@ -34,11 +59,14 @@ class BasicGraphQLScraper(Details):
         main_logger.debug(f"Adults: {self.group_adults} | Children: {self.group_children} | Rooms: {self.num_rooms}")
         main_logger.debug(f"Only hotel properties: {self.scrape_only_hotel}")
 
+        self.url = f'https://www.booking.com/dml/graphql?selected_currency={self.selected_currency}'
+        self.headers = get_header()
+
         if not self._validate_inputs():
             main_logger.warning("Error: city, check_in, check_out and selected_currency are required")
             return pd.DataFrame()
 
-        graphql_query = self.get_graphql_query()
+        graphql_query = self._get_graphql_query()
 
         self.data: dict = await self._get_response_data(graphql_query)
 
@@ -90,7 +118,7 @@ class BasicGraphQLScraper(Details):
             for offset in range(0, total_page_num, 100):
                 main_logger.debug(f'Fetch data from page-offset: {offset}')
 
-                graphql_query = self.get_graphql_query(page_offset=offset)
+                graphql_query = self._get_graphql_query(page_offset=offset)
                 tasks.append(fetch_hotel_data(session, self.url, self.headers, graphql_query))
 
             return await asyncio.gather(*tasks)
@@ -102,7 +130,7 @@ class BasicGraphQLScraper(Details):
         """
         return all([self.city, self.check_in, self.check_out, self.selected_currency])
 
-    def get_graphql_query(self, page_offset: int = 0) -> dict:
+    def _get_graphql_query(self, page_offset: int = 0) -> dict:
         """
         Constructs and returns a GraphQL query as a dictionary.
         :param page_offset: The offset for pagination, default is 0.
@@ -148,7 +176,7 @@ class BasicGraphQLScraper(Details):
                     },
                     "forcedBlocks": None,
                     "location": {
-                        "searchString": self.city,
+                        "searchString": f'{self.city}, {self.country}',
                         "destType": "CITY"
                     },
                     "metaContext": {
@@ -507,24 +535,36 @@ class BasicGraphQLScraper(Details):
 
     def _check_city_data(self) -> str:
         """
-        Check city data from the GraphQL response.
-        :return: City name.
+        Check city data from the GraphQL response and match it with the entered city.
+        :return: Matched city name or None if not found.
         """
         main_logger.info("Checking city data from the GraphQL response...")
-        city_data = None
+        city_data = ''
+
         try:
+            # Loop through each breadcrumb in the GraphQL response
             for breadcrumb in self.data['data']['searchQueries']['search']['breadcrumbs']:
-                if 'destType' in breadcrumb:
-                    if breadcrumb['destType'] == 'CITY':
-                        city_data = breadcrumb['name']
-                        break
+                main_logger.debug(f'Breadcrumb data: {breadcrumb}')
+
+                if breadcrumb.get('name') is None:
+                    continue
+
+                # Compare the 'name' field specifically with the entered city
+                if breadcrumb.get('name', '').lower() == self.city.lower():
+                    city_data = breadcrumb['name']  # Return the city name if a match is found
+                    return city_data
+
+            # In case no match is found for the entered city
+            if city_data == '':
+                main_logger.warning(f"City '{self.city}' not found in GraphQL breadcrumbs.")
         except KeyError:
-            main_logger.error('KeyError: City not found')
+            main_logger.error('KeyError: Issue while parsing city data')
             raise KeyError
         except IndexError:
-            main_logger.error('IndexError: City not found')
+            main_logger.error('IndexError: Issue while parsing city data')
             raise IndexError
-        return city_data
+
+        return city_data  # Returns None if no match is found
 
     def _check_hotel_filter_data(self) -> bool:
         """
@@ -549,6 +589,39 @@ class BasicGraphQLScraper(Details):
 
         return False
 
+    def _check_country_data(self) -> str:
+        """
+        Check country data from the GraphQL response.
+        :return: Country name.
+        """
+        main_logger.info("Checking country data from the GraphQL response...")
+        country_data = ''
+
+        try:
+            # Loop through each breadcrumb in the GraphQL response
+            for breadcrumb in self.data['data']['searchQueries']['search']['breadcrumbs']:
+                main_logger.debug(f'Breadcrumb data: {breadcrumb}')
+
+                if breadcrumb.get('name') is None:
+                    continue
+
+                # Compare the 'name' field specifically with the entered country
+                if breadcrumb.get('name', '').lower() == self.country.lower():
+                    country_data = breadcrumb['name']  # Return the country name if a match is found
+                    return country_data
+
+            # In case no match is found for the entered city
+            if country_data == '':
+                main_logger.warning(f"Country name not found in GraphQL breadcrumbs.")
+        except KeyError:
+            main_logger.error('KeyError: Issue while parsing country data')
+            raise KeyError
+        except IndexError:
+            main_logger.error('IndexError: Issue while parsing country data')
+            raise IndexError
+
+        return country_data  # Returns None if no match is found
+
     async def check_info(self) -> tuple[int, dict]:
         """
         Check whether the user-entered data matches with the data from GraphQL response.
@@ -559,15 +632,19 @@ class BasicGraphQLScraper(Details):
 
         if total_page_num:
             city_data = self._check_city_data()
+            country_data = self._check_country_data()
             selected_currency_data = self._check_currency_data()
             scrape_only_hotel = self._check_hotel_filter_data()
 
             data_mapping = {
                 "city": city_data,
+                "country": country_data,
                 "check_in":
-                    self.data['data']['searchQueries']['search']['flexibleDatesConfig']['dateRangeCalendar']['checkin'][0],
+                    self.data['data']['searchQueries']['search']['flexibleDatesConfig']['dateRangeCalendar']['checkin'][
+                        0],
                 "check_out":
-                    self.data['data']['searchQueries']['search']['flexibleDatesConfig']['dateRangeCalendar']['checkout'][0],
+                    self.data['data']['searchQueries']['search']['flexibleDatesConfig']['dateRangeCalendar'][
+                        'checkout'][0],
                 "group_adults": self.data['data']['searchQueries']['search']['searchMeta']['nbAdults'],
                 "group_children": self.data['data']['searchQueries']['search']['searchMeta']['nbChildren'],
                 "num_rooms": self.data['data']['searchQueries']['search']['searchMeta']['nbRooms'],
@@ -586,6 +663,7 @@ class BasicGraphQLScraper(Details):
         else:
             data_mapping = {
                 "city": 'Not found',
+                "country": 'Not found',
                 "check_in": 'Not found',
                 "check_out": 'Not found',
                 "num_adult": 0,

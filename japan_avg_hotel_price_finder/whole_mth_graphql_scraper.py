@@ -1,6 +1,6 @@
 import calendar
 import datetime
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import pandas as pd
 
@@ -13,13 +13,34 @@ from japan_avg_hotel_price_finder.utils import check_if_current_date_has_passed
 class WholeMonthGraphQLScraper(BasicGraphQLScraper):
     """
     A dataclass designed to scrape hotel booking details from a GraphQL endpoint for the whole month.
+
+    Attributes:
+        city (str): The city where the hotels are located.
+        country (str): The country where the hotels are located.
+        group_adults (str): Number of adults.
+        num_rooms (str): Number of rooms.
+        group_children (str): Number of children.
+        selected_currency (str): Currency of the room price.
+        scrape_only_hotel (bool): Whether to scrape only the hotel property data.
+        start_day (int): Day to start scraping.
+        month (int): Month to start scraping.
+        year (int): Year to start scraping.
+        nights (int): Number of nights (Length of stay) which defines the room price.
+                    For example, nights = 1 means scraping the hotel with room price for 1 night.
+        sqlite_name (str): Name of SQLite database to store the scraped data.
     """
+    # Set the start day, month, year, and length of stay
+    year: int = datetime.datetime.now().year
+    month: int = datetime.datetime.now().month
+    start_day: int = 1
+    nights: int = 1
+
     async def scrape_whole_month(self, timezone=None) -> pd.DataFrame:
         """
         Scrape data from the GraphQL endpoint for the whole month.
         :param timezone: Timezone.
                         Default is None.
-        :return: Pandas Dataframe.
+        :return: Pandas Dataframe containing hotel data from the whole month.
         """
         main_logger.info('Using Whole-Month GraphQL scraper...')
 

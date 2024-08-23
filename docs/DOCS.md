@@ -1,9 +1,9 @@
 # Brief Script Documents
-## Dataclass
-[set_details.py](set_details.py)
-- A **dataclass** designed to encapsulate various **parameters** required for **scraping** hotel data.
-  - The **parameters** are booking details, e.g., city, check-in, check-out, etc.
-  
+[main.py](..%2Fmain.py)
+- The main script to start a scraping process.
+- Contain arguments that can be used to specify the kind of data to scrape.
+
+
 ## [japan_avg_hotel_price_finder](japan_avg_hotel_price_finder) Package
 [configure_logging.py](japan_avg_hotel_price_finder%2Fconfigure_logging.py)
 - Contain logging configuration functions
@@ -13,10 +13,14 @@
   ```
 
 [graphql_scraper.py](japan_avg_hotel_price_finder%2Fgraphql_scraper.py)
-- Contain Basic GraphQL scraper as a function
+- Contain Basic GraphQL scraper as a dataclass, which contains methods to scrape hotel data in Osaka.
 
 [whole_mth_graphql_scraper.py](japan_avg_hotel_price_finder%2Fwhole_mth_graphql_scraper.py)
-- Contain Whole-Month GraphQL scraper as a function
+- Contain Whole-Month GraphQL scraper as a dataclass, which contains methods to scrape hotel data in Osaka of the given month.
+
+[japan_hotel_scraper.py](..%2Fjapan_avg_hotel_price_finder%2Fjapan_hotel_scraper.py)
+- Contain Japan GraphQL Scraper as a dataclass, which contains methods to scrape hotel data in Japan for all Prefectures.
+- Scrape data for the whole year for each Prefecture.
 
 [migrate_to_sqlite.py](japan_avg_hotel_price_finder%2Fmigrate_to_sqlite.py)
 - Migrate data to SQLite table using sqlite3 module.
@@ -43,6 +47,12 @@
 
 ## Automated Hotel Scraper
 - Use [automated_scraper.py](automated_scraper.py)
-- Scrape Osaka hotel data daily using GitHub action for all 12 months.
-- Save to CSV for each month.
+- Automated with GitHub Action
+- Consists of 2 scrapers:
+  - Scraper that scrapes Osaka hotel data daily for all 12 months.
+    - Save data to CSV for each month.
+  - Scraper that scrapes Japan hotels data for all city.
+    - Save to CSV for each month by city.
 - Save CSV to Google Cloud Storage.
+
+

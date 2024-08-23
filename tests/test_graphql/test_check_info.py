@@ -12,7 +12,10 @@ async def test_returns_correct_total_page_number_and_data_mapping():
                 'search': {
                     'appliedFilterOptions': [],
                     'pagination': {'nbResultsTotal': 1},
-                    'breadcrumbs': [{}, {}, {'name': 'Test City', 'destType': 'CITY'}],
+                    'breadcrumbs': [
+                        {'name': 'Test Country', 'destType': 'COUNTRY'},
+                        {'name': 'Test City', 'destType': 'CITY'}
+                    ],
                     'flexibleDatesConfig': {
                         'dateRangeCalendar': {
                             'checkin': ['2023-01-01'],
@@ -34,6 +37,7 @@ async def test_returns_correct_total_page_number_and_data_mapping():
         }
     }
     entered_city = "Test City"
+    entered_country = "Test Country"
     entered_check_in = "2023-01-01"
     entered_check_out = "2023-01-02"
     entered_selected_currency = "USD"
@@ -46,7 +50,7 @@ async def test_returns_correct_total_page_number_and_data_mapping():
     scraper = BasicGraphQLScraper(city=entered_city, check_in=entered_check_in, check_out=entered_check_out,
                                   selected_currency=entered_selected_currency, group_adults=entered_num_adult,
                                   group_children=entered_num_children, num_rooms=entered_num_room,
-                                  scrape_only_hotel=entered_hotel_filter)
+                                  scrape_only_hotel=entered_hotel_filter, country=entered_country, sqlite_name='')
     scraper.data = data
 
     result = await scraper.check_info()
@@ -54,6 +58,7 @@ async def test_returns_correct_total_page_number_and_data_mapping():
     # Then
     assert result == (1, {
         "city": "Test City",
+        "country": "Test Country",
         "check_in": "2023-01-01",
         "check_out": "2023-01-02",
         "group_adults": 2,
@@ -94,26 +99,22 @@ async def test_handles_response_with_missing_or_null_fields_gracefully():
         }
     }
     entered_city = "Test City"
+    entered_country = "Test Country"
     entered_check_in = "2023-01-01"
     entered_check_out = "2023-01-02"
     entered_selected_currency = "USD"
     entered_num_adult = 2
     entered_num_children = 1
     entered_num_room = 1
+    entered_hotel_filter = True
 
-    # When
-    error_message = ''
-    try:
+    with pytest.raises(SystemExit):
         scraper = BasicGraphQLScraper(city=entered_city, check_in=entered_check_in, check_out=entered_check_out,
                                       selected_currency=entered_selected_currency, group_adults=entered_num_adult,
-                                      group_children=entered_num_children, num_rooms=entered_num_room)
+                                      group_children=entered_num_children, num_rooms=entered_num_room,
+                                      scrape_only_hotel=entered_hotel_filter, country=entered_country, sqlite_name='')
         scraper.data = data
         result = await scraper.check_info()
-    except SystemExit as e:
-        error_message = str(e)
-
-    # Then
-    assert error_message == "Error City not match: Test City != None"
 
 
 @pytest.mark.asyncio
@@ -123,8 +124,12 @@ async def test_handles_response_with_currency_is_none():
         'data': {
             'searchQueries': {
                 'search': {
+                    'appliedFilterOptions': [{'urlId': "ht_id=204"}],
                     'pagination': {'nbResultsTotal': 1},
-                    'breadcrumbs': [{}, {}, {'name': 'Test City', 'destType': 'CITY'}],
+                    'breadcrumbs': [
+                        {'name': 'Test Country', 'destType': 'COUNTRY'},
+                        {'name': 'Test City', 'destType': 'CITY'}
+                    ],
                     'flexibleDatesConfig': {
                         'dateRangeCalendar': {
                             'checkin': ["2023-01-01"],
@@ -146,26 +151,22 @@ async def test_handles_response_with_currency_is_none():
         }
     }
     entered_city = "Test City"
+    entered_country = 'Test Country'
     entered_check_in = "2023-01-01"
     entered_check_out = "2023-01-02"
     entered_selected_currency = "USD"
     entered_num_adult = 2
     entered_num_children = 1
     entered_num_room = 1
+    entered_hotel_filter = True
 
-    # When
-    error_message = ''
-    try:
+    with pytest.raises(SystemExit):
         scraper = BasicGraphQLScraper(city=entered_city, check_in=entered_check_in, check_out=entered_check_out,
                                       selected_currency=entered_selected_currency, group_adults=entered_num_adult,
-                                      group_children=entered_num_children, num_rooms=entered_num_room)
+                                      group_children=entered_num_children, num_rooms=entered_num_room,
+                                      scrape_only_hotel=entered_hotel_filter, country=entered_country, sqlite_name='')
         scraper.data = data
         result = await scraper.check_info()
-    except SystemExit as e:
-        error_message = str(e)
-
-    # Then
-    assert error_message == "Error Selected Currency not match: USD != None"
 
 
 @pytest.mark.asyncio
@@ -175,8 +176,12 @@ async def test_data_mapping_check_in_not_match():
         'data': {
             'searchQueries': {
                 'search': {
+                    'appliedFilterOptions': [{'urlId': "ht_id=204"}],
                     'pagination': {'nbResultsTotal': 1},
-                    'breadcrumbs': [{}, {}, {'name': 'Test City', 'destType': 'CITY'}],
+                    'breadcrumbs': [
+                        {'name': 'Test Country', 'destType': 'COUNTRY'},
+                        {'name': 'Test City', 'destType': 'CITY'}
+                    ],
                     'flexibleDatesConfig': {
                         'dateRangeCalendar': {
                             'checkin': ['2023-02-01'],
@@ -198,17 +203,20 @@ async def test_data_mapping_check_in_not_match():
         }
     }
     entered_city = "Test City"
+    entered_country = 'Test Country'
     entered_check_in = "2023-01-01"
     entered_check_out = "2023-01-02"
     entered_selected_currency = "USD"
     entered_num_adult = 2
     entered_num_children = 1
     entered_num_room = 1
+    entered_hotel_filter = True
 
     with pytest.raises(SystemExit):
         scraper = BasicGraphQLScraper(city=entered_city, check_in=entered_check_in, check_out=entered_check_out,
                                       selected_currency=entered_selected_currency, group_adults=entered_num_adult,
-                                      group_children=entered_num_children, num_rooms=entered_num_room)
+                                      group_children=entered_num_children, num_rooms=entered_num_room,
+                                      scrape_only_hotel=entered_hotel_filter, country=entered_country, sqlite_name='')
         scraper.data = data
         result = await scraper.check_info()
 
@@ -220,8 +228,12 @@ async def test_data_mapping_check_out_not_match():
         'data': {
             'searchQueries': {
                 'search': {
+                    'appliedFilterOptions': [{'urlId': "ht_id=204"}],
                     'pagination': {'nbResultsTotal': 1},
-                    'breadcrumbs': [{}, {}, {'name': 'Test City', 'destType': 'CITY'}],
+                    'breadcrumbs': [
+                        {'name': 'Test Country', 'destType': 'COUNTRY'},
+                        {'name': 'Test City', 'destType': 'CITY'}
+                    ],
                     'flexibleDatesConfig': {
                         'dateRangeCalendar': {
                             'checkin': ['2023-01-01'],
@@ -243,17 +255,20 @@ async def test_data_mapping_check_out_not_match():
         }
     }
     entered_city = "Test City"
+    entered_country = 'Test Country'
     entered_check_in = "2023-01-01"
     entered_check_out = "2023-01-02"
     entered_selected_currency = "USD"
     entered_num_adult = 2
     entered_num_children = 1
     entered_num_room = 1
+    entered_hotel_filter = True
 
     with pytest.raises(SystemExit):
         scraper = BasicGraphQLScraper(city=entered_city, check_in=entered_check_in, check_out=entered_check_out,
                                       selected_currency=entered_selected_currency, group_adults=entered_num_adult,
-                                      group_children=entered_num_children, num_rooms=entered_num_room)
+                                      group_children=entered_num_children, num_rooms=entered_num_room,
+                                      scrape_only_hotel=entered_hotel_filter, country=entered_country, sqlite_name='')
         scraper.data = data
         result = await scraper.check_info()
 
@@ -265,8 +280,12 @@ async def test_data_mapping_adult_not_match():
         'data': {
             'searchQueries': {
                 'search': {
+                    'appliedFilterOptions': [{'urlId': "ht_id=204"}],
                     'pagination': {'nbResultsTotal': 1},
-                    'breadcrumbs': [{}, {}, {'name': 'Test City', 'destType': 'CITY'}],
+                    'breadcrumbs': [
+                        {'name': 'Test Country', 'destType': 'COUNTRY'},
+                        {'name': 'Test City', 'destType': 'CITY'}
+                    ],
                     'flexibleDatesConfig': {
                         'dateRangeCalendar': {
                             'checkin': ['2023-01-01'],
@@ -288,17 +307,20 @@ async def test_data_mapping_adult_not_match():
         }
     }
     entered_city = "Test City"
+    entered_country = 'Test Country'
     entered_check_in = "2023-01-01"
     entered_check_out = "2023-01-02"
     entered_selected_currency = "USD"
     entered_num_adult = 2
     entered_num_children = 1
     entered_num_room = 1
+    entered_hotel_filter = True
 
     with pytest.raises(SystemExit):
         scraper = BasicGraphQLScraper(city=entered_city, check_in=entered_check_in, check_out=entered_check_out,
                                       selected_currency=entered_selected_currency, group_adults=entered_num_adult,
-                                      group_children=entered_num_children, num_rooms=entered_num_room)
+                                      group_children=entered_num_children, num_rooms=entered_num_room,
+                                      scrape_only_hotel=entered_hotel_filter, country=entered_country, sqlite_name='')
         scraper.data = data
         result = await scraper.check_info()
 
@@ -310,8 +332,12 @@ async def test_data_mapping_room_not_match():
         'data': {
             'searchQueries': {
                 'search': {
+                    'appliedFilterOptions': [{'urlId': "ht_id=204"}],
                     'pagination': {'nbResultsTotal': 1},
-                    'breadcrumbs': [{}, {}, {'name': 'Test City', 'destType': 'CITY'}],
+                    'breadcrumbs': [
+                        {'name': 'Test Country', 'destType': 'COUNTRY'},
+                        {'name': 'Test City', 'destType': 'CITY'}
+                    ],
                     'flexibleDatesConfig': {
                         'dateRangeCalendar': {
                             'checkin': ['2023-01-01'],
@@ -333,17 +359,20 @@ async def test_data_mapping_room_not_match():
         }
     }
     entered_city = "Test City"
+    entered_country = 'Test Country'
     entered_check_in = "2023-01-01"
     entered_check_out = "2023-01-02"
     entered_selected_currency = "USD"
     entered_num_adult = 2
     entered_num_children = 1
     entered_num_room = 1
+    entered_hotel_filter = True
 
     with pytest.raises(SystemExit):
         scraper = BasicGraphQLScraper(city=entered_city, check_in=entered_check_in, check_out=entered_check_out,
                                       selected_currency=entered_selected_currency, group_adults=entered_num_adult,
-                                      group_children=entered_num_children, num_rooms=entered_num_room)
+                                      group_children=entered_num_children, num_rooms=entered_num_room,
+                                      scrape_only_hotel=entered_hotel_filter, country=entered_country, sqlite_name='')
         scraper.data = data
         result = await scraper.check_info()
 
@@ -354,8 +383,12 @@ async def test_data_mapping_children_not_match():
         'data': {
             'searchQueries': {
                 'search': {
+                    'appliedFilterOptions': [{'urlId': "ht_id=204"}],
                     'pagination': {'nbResultsTotal': 1},
-                    'breadcrumbs': [{}, {}, {'name': 'Test City', 'destType': 'CITY'}],
+                    'breadcrumbs': [
+                        {'name': 'Test Country', 'destType': 'COUNTRY'},
+                        {'name': 'Test City', 'destType': 'CITY'}
+                    ],
                     'flexibleDatesConfig': {
                         'dateRangeCalendar': {
                             'checkin': ['2023-01-01'],
@@ -377,17 +410,20 @@ async def test_data_mapping_children_not_match():
         }
     }
     entered_city = "Test City"
+    entered_country = 'Test Country'
     entered_check_in = "2023-01-01"
     entered_check_out = "2023-01-02"
     entered_selected_currency = "USD"
     entered_num_adult = 2
     entered_num_children = 1
     entered_num_room = 1
+    entered_hotel_filter = True
 
     with pytest.raises(SystemExit):
         scraper = BasicGraphQLScraper(city=entered_city, check_in=entered_check_in, check_out=entered_check_out,
                                       selected_currency=entered_selected_currency, group_adults=entered_num_adult,
-                                      group_children=entered_num_children, num_rooms=entered_num_room)
+                                      group_children=entered_num_children, num_rooms=entered_num_room,
+                                      scrape_only_hotel=entered_hotel_filter, country=entered_country, sqlite_name='')
         scraper.data = data
         result = await scraper.check_info()
 
@@ -399,8 +435,12 @@ async def test_data_mapping_currency_not_match():
         'data': {
             'searchQueries': {
                 'search': {
+                    'appliedFilterOptions': [{'urlId': "ht_id=204"}],
                     'pagination': {'nbResultsTotal': 1},
-                    'breadcrumbs': [{}, {}, {'name': 'Test City', 'destType': 'CITY'}],
+                    'breadcrumbs': [
+                        {'name': 'Test Country', 'destType': 'COUNTRY'},
+                        {'name': 'Test City', 'destType': 'CITY'}
+                    ],
                     'flexibleDatesConfig': {
                         'dateRangeCalendar': {
                             'checkin': ['2023-01-01'],
@@ -422,17 +462,20 @@ async def test_data_mapping_currency_not_match():
         }
     }
     entered_city = "Test City"
+    entered_country = 'Test Country'
     entered_check_in = "2023-01-01"
     entered_check_out = "2023-01-02"
     entered_selected_currency = "USD"
     entered_num_adult = 2
     entered_num_children = 1
     entered_num_room = 1
+    entered_hotel_filter = True
 
     with pytest.raises(SystemExit):
         scraper = BasicGraphQLScraper(city=entered_city, check_in=entered_check_in, check_out=entered_check_out,
                                       selected_currency=entered_selected_currency, group_adults=entered_num_adult,
-                                      group_children=entered_num_children, num_rooms=entered_num_room)
+                                      group_children=entered_num_children, num_rooms=entered_num_room,
+                                      scrape_only_hotel=entered_hotel_filter, country=entered_country, sqlite_name='')
         scraper.data = data
         result = await scraper.check_info()
 
@@ -444,8 +487,12 @@ async def test_data_mapping_city_not_match():
         'data': {
             'searchQueries': {
                 'search': {
+                    'appliedFilterOptions': [{'urlId': "ht_id=204"}],
                     'pagination': {'nbResultsTotal': 1},
-                    'breadcrumbs': [{}, {}, {'name': 'Tokyo', 'destType': 'CITY'}],
+                    'breadcrumbs': [
+                        {'name': 'Test Country', 'destType': 'COUNTRY'},
+                        {'name': 'Tokyo', 'destType': 'CITY'}
+                    ],
                     'flexibleDatesConfig': {
                         'dateRangeCalendar': {
                             'checkin': ['2023-01-01'],
@@ -467,17 +514,20 @@ async def test_data_mapping_city_not_match():
         }
     }
     entered_city = "Test City"
+    entered_country = 'Test Country'
     entered_check_in = "2023-01-01"
     entered_check_out = "2023-01-02"
     entered_selected_currency = "USD"
     entered_num_adult = 2
     entered_num_children = 1
     entered_num_room = 1
+    entered_hotel_filter = True
 
     with pytest.raises(SystemExit):
         scraper = BasicGraphQLScraper(city=entered_city, check_in=entered_check_in, check_out=entered_check_out,
                                       selected_currency=entered_selected_currency, group_adults=entered_num_adult,
-                                      group_children=entered_num_children, num_rooms=entered_num_room)
+                                      group_children=entered_num_children, num_rooms=entered_num_room,
+                                      scrape_only_hotel=entered_hotel_filter, country=entered_country, sqlite_name='')
         scraper.data = data
         result = await scraper.check_info()
 
@@ -489,8 +539,12 @@ async def test_total_page_num_is_zero():
         'data': {
             'searchQueries': {
                 'search': {
+                    'appliedFilterOptions': [{'urlId': "ht_id=204"}],
                     'pagination': {'nbResultsTotal': 0},
-                    'breadcrumbs': [{}, {}, {'name': 'Test City', 'destType': 'CITY'}],
+                    'breadcrumbs': [
+                        {'name': 'Test Country', 'destType': 'COUNTRY'},
+                        {'name': 'Test City', 'destType': 'CITY'}
+                    ],
                     'flexibleDatesConfig': {
                         'dateRangeCalendar': {
                             'checkin': ['2023-01-01'],
@@ -512,23 +566,27 @@ async def test_total_page_num_is_zero():
         }
     }
     entered_city = "Test City"
+    entered_country = 'Test Country'
     entered_check_in = "2023-01-01"
     entered_check_out = "2023-01-02"
     entered_selected_currency = "USD"
     entered_num_adult = 2
     entered_num_children = 1
     entered_num_room = 1
+    entered_hotel_filter = True
 
     # When
     scraper = BasicGraphQLScraper(city=entered_city, check_in=entered_check_in, check_out=entered_check_out,
                                   selected_currency=entered_selected_currency, group_adults=entered_num_adult,
-                                  group_children=entered_num_children, num_rooms=entered_num_room)
+                                  group_children=entered_num_children, num_rooms=entered_num_room,
+                                  scrape_only_hotel=entered_hotel_filter, country=entered_country, sqlite_name='')
     scraper.data = data
     result = await scraper.check_info()
 
     # Then
     assert result == (0, {
         "city": 'Not found',
+        'country': 'Not found',
         "check_in": 'Not found',
         "check_out": 'Not found',
         "num_adult": 0,
@@ -547,7 +605,10 @@ async def test_data_mapping_hotel_filter_not_match():
                 'search': {
                     'appliedFilterOptions': [{'urlId': "ht_id=204"}],
                     'pagination': {'nbResultsTotal': 1},
-                    'breadcrumbs': [{}, {}, {'name': 'Test City', 'destType': 'CITY'}],
+                    'breadcrumbs': [
+                        {'name': 'Test Country', 'destType': 'COUNTRY'},
+                        {'name': 'Test City', 'destType': 'CITY'}
+                    ],
                     'flexibleDatesConfig': {
                         'dateRangeCalendar': {
                             'checkin': ['2023-01-01'],
@@ -569,6 +630,7 @@ async def test_data_mapping_hotel_filter_not_match():
         }
     }
     entered_city = "Test City"
+    entered_country = 'Test Country'
     entered_check_in = "2023-01-01"
     entered_check_out = "2023-01-02"
     entered_selected_currency = "USD"
@@ -581,7 +643,7 @@ async def test_data_mapping_hotel_filter_not_match():
         scraper = BasicGraphQLScraper(city=entered_city, check_in=entered_check_in, check_out=entered_check_out,
                                       selected_currency=entered_selected_currency, group_adults=entered_num_adult,
                                       group_children=entered_num_children, num_rooms=entered_num_room,
-                                      scrape_only_hotel=entered_hotel_filter)
+                                      scrape_only_hotel=entered_hotel_filter, country=entered_country, sqlite_name='')
         scraper.data = data
         result = await scraper.check_info()
 

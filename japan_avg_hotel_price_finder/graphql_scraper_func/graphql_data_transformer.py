@@ -41,3 +41,6 @@ def transform_data_in_df(check_in, city, dataframe) -> pd.DataFrame:
     else:
         main_logger.warning("Dataframe is empty. No data was scraped.")
         return dataframe
+
+
+

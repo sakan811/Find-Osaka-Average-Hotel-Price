@@ -44,7 +44,7 @@ def get_count_of_date_by_mth_asof_today_query():
     query = '''
         SELECT strftime('%Y-%m', Date) AS Month, count(distinct Date) AS DistinctDateCount, date(AsOf) AS AsOfDate
         FROM HotelPrice
-        WHERE AsOf LIKE date('now') || '%'
+        WHERE AsOf LIKE date('now') || '%' and City = ?
         GROUP BY Month;
         '''
     return query
@@ -52,13 +52,13 @@ def get_count_of_date_by_mth_asof_today_query():
 
 def get_dates_of_each_month_asof_today_query():
     """
-    Query dates of each month, where the AsOf is today, UTC Time.
+    Query dates of the given month, where the AsOf is today, UTC Time.
     returns: SQLite query.
     """
     query = '''
             SELECT strftime('%Y-%m-%d', Date) AS Date, date(AsOf) AS AsOfDate
             FROM HotelPrice
-            WHERE AsOf LIKE date('now') || '%' and Date BETWEEN ? AND ?
+            WHERE AsOf LIKE date('now') || '%' and Date BETWEEN ? AND ? and City = ?
             GROUP BY Date;
             '''
     return query

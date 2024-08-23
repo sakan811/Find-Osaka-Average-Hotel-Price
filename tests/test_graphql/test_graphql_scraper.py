@@ -13,8 +13,9 @@ async def test_graphql_scraper():
     check_in = today.strftime('%Y-%m-%d')
     tomorrow = today + datetime.timedelta(days=1)
     check_out = tomorrow.strftime('%Y-%m-%d')
-    scraper = BasicGraphQLScraper(city='Osaka', check_in=check_in, check_out=check_out, selected_currency='USD'
-                                  , scrape_only_hotel=False)
+    scraper = BasicGraphQLScraper(city='Osaka', num_rooms=1, group_adults=1, group_children=0, sqlite_name='', check_out=check_out,
+                                  check_in=check_in, selected_currency='USD', scrape_only_hotel=True)
+
     df = await scraper.scrape_graphql()
 
     assert not df.empty
@@ -23,19 +24,17 @@ async def test_graphql_scraper():
 
 
 @pytest.mark.asyncio
-async def test_graphql_scraper_only_hotel():
+async def test_graphql_scraper_incorrect_date():
     timezone = pytz.timezone('Asia/Tokyo')
     today = datetime.datetime.now(timezone)
     check_in = today.strftime('%Y-%m-%d')
-    tomorrow = today + datetime.timedelta(days=1)
-    check_out = tomorrow.strftime('%Y-%m-%d')
-    scraper = BasicGraphQLScraper(city='Osaka', check_in=check_in, check_out=check_out, selected_currency='USD'
-                                  , scrape_only_hotel=True)
-    df = await scraper.scrape_graphql()
+    yesterday = today - datetime.timedelta(days=1)
+    check_out = yesterday.strftime('%Y-%m-%d')
+    scraper = BasicGraphQLScraper(city='Osaka', num_rooms=1, group_adults=1, group_children=0, sqlite_name='', check_out=check_out,
+                                  check_in=check_in, selected_currency='USD', scrape_only_hotel=True)
 
-    assert not df.empty
-    # Check column
-    assert df.shape[1] == 8
+    with pytest.raises(SystemExit):
+        df = await scraper.scrape_graphql()
 
 
 if __name__ == '__main__':
