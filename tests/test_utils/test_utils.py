@@ -41,7 +41,7 @@ async def test_scrape_missing_dates() -> None:
 
     with sqlite3.connect(db) as con:
         query = get_count_of_date_by_mth_asof_today_query()
-        result = con.execute(query).fetchall()
+        result = con.execute(query, ('Osaka',)).fetchall()
         for row in result:
             assert row[1] == 3
 
