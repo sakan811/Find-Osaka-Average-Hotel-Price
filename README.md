@@ -23,6 +23,8 @@ Built on top of [Find the Hotel's Average Room Price in Osaka](#find-the-hotels-
 
 [![Scrape](https://github.com/sakan811/Find-Osaka-Average-Hotel-Price/actions/workflows/scrape.yml/badge.svg)](https://github.com/sakan811/Find-Osaka-Average-Hotel-Price/actions/workflows/scrape.yml)
 
+[![Scrape Japan Hotel](https://github.com/sakan811/Find-Osaka-Average-Hotel-Price/actions/workflows/scrape-japan-hotels.yml/badge.svg)](https://github.com/sakan811/Find-Osaka-Average-Hotel-Price/actions/workflows/scrape-japan-hotels.yml)
+
 ## Visualizations
 ### Average Room Price in Osaka: 
 
