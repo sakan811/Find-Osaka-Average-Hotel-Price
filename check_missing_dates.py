@@ -75,6 +75,10 @@ async def scrape_missing_dates(missing_dates: list[str] = None, is_test: bool = 
             check_out_date_obj = datetime.datetime.strptime(check_in, '%Y-%m-%d') + datetime.timedelta(days=1)
             check_out = check_out_date_obj.strftime('%Y-%m-%d')
 
+            if param_dict is None:
+                main_logger.warning('The parameter dictionary which contains parameters for scraper is None. '
+                                    'Please parse it to this function.')
+
             city = param_dict['city']
             group_adults = param_dict['group_adults']
             group_children = param_dict['group_children']
