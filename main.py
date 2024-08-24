@@ -5,7 +5,7 @@ from japan_avg_hotel_price_finder.graphql_scraper import BasicGraphQLScraper
 from japan_avg_hotel_price_finder.utils import save_scraped_data
 from japan_avg_hotel_price_finder.whole_mth_graphql_scraper import WholeMonthGraphQLScraper
 from japan_avg_hotel_price_finder.configure_logging import main_logger
-from japan_hotel_scraper import JapanScraper
+from japan_avg_hotel_price_finder.japan_hotel_scraper import JapanScraper
 
 # Initialize argument parser
 parser = argparse.ArgumentParser(description='Parser that control which kind of scraper to use.')
@@ -42,25 +42,25 @@ def validate_required_args(required_args: list[argparse.Namespace], arg_names: l
     return True
 
 
-def main(args: argparse.Namespace) -> None:
+def main(arguments: argparse.Namespace) -> None:
     # Set default parameters
-    country = args.country
-    nights = args.nights
-    scrape_only_hotel = args.scrape_only_hotel
-    selected_currency = args.selected_currency
-    start_day = args.start_day
-    group_adults = args.group_adults
-    num_rooms = args.num_rooms
-    group_children = args.group_children
-    sqlite_name = args.sqlite_name
-    duckdb_name = args.duckdb_name
+    country = arguments.country
+    nights = arguments.nights
+    scrape_only_hotel = arguments.scrape_only_hotel
+    selected_currency = arguments.selected_currency
+    start_day = arguments.start_day
+    group_adults = arguments.group_adults
+    num_rooms = arguments.num_rooms
+    group_children = arguments.group_children
+    sqlite_name = arguments.sqlite_name
+    duckdb_name = arguments.duckdb_name
 
-    if args.whole_mth:
-        required_args = [args.year, args.month, args.city, args.country]
+    if arguments.whole_mth:
+        required_args = [arguments.year, arguments.month, arguments.city, arguments.country]
         if validate_required_args(required_args, ['--year', '--month', '--city', '--country']):
-            year = args.year
-            month = args.month
-            city = args.city
+            year = arguments.year
+            month = arguments.month
+            city = arguments.city
 
             scraper = WholeMonthGraphQLScraper(city=city, year=year, month=month, start_day=start_day,
                                                nights=nights,
@@ -74,7 +74,7 @@ def main(args: argparse.Namespace) -> None:
 
             save_scraped_data(dataframe=df, db=scraper.sqlite_name)
 
-    elif args.japan_hotel:
+    elif arguments.japan_hotel:
         scraper = JapanScraper(city='', year=2024, month=1, start_day=start_day, nights=nights,
                                scrape_only_hotel=scrape_only_hotel, sqlite_name='',
                                selected_currency=selected_currency, group_adults=group_adults, num_rooms=num_rooms,
@@ -83,11 +83,11 @@ def main(args: argparse.Namespace) -> None:
         asyncio.run(scraper.scrape_japan_hotels())
 
     else:
-        required_args = [args.check_in, args.check_out, args.city, args.country]
+        required_args = [arguments.check_in, arguments.check_out, arguments.city, arguments.country]
         if validate_required_args(required_args, ['--check_in', '--check_out', '--city', '--country']):
-            check_in = args.check_in
-            check_out = args.check_out
-            city = args.city
+            check_in = arguments.check_in
+            check_out = arguments.check_out
+            city = arguments.city
 
             scraper = BasicGraphQLScraper(city=city, scrape_only_hotel=scrape_only_hotel, sqlite_name=sqlite_name,
                                           selected_currency=selected_currency, group_adults=group_adults,

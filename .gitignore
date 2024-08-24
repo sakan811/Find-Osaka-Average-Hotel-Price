@@ -185,3 +185,4 @@ cython_debug/
 /proto/local_code.ipynb
 /proto/
 **/*.duckdb
+/qodana.yaml

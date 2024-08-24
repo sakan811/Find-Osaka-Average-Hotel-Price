@@ -23,8 +23,6 @@ Built on top of [Find the Hotel's Average Room Price in Osaka](#find-the-hotels-
 
 [![Scrape](https://github.com/sakan811/Find-Osaka-Average-Hotel-Price/actions/workflows/scrape.yml/badge.svg)](https://github.com/sakan811/Find-Osaka-Average-Hotel-Price/actions/workflows/scrape.yml)
 
-[![Scrape Japan Hotel](https://github.com/sakan811/Find-Osaka-Average-Hotel-Price/actions/workflows/scrape-japan-hotels.yml/badge.svg)](https://github.com/sakan811/Find-Osaka-Average-Hotel-Price/actions/workflows/scrape-japan-hotels.yml)
-
 ## Visualizations
 ### Average Room Price in Osaka: 
 
@@ -52,13 +50,6 @@ Consists of **Basic GraphQL** and **Whole-Month GraphQL** scraper.
 
 These scrapers can also be used to scrape data from other cities in Japan.
 
-#### Collected Data:
-[Osaka Hotel Room Price Record](https://drive.google.com/file/d/1NE0zhRcm1Y8PCpsoY5H5fSsTXu01nF10/view?usp=sharing)
-- 8,511,577 rows
-
-[Osaka Average Nightly Room Price by Date](https://drive.google.com/file/d/1oNuFmVIyX3wPSSt4a9i0wpbFYWAyTcYk/view?usp=sharing)
-- 230 rows
-
 ### Find the Hotel's Average Room Price in Japan Project
 
 Collect **Japan hotel** property data for all **Prefectures** from Booking.com
@@ -67,7 +58,8 @@ Data collecting dates: 23 Aug 2024.
 
 Use **Japan GraphQL** scraper to scrape data.
 
-Data was collected daily using GitHub action.
+## Collected Data Archive
+[Click here](docs/DATA.md) to access a document about collected data.
 
 ## To scrape hotel data
 ### Setup Project

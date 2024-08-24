@@ -37,7 +37,7 @@ async def test_scrape_missing_dates() -> None:
     second_missing_date = f'{year}-{month_str}-11'
     third_missing_date = f'{year}-{month_str}-20'
     missing_dates = [first_missing_date, second_missing_date, third_missing_date]
-    await scrape_missing_dates(missing_dates=missing_dates, is_test=True, test_db=db, param_dict=param_dict)
+    await scrape_missing_dates(missing_dates_list=missing_dates, is_test=True, test_db=db, param_dictionary=param_dict)
 
     with sqlite3.connect(db) as con:
         query = get_count_of_date_by_mth_asof_today_query()

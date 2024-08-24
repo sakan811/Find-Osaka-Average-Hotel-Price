@@ -2,7 +2,11 @@ import logging
 import os
 
 
-def configure_logging_with_file(log_dir: str, log_file: str, logger_name: str = 'root', level: str = 'DEBUG') -> None | logging.Logger:
+def configure_logging_with_file(
+        log_dir: str,
+        log_file: str,
+        logger_name: str = 'root',
+        level: str = 'DEBUG') -> None | logging.Logger:
     """
     Configure logging with a file.
     :param log_dir: Directory where log files are located.
