@@ -48,11 +48,8 @@
 ## Automated Hotel Scraper
 - Use [automated_scraper.py](automated_scraper.py)
 - Automated with GitHub Action
-- Consists of 2 scrapers:
-  - Scraper that scrapes Osaka hotel data daily for all 12 months.
-    - Save data to CSV for each month.
-  - Scraper that scrapes Japan hotels data for all city.
-    - Save to CSV for each month by city.
+- Scraper that scrapes Osaka hotel data daily for all 12 months.
+  - Save data to CSV for each month.
 - Save CSV to Google Cloud Storage.
 
 
