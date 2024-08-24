@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 from japan_avg_hotel_price_finder.configure_logging import main_logger
 from japan_avg_hotel_price_finder.whole_mth_graphql_scraper import WholeMonthGraphQLScraper
-from japan_hotel_scraper import JapanScraper
+from japan_avg_hotel_price_finder.japan_hotel_scraper import JapanScraper
 
 # Initialize argument parser
 parser = argparse.ArgumentParser(description='Parser that control which kind of scraper to use.')
