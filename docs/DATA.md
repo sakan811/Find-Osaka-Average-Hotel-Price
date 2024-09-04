@@ -4,6 +4,10 @@
 - [Year 2024](#2024)
 
 # 2024
+Data **collecting period**: 16 May 2024 to 23 Aug 2024.
+
+Consists of room price from **16 May 2024** to **31 Dec 2024**.
+
 ## Average Room Price in Osaka: 
 [Osaka Hotel Room Price Record](https://drive.google.com/file/d/1NE0zhRcm1Y8PCpsoY5H5fSsTXu01nF10/view?usp=sharing)
 - 8,511,577 rows

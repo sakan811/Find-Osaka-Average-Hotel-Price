@@ -38,7 +38,8 @@ if __name__ == '__main__':
     if not args.month:
         main_logger.warning('Please specify month to scrape data with --month argument')
     else:
-        scraper = AutomatedScraper(city='Osaka', year=2024, month=args.month, start_day=1, check_in='',
+        year = 2025
+        scraper = AutomatedScraper(city='Osaka', year=year, month=args.month, start_day=1, check_in='',
                                    check_out='', group_adults=1, group_children=0, num_rooms=1, nights=1,
                                    selected_currency='USD', sqlite_name='', scrape_only_hotel=True,
                                    country='Japan')

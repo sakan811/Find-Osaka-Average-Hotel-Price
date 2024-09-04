@@ -45,9 +45,9 @@ Built on top of [Find the Hotel's Average Room Price in Osaka](#find-the-hotels-
 ### Find the Hotel's Average Room Price in Osaka Project
 Collect **Osaka hotel** property data from Booking.com
 
-Data **collecting period**: 16 May 2024 to 23 Aug 2024.
+Data **collecting period** for Year 2025: 
 
-Consists of room price from **16 May 2024** to **31 Dec 2024**.
+Consists of room price from 
 
 Data was collected daily using GitHub action.
 
