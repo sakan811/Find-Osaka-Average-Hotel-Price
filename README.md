@@ -25,12 +25,7 @@ Built on top of [Find the Hotel's Average Room Price in Osaka](#find-the-hotels-
 
 ## Visualizations
 ### Average Room Price in Osaka: 
-
-* [Power BI](https://app.powerbi.com/view?r=eyJrIjoiOGFiNzQ1Y2UtZTVlOS00MzkyLTlmN2EtMDY2YWVlNzFiNTIyIiwidCI6ImZlMzViMTA3LTdjMmYtNGNjMy1hZDYzLTA2NTY0MzcyMDg3OCIsImMiOjEwfQ%3D%3D)  
-
-* [Instagram](https://www.instagram.com/p/C_D2a-QAsXD/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==)  
-
-* [Facebook](https://www.facebook.com/permalink.php?story_fbid=pfbid0fV85nZS6PFZF2uke23fx4i2teg4rAoJo22iNHoaBu1r5WM1kpnZgwEnPbVGbiVsyl&id=61553626169836)
+[Click here](docs/VISUALS.md) for visualizations of this project.
 
 ### Average Room Price for all Prefectures in Japan: 
 
@@ -135,6 +130,8 @@ _**Made only for the [Find the Hotel's Average Room Price in Osaka](#find-the-ho
 - Only check the months that were scraped and loaded to the database.
 - The SQLite database can be specified with `--sqlite_name` 
   - Default is `avg_japan_hotel_price_test.db`
+- Year of dates can be specified with `--year`
+  - Default is the current year.
 
 ## Code Base Details 
 [Click here](docs/DOCS.md) to read a brief docs of the scripts.

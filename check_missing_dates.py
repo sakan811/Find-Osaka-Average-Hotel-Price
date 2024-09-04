@@ -59,13 +59,13 @@ def find_missing_dates(dates_in_db: set[str],
 
 
 async def scrape_missing_dates(missing_dates_list: list[str] = None, is_test: bool = False, test_db: str = None,
-                               param_dictionary: dict = None, country: str = 'Japan'):
+                               booking_details_class: 'BookingDetailsParam' = None, country: str = 'Japan'):
     """
     Scrape missing dates with BasicScraper and load them into a database.
     :param missing_dates_list: Missing dates.
     :param is_test: Whether this function is executed for testing purposes.
     :param test_db: Test database, default is None.
-    :param param_dictionary: Dictionary of parameters, default is None.
+    :param booking_details_class: Dataclass of booking details as parameters, default is None.
     :param country: Country where the hotels are located, default is Japan.
     :return: None
     """
@@ -76,17 +76,17 @@ async def scrape_missing_dates(missing_dates_list: list[str] = None, is_test: bo
             check_out_date_obj = datetime.datetime.strptime(check_in, '%Y-%m-%d') + datetime.timedelta(days=1)
             check_out = check_out_date_obj.strftime('%Y-%m-%d')
 
-            if param_dictionary is None:
+            if booking_details_class is None:
                 main_logger.warning('The parameter dictionary which contains parameters for scraper is None. '
                                     'Please parse it to this function.')
 
-            city = param_dictionary['city']
-            group_adults = param_dictionary['group_adults']
-            group_children = param_dictionary['group_children']
-            num_rooms = param_dictionary['num_rooms']
-            selected_currency = param_dictionary['selected_currency']
-            scrape_only_hotel = param_dictionary['scrape_only_hotel']
-            sqlite_name = param_dictionary['sqlite_name']
+            city = booking_details_class.city
+            group_adults = booking_details_class.group_adults
+            group_children = booking_details_class.group_children
+            num_rooms = booking_details_class.num_rooms
+            selected_currency = booking_details_class.selected_currency
+            scrape_only_hotel = booking_details_class.scrape_only_hotel
+            sqlite_name = booking_details_class.sqlite_name
 
             scraper = BasicGraphQLScraper(check_in=check_in, check_out=check_out, city=city, group_adults=group_adults,
                                           group_children=group_children, num_rooms=num_rooms,
@@ -115,13 +115,18 @@ class MissingDateChecker:
     sqlite_name: str
     city: str
 
-    def find_missing_dates_in_db(self) -> list:
+    def find_missing_dates_in_db(self, year: int) -> list:
+        """
+        Find missing dates in the database.
+        :param year: Year of the dates to check whether they are missing.
+        :return: List of missing dates.
+        """
         main_logger.info(f"Checking if all dates were scraped in {self.sqlite_name}...")
         missing_date_list = []
 
         with sqlite3.connect(self.sqlite_name) as con:
-            main_logger.info(
-                f'Get a distinct date count of each month for today scraped data, UTC time, for city {self.city}...')
+            main_logger.info(f'Get a distinct date count of each month for today scraped data, '
+                             f'UTC time, for city {self.city}...')
             query = get_count_of_date_by_mth_asof_today_query()
             cursor = con.execute(query, (self.city,))
             result = cursor.fetchall()
@@ -129,15 +134,16 @@ class MissingDateChecker:
 
             if not result:
                 today = datetime.datetime.now(datetime.timezone.utc).date()
-                main_logger.warning(f"No scraped data for today, {today}, UTC time for city {self.city}.")
+                main_logger.warning(f"No scraped data for today, {today}, UTC time for city {self.city} in"
+                                    f" {self.sqlite_name}.")
                 return missing_date_list
 
             today = datetime.datetime.today()
-            year = today.year
+            year = year
             current_month = today.strftime('%Y-%m')
 
             for row in result:
-                month_str, count = row
+                month_str, count = row[:2]
                 date_obj = datetime.datetime.strptime(month_str, '%Y-%m')
                 month = date_obj.month
                 days_in_month = monthrange(year, month)[1]
@@ -182,6 +188,28 @@ class MissingDateChecker:
         return dates_in_db, end_date, start_date
 
 
+@dataclass
+class BookingDetailsParam:
+    """
+    Data class to store booking details as parameters.
+    Attributes:
+    - city (str): City where the hotels are located.
+    - group_adults (int): Number of Adults.
+    - num_rooms (int): Number of Rooms.
+    - group_children (int): Number of Children.
+    - selected_currency (str): Room price currency.
+    - scrape_only_hotel (bool): Whether to scrape only hotel
+    - sqlite_name (str): Path to SQLite database.
+    """
+    city: str
+    group_adults: int
+    num_rooms: int
+    group_children: int
+    selected_currency: str
+    scrape_only_hotel: bool
+    sqlite_name: str
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Parser to define SQLite database path.')
     parser.add_argument('--sqlite_name', type=str, default='avg_japan_hotel_price_test.db',
@@ -190,22 +218,20 @@ if __name__ == '__main__':
     parser.add_argument('--group_adults', type=int, default=1, help='Number of Adults, default is 1')
     parser.add_argument('--num_rooms', type=int, default=1, help='Number of Rooms, default is 1')
     parser.add_argument('--group_children', type=int, default=0, help='Number of Children, default is 0')
-    parser.add_argument('--selected_currency', type=str, default='USD', help='Room price currency, default is "USD"')
-    parser.add_argument('--scrape_only_hotel', type=bool, default=True, help='Whether to scrape only hotel properties, '
-                                                                             'default is True')
+    parser.add_argument('--selected_currency', type=str, default='USD',
+                        help='Room price currency, default is "USD"')
+    parser.add_argument('--scrape_only_hotel', type=bool, default=True,
+                        help='Whether to scrape only hotel properties, default is True')
+    parser.add_argument('--year', type=int, default=datetime.datetime.today().year,
+                        help='Year of the dates to check whether they are missing, default is the current year.')
     args = parser.parse_args()
 
-    param_dict = {
-        'city': args.city,
-        'group_adults': args.group_adults,
-        'num_rooms': args.num_rooms,
-        'group_children': args.group_children,
-        'selected_currency': args.selected_currency,
-        'scrape_only_hotel': args.scrape_only_hotel,
-        'sqlite_name': args.sqlite_name
-    }
+    booking_details_params = BookingDetailsParam(city=args.city, group_adults=args.group_adults,
+                                                 num_rooms=args.num_rooms, group_children=args.group_children,
+                                                 selected_currency=args.selected_currency,
+                                                 scrape_only_hotel=args.scrape_only_hotel, sqlite_name=args.sqlite_name)
 
     db_path = args.sqlite_name
     missing_date_checker = MissingDateChecker(sqlite_name=db_path, city=args.city)
-    missing_dates = missing_date_checker.find_missing_dates_in_db()
-    asyncio.run(scrape_missing_dates(missing_dates, param_dictionary=param_dict))
+    missing_dates = missing_date_checker.find_missing_dates_in_db(year=args.year)
+    asyncio.run(scrape_missing_dates(missing_dates, booking_details_class=booking_details_params))
