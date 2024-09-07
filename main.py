@@ -44,23 +44,23 @@ def validate_required_args(required_args: list[argparse.Namespace], arg_names: l
 
 def main(arguments: argparse.Namespace) -> None:
     # Set default parameters
-    country = arguments.country
-    nights = arguments.nights
-    scrape_only_hotel = arguments.scrape_only_hotel
-    selected_currency = arguments.selected_currency
-    start_day = arguments.start_day
-    group_adults = arguments.group_adults
-    num_rooms = arguments.num_rooms
-    group_children = arguments.group_children
-    sqlite_name = arguments.sqlite_name
-    duckdb_name = arguments.duckdb_name
+    country: str = arguments.country
+    nights: int = arguments.nights
+    scrape_only_hotel: bool = arguments.scrape_only_hotel
+    selected_currency: str = arguments.selected_currency
+    start_day: int = arguments.start_day
+    group_adults: int = arguments.group_adults
+    num_rooms: int = arguments.num_rooms
+    group_children: int = arguments.group_children
+    sqlite_name: str = arguments.sqlite_name
+    duckdb_name: str = arguments.duckdb_name
 
     if arguments.whole_mth:
         required_args = [arguments.year, arguments.month, arguments.city, arguments.country]
         if validate_required_args(required_args, ['--year', '--month', '--city', '--country']):
-            year = arguments.year
-            month = arguments.month
-            city = arguments.city
+            year: int = arguments.year
+            month: int = arguments.month
+            city: str = arguments.city
 
             scraper = WholeMonthGraphQLScraper(city=city, year=year, month=month, start_day=start_day,
                                                nights=nights,
@@ -83,11 +83,12 @@ def main(arguments: argparse.Namespace) -> None:
         asyncio.run(scraper.scrape_japan_hotels())
 
     else:
-        required_args = [arguments.check_in, arguments.check_out, arguments.city, arguments.country]
+        required_args: list[argparse.Namespace] = [arguments.check_in, arguments.check_out,
+                                                   arguments.city, arguments.country]
         if validate_required_args(required_args, ['--check_in', '--check_out', '--city', '--country']):
-            check_in = arguments.check_in
-            check_out = arguments.check_out
-            city = arguments.city
+            check_in: str = arguments.check_in
+            check_out: str = arguments.check_out
+            city: str = arguments.city
 
             scraper = BasicGraphQLScraper(city=city, scrape_only_hotel=scrape_only_hotel, sqlite_name=sqlite_name,
                                           selected_currency=selected_currency, group_adults=group_adults,

@@ -72,9 +72,9 @@ async def scrape_missing_dates(missing_dates_list: list[str] = None, is_test: bo
     main_logger.info("Scraping missing dates...")
     if missing_dates_list:
         for date in missing_dates_list:
-            check_in = date
+            check_in: str = date
             check_out_date_obj = datetime.datetime.strptime(check_in, '%Y-%m-%d') + datetime.timedelta(days=1)
-            check_out = check_out_date_obj.strftime('%Y-%m-%d')
+            check_out: str = check_out_date_obj.strftime('%Y-%m-%d')
 
             if booking_details_class is None:
                 main_logger.warning('The parameter dictionary which contains parameters for scraper is None. '
@@ -115,7 +115,7 @@ class MissingDateChecker:
     sqlite_name: str
     city: str
 
-    def find_missing_dates_in_db(self, year: int) -> list:
+    def find_missing_dates_in_db(self, year: int) -> list[str]:
         """
         Find missing dates in the database.
         :param year: Year of the dates to check whether they are missing.
@@ -127,7 +127,7 @@ class MissingDateChecker:
         with sqlite3.connect(self.sqlite_name) as con:
             main_logger.info(f'Get a distinct date count of each month for today scraped data, '
                              f'UTC time, for city {self.city}...')
-            query = get_count_of_date_by_mth_asof_today_query()
+            query: str = get_count_of_date_by_mth_asof_today_query()
             cursor = con.execute(query, (self.city,))
             result = cursor.fetchall()
             cursor.close()
@@ -145,10 +145,10 @@ class MissingDateChecker:
             for row in result:
                 month_str, count = row[:2]
                 date_obj = datetime.datetime.strptime(month_str, '%Y-%m')
-                month = date_obj.month
-                days_in_month = monthrange(year, month)[1]
+                month: int = date_obj.month
+                days_in_month: int = monthrange(year, month)[1]
 
-                is_current_month = (month_str == current_month)
+                is_current_month: bool = (month_str == current_month)
                 expected_count = days_in_month - today.day + 1 if is_current_month else days_in_month
 
                 if count == expected_count:
@@ -175,16 +175,16 @@ class MissingDateChecker:
         main_logger.info(f'Get dates of {calendar.month_name[month]} {year} in the database for {self.city}...')
         main_logger.info(f'As of today, UTC time')
 
-        query = get_dates_of_each_month_asof_today_query()
-        start_date = datetime.datetime(year, month, 1).strftime('%Y-%m-%d')
-        end_date = datetime.datetime(year, month, days_in_month).strftime('%Y-%m-%d')
+        query: str = get_dates_of_each_month_asof_today_query()
+        start_date: str = datetime.datetime(year, month, 1).strftime('%Y-%m-%d')
+        end_date: str = datetime.datetime(year, month, days_in_month).strftime('%Y-%m-%d')
 
         with sqlite3.connect(self.sqlite_name) as con:
             cursor = con.execute(query, (start_date, end_date, self.city))
             result = cursor.fetchall()
             cursor.close()
 
-        dates_in_db = set([row[0] for row in result])
+        dates_in_db: set[str] = set([row[0] for row in result])
         return dates_in_db, end_date, start_date
 
 
@@ -231,7 +231,7 @@ if __name__ == '__main__':
                                                  selected_currency=args.selected_currency,
                                                  scrape_only_hotel=args.scrape_only_hotel, sqlite_name=args.sqlite_name)
 
-    db_path = args.sqlite_name
+    db_path: str = args.sqlite_name
     missing_date_checker = MissingDateChecker(sqlite_name=db_path, city=args.city)
-    missing_dates = missing_date_checker.find_missing_dates_in_db(year=args.year)
+    missing_dates: list[str] = missing_date_checker.find_missing_dates_in_db(year=args.year)
     asyncio.run(scrape_missing_dates(missing_dates, booking_details_class=booking_details_params))

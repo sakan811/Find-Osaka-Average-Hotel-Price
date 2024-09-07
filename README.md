@@ -31,9 +31,9 @@ Built on top of [Find the Hotel's Average Room Price in Osaka](#find-the-hotels-
 
 * [Power BI](https://app.powerbi.com/view?r=eyJrIjoiZjIwNWExZTktZTFmYi00YmY2LWE1NmQtYWQ5NWFhMjhmNzM0IiwidCI6ImZlMzViMTA3LTdjMmYtNGNjMy1hZDYzLTA2NTY0MzcyMDg3OCIsImMiOjEwfQ%3D%3D)  
 
-* [Instagram](https://www.instagram.com/p/C_D22aivXKG/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==)  
+* [Instagram](https://www.instagram.com/p/C_nnLTmuB8b/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==)  
 
-* [Facebook](https://www.facebook.com/permalink.php?story_fbid=pfbid0bH9WboMaQh67HpCRU1yvRZ5TJZ5df72hT6WUeCCnpX5Ee1YK7fRNGT2sq91FinnFl&id=61553626169836)
+* [Facebook](https://www.facebook.com/share/p/vAER9MMiZm6anSd2/)
 
 
 ## Project Details
