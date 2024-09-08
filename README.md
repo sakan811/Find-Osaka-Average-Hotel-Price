@@ -136,4 +136,6 @@ _**Made only for the [Find the Hotel's Average Room Price in Osaka](#find-the-ho
 ## Code Base Details 
 [Click here](docs/DOCS.md) to read a brief docs of the scripts.
 
+[Click here](docs/FLOW.md) to see the flowchart of this codebase.
+
 

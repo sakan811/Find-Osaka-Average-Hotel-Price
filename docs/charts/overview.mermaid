@@ -1,0 +1,18 @@
+flowchart TD
+    main([main.py]) --> whole_mth{arguments.whole_mth}
+    whole_mth{Use arguments.whole_mth} -->|No| japan{arguments.japan_hotel}
+    whole_mth{Use arguments.whole_mth} -->|Yes| whole_mth_scraper[Use Whole-Month GraphQL Scraper]
+
+    japan{Use arguments.japan_hotel} --> |No| basic[Use Basic GraphQL Scraper]
+    japan{Use arguments.japan_hotel} --> |Yes| jp_scraper[Use Japan GraphQL Scraper]
+
+    basic[Use Basic GraphQL Scraper] --> scrape_data[Scrape data from GraphQL response]
+    jp_scraper[Use Japan GraphQL Scraper] --> scrape_data[Scrape data from GraphQL response]
+    whole_mth_scraper[Use Whole-Month GraphQL Scraper] --> scrape_data[Scrape data from GraphQL response]
+
+    scrape_data[Scrape data from GraphQL response] --> load_data_decis{Whole-Month or Basic GraphQL Scraper}
+    load_data_decis{Use Whole-Month or Basic GraphQL Scraper} --> |Yes| sqlite[Save data to SQLite]
+    load_data_decis{Use Whole-Month or Basic GraphQL Scraper} --> |No| duckdb[Save data to DuckDB]
+
+    sqlite[Save data to SQLite] --> stop([stop])
+    duckdb[Save data to DuckDB] --> stop([stop])
