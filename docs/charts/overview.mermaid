@@ -1,18 +1,55 @@
 flowchart TD
-    main([main.py]) --> whole_mth{arguments.whole_mth}
-    whole_mth{Use arguments.whole_mth} -->|No| japan{arguments.japan_hotel}
-    whole_mth{Use arguments.whole_mth} -->|Yes| whole_mth_scraper[Use Whole-Month GraphQL Scraper]
+    main([main.py])
+    whole_mth{Use --whole_mth}
+    parse_args[Parse arguments]
+    japan{Use --japan_hotel}
+    basic_arg{Use --scraper}
+    stop([stop])
+    error[Error]
+    check_args{Check if
+                one of the scraper arguments
+                is parsed}
+    check_required_scraper_args{Check whether
+                                required scraper arguments
+                                are parsed}
+    jp_scraper[Use Japan GraphQL Scraper]
 
-    japan{Use arguments.japan_hotel} --> |No| basic[Use Basic GraphQL Scraper]
-    japan{Use arguments.japan_hotel} --> |Yes| jp_scraper[Use Japan GraphQL Scraper]
+    main --> parse_args
+    parse_args --> check_args
+    check_args -->|No| error
+    check_args -->|Yes| whole_mth
 
-    basic[Use Basic GraphQL Scraper] --> scrape_data[Scrape data from GraphQL response]
-    jp_scraper[Use Japan GraphQL Scraper] --> scrape_data[Scrape data from GraphQL response]
-    whole_mth_scraper[Use Whole-Month GraphQL Scraper] --> scrape_data[Scrape data from GraphQL response]
+    whole_mth_scraper[Use Whole-Month GraphQL Scraper]
 
-    scrape_data[Scrape data from GraphQL response] --> load_data_decis{Whole-Month or Basic GraphQL Scraper}
-    load_data_decis{Use Whole-Month or Basic GraphQL Scraper} --> |Yes| sqlite[Save data to SQLite]
-    load_data_decis{Use Whole-Month or Basic GraphQL Scraper} --> |No| duckdb[Save data to DuckDB]
+    whole_mth -->|No| japan
+    whole_mth -->|Yes| whole_mth_scraper
 
-    sqlite[Save data to SQLite] --> stop([stop])
-    duckdb[Save data to DuckDB] --> stop([stop])
+    basic[Use Basic GraphQL Scraper]
+
+    japan --> |No| basic_arg
+    basic_arg --> |Yes| basic
+    basic_arg --> |No| error
+    error --> stop
+
+    japan --> |Yes| jp_scraper
+
+    scrape_data[Scrape data from GraphQL response]
+    basic[Use Basic GraphQL Scraper]
+    jp_scraper[Use Japan GraphQL Scraper]
+    whole_mth_scraper[Use Whole-Month GraphQL Scraper]
+
+    basic --> check_required_scraper_args
+    jp_scraper --> check_required_scraper_args
+    whole_mth_scraper --> check_required_scraper_args
+    check_required_scraper_args --> |Yes| scrape_data
+    check_required_scraper_args --> |No| error
+
+    load_data_decis{Use Whole-Month
+                    or Basic GraphQL Scraper}
+
+    scrape_data[Scrape data from GraphQL response] --> load_data_decis
+    load_data_decis --> |Yes| sqlite[Save data to SQLite]
+    load_data_decis --> |No| duckdb[Save data to DuckDB]
+
+    sqlite[Save data to SQLite] --> stop
+    duckdb[Save data to DuckDB] --> stop

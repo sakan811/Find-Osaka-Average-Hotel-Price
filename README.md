@@ -78,7 +78,7 @@ Use **Japan GraphQL** scraper to scrape data.
 ### To scrape using Whole-Month GraphQL Scraper:
 - Example usage, with only required arguments for Whole-Month GraphQL Scraper:
   ```bash
-  python main.py --whole_mth=True --year=2024 --month=12 --city=Osaka
+  python main.py --whole_mth --year=2024 --month=12 --city=Osaka
   ```
 - Scrape data start from the given day of the month to the end of the same month.
   - Default **start day** is 1.
@@ -91,7 +91,7 @@ Use **Japan GraphQL** scraper to scrape data.
 ### To scrape using Basic GraphQL Scraper:
 - Example usage, with only required arguments for Basic GraphQL Scraper:
   ```bash
-  python main.py --city=Osaka --check_in=2024-12-25 --check_out=2024-12-26
+  python main.py --city=Osaka --check_in=2024-12-25 --check_out=2024-12-26 --scraper
   ```
 - Data is saved to **SQLite**.
   - The SQLite database is created automatically if it doesn't exist.
@@ -101,7 +101,7 @@ Use **Japan GraphQL** scraper to scrape data.
 ### To scrape using Japan GraphQL Scraper:
 - Example usage, with only required arguments for Japan GraphQL Scraper:
   ```bash
-  python main.py --japan_hotel=True
+  python main.py --japan_hotel
   ```
 - Data is saved to **DuckDB**.
   - The DuckDB database is created automatically if it doesn't exist.
