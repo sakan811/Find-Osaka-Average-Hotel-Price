@@ -188,3 +188,4 @@ cython_debug/
 /qodana.yaml
 **/*.pbix
 **/*.pdf
+/back_jp_hotel_data_2025/
