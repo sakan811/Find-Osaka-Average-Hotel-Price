@@ -77,8 +77,7 @@ async def scrape_missing_dates(missing_dates_list: list[str] = None, is_test: bo
             check_out: str = check_out_date_obj.strftime('%Y-%m-%d')
 
             if booking_details_class is None:
-                main_logger.warning('The parameter dictionary which contains parameters for scraper is None. '
-                                    'Please parse it to this function.')
+                main_logger.warning('The BookingDetailsParam class which contains attributes for scraper is None.')
 
             city = booking_details_class.city
             group_adults = booking_details_class.group_adults
