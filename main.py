@@ -1,11 +1,11 @@
 import argparse
 import asyncio
 
+from japan_avg_hotel_price_finder.configure_logging import main_logger
 from japan_avg_hotel_price_finder.graphql_scraper import BasicGraphQLScraper
+from japan_avg_hotel_price_finder.japan_hotel_scraper import JapanScraper
 from japan_avg_hotel_price_finder.utils import save_scraped_data
 from japan_avg_hotel_price_finder.whole_mth_graphql_scraper import WholeMonthGraphQLScraper
-from japan_avg_hotel_price_finder.configure_logging import main_logger
-from japan_avg_hotel_price_finder.japan_hotel_scraper import JapanScraper
 
 
 def parse_arguments() -> argparse.Namespace:
@@ -14,13 +14,17 @@ def parse_arguments() -> argparse.Namespace:
     :return: argparse.Namespace
     """
     parser = argparse.ArgumentParser(description='Parser that controls which kind of scraper to use.')
+
+    # Mutually exclusive scrapers
     scraper_group = parser.add_mutually_exclusive_group(required=True)
     scraper_group.add_argument('--scraper', action='store_true', help='Use basic GraphQL scraper')
     scraper_group.add_argument('--whole_mth', action='store_true', help='Use Whole-Month GraphQL scraper')
     scraper_group.add_argument('--japan_hotel', action='store_true', help='Use Japan Hotel GraphQL scraper')
 
+    # Booking details arguments
     parser.add_argument('--city', type=str, help='City where the hotels are located')
-    parser.add_argument('--country', type=str, help='Country where the hotels are located', default='Japan')
+    parser.add_argument('--country', type=str, help='Country where the hotels are located',
+                        default='Japan')
     parser.add_argument('--check_in', type=str, help='Check-in date')
     parser.add_argument('--check_out', type=str, help='Check-out date')
     parser.add_argument('--group_adults', type=int, default=1, help='Number of Adults, default is 1')
@@ -30,16 +34,40 @@ def parse_arguments() -> argparse.Namespace:
                         help='Room price currency, default is "USD"')
     parser.add_argument('--scrape_only_hotel', action='store_true',
                         help='Whether to scrape only hotel properties')
+
+    # Database paths
     parser.add_argument('--sqlite_name', type=str, default='avg_japan_hotel_price_test.db',
                         help='SQLite database path, default is "avg_japan_hotel_price_test.db"')
     parser.add_argument('--duckdb_name', type=str, default='japan_hotel_data_test.duckdb',
                         help='DuckDB database path, default is "japan_hotel_data_test.duckdb"')
+
+    # Date and Length of Stay arguments
     parser.add_argument('--year', type=int, help='Year to scrape')
     parser.add_argument('--month', type=int, help='Month to scrape')
     parser.add_argument('--start_day', type=int, default=1,
                         help='The day of the month to start scraping from, default is 1')
     parser.add_argument('--nights', type=int, default=1, help='Length of stay, default is 1')
-    return parser.parse_args()
+
+    args = parser.parse_args()
+
+    # Logic to enforce SQLite for basic and whole-month scrapers, and DuckDB for Japan scraper
+    if args.scraper or args.whole_mth:
+        if args.duckdb_name:
+            main_logger.error("Error: DuckDB should not be used with the basic or whole-month scraper.")
+            raise SystemExit
+        if not args.sqlite_name:
+            main_logger.error("Error: SQLite database path must be provided for the basic or whole-month scraper.")
+            raise SystemExit
+
+    if args.japan_hotel:
+        if args.sqlite_name:
+            main_logger.error("Error: SQLite should not be used with the Japan hotel scraper.")
+            raise SystemExit
+        if not args.duckdb_name:
+            main_logger.error("Error: DuckDB database path must be provided for the Japan hotel scraper.")
+            raise SystemExit
+
+    return args
 
 
 def validate_required_args(arguments: argparse.Namespace, required_args: list[str]) -> bool:

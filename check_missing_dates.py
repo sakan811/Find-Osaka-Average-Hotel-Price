@@ -121,45 +121,64 @@ class MissingDateChecker:
         :return: List of missing dates.
         """
         main_logger.info(f"Checking if all dates were scraped in {self.sqlite_name}...")
-        missing_date_list = []
+        missing_date_list: list[str] = []
 
         with sqlite3.connect(self.sqlite_name) as con:
             main_logger.info(f'Get a distinct date count of each month for today scraped data, '
                              f'UTC time, for city {self.city}...')
             query: str = get_count_of_date_by_mth_asof_today_query()
             cursor = con.execute(query, (self.city,))
-            result = cursor.fetchall()
+            count_of_date_by_mth_asof_today_list: list[tuple] = cursor.fetchall()
             cursor.close()
 
-            if not result:
+            if not count_of_date_by_mth_asof_today_list:
                 today = datetime.datetime.now(datetime.timezone.utc).date()
                 main_logger.warning(f"No scraped data for today, {today}, UTC time for city {self.city} in"
                                     f" {self.sqlite_name}.")
                 return missing_date_list
 
             today = datetime.datetime.today()
-            year = year
-            current_month = today.strftime('%Y-%m')
+            year: int = year
+            current_month: str = today.strftime('%Y-%m')
 
-            for row in result:
-                month_str, count = row[:2]
-                date_obj = datetime.datetime.strptime(month_str, '%Y-%m')
-                month: int = date_obj.month
-                days_in_month: int = monthrange(year, month)[1]
-
-                is_current_month: bool = (month_str == current_month)
-                expected_count = days_in_month - today.day + 1 if is_current_month else days_in_month
-
-                if count == expected_count:
-                    main_logger.info(f"All dates of {calendar.month_name[month]} {year} were scraped")
-                else:
-                    main_logger.warning(f"Not all dates of {calendar.month_name[month]} {year} were scraped")
-                    dates_in_db, end_date, start_date = self.find_dates_of_the_month_in_db(days_in_month, month, year)
-                    new_missing_dates = find_missing_dates(dates_in_db, days_in_month, month, year)
-                    missing_date_list.extend(new_missing_dates)
-                    main_logger.warning(f"Missing dates in {start_date} to {end_date}: {new_missing_dates}")
+            self.check_missing_dates(count_of_date_by_mth_asof_today_list, current_month, missing_date_list, today,
+                                     year)
 
         return missing_date_list
+
+    def check_missing_dates(self,
+                            count_of_date_by_mth_asof_today_list: list[tuple],
+                            current_month: str,
+                            missing_date_list: list[str],
+                            today: datetime.datetime,
+                            year: int) -> None:
+        """
+        Check missing dates of each month.
+        :param count_of_date_by_mth_asof_today_list: Count of dates by month as of today as a list of Tuple.
+        :param current_month: Current month.
+        :param missing_date_list: List of missing dates.
+        :param today: Today's date.
+        :param year: Year of the dates to check whether they are missing.
+        :return: None
+        """
+        main_logger.info(f"Check missing dates of each month in the database for {self.city}...")
+        for row in count_of_date_by_mth_asof_today_list:
+            month_str, count = row[:2]
+            date_obj = datetime.datetime.strptime(month_str, '%Y-%m')
+            month: int = date_obj.month
+            days_in_month: int = monthrange(year, month)[1]
+
+            is_current_month: bool = (month_str == current_month)
+            expected_count = days_in_month - today.day + 1 if is_current_month else days_in_month
+
+            if count == expected_count:
+                main_logger.info(f"All dates of {calendar.month_name[month]} {year} were scraped")
+            else:
+                main_logger.warning(f"Not all dates of {calendar.month_name[month]} {year} were scraped")
+                dates_in_db, end_date, start_date = self.find_dates_of_the_month_in_db(days_in_month, month, year)
+                new_missing_dates = find_missing_dates(dates_in_db, days_in_month, month, year)
+                missing_date_list.extend(new_missing_dates)
+                main_logger.warning(f"Missing dates in {start_date} to {end_date}: {new_missing_dates}")
 
     def find_dates_of_the_month_in_db(self, days_in_month, month, year) -> tuple:
         """
@@ -209,8 +228,12 @@ class BookingDetailsParam:
     sqlite_name: str
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Parser to define SQLite database path.')
+def parse_arguments() -> argparse.Namespace:
+    """
+    Parse the command line arguments
+    :return: argparse.Namespace
+    """
+    parser = argparse.ArgumentParser(description='Parser which controls Missing Date Checker.')
     parser.add_argument('--sqlite_name', type=str, default='avg_japan_hotel_price_test.db',
                         help='SQLite database path, default is "avg_japan_hotel_price_test.db"')
     parser.add_argument('--city', type=str, help='City where the hotels are located', required=True)
@@ -223,7 +246,11 @@ if __name__ == '__main__':
                         help='Whether to scrape only hotel properties, default is True')
     parser.add_argument('--year', type=int, default=datetime.datetime.today().year,
                         help='Year of the dates to check whether they are missing, default is the current year.')
-    args = parser.parse_args()
+    return parser.parse_args()
+
+
+if __name__ == '__main__':
+    args = parse_arguments()
 
     booking_details_params = BookingDetailsParam(city=args.city, group_adults=args.group_adults,
                                                  num_rooms=args.num_rooms, group_children=args.group_children,
