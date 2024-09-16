@@ -74,39 +74,37 @@ Use **Japan GraphQL** scraper to scrape data.
   - Go to https://www.whatismybrowser.com/detect/what-is-my-user-agent/
   - Enter your User Agent into your **.env** file:
     - User-Agent ➡ USER_AGENT
+
+### General Guidelines for Using the Scraper
+- To scrape only hotel properties, use `--scrape_only_hotel` argument.
+- The SQLite database is created automatically if it doesn't exist.
+- The DuckDB database is created automatically if it doesn't exist.
     
 ### To scrape using Whole-Month GraphQL Scraper:
 - Example usage, with only required arguments for Whole-Month GraphQL Scraper:
   ```bash
-  python main.py --whole_mth --year=2024 --month=12 --city=Osaka
+  python main.py --whole_mth --year=2024 --month=12 --city=Osaka  \
+                 --sqlite_name=avg_japan_hotel_price_test.db
   ```
 - Scrape data start from the given day of the month to the end of the same month.
   - Default **start day** is 1.
   - **Start day** can be set with `--start_day` argument.
 - Data is saved to **SQLite**.
-  - The SQLite database is created automatically if it doesn't exist.
-  - Default SQLite path is `avg_japan_hotel_price_test.db`.
-  - SQLite path can be set with `--sqlite_name` argument.
 
 ### To scrape using Basic GraphQL Scraper:
 - Example usage, with only required arguments for Basic GraphQL Scraper:
   ```bash
-  python main.py --city=Osaka --check_in=2024-12-25 --check_out=2024-12-26 --scraper
+  python main.py --city=Osaka --check_in=2024-12-25 --check_out=2024-12-26 --scraper \
+                 --sqlite_name=avg_japan_hotel_price_test.db
   ```
 - Data is saved to **SQLite**.
-  - The SQLite database is created automatically if it doesn't exist.
-  - Default SQLite path is `avg_japan_hotel_price_test.db`.
-  - SQLite path can be set with `--sqlite_name` argument.
 
 ### To scrape using Japan GraphQL Scraper:
 - Example usage, with only required arguments for Japan GraphQL Scraper:
   ```bash
-  python main.py --japan_hotel
+  python main.py --japan_hotel --duckdb_name=japan_hotel_data_test.duckdb
   ```
 - Data is saved to **DuckDB**.
-  - The DuckDB database is created automatically if it doesn't exist.
-  - Default DuckDB path is `japan_hotel_data_test.duckdb`.
-  - DuckDB path can be set with `--duckdb_name` argument.
 
 ## Scraper's Arguments
 [Click here](docs/SCRAPER_ARGS.md) for Scraper's arguments details.
