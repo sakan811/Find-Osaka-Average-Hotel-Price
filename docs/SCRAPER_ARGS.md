@@ -1,13 +1,16 @@
 ## Scraper's Arguments
+
 ### `--scraper`
 - **Type**: `bool`
-- **Default**: `True`
-- **Description**: Determines whether to use the basic GraphQL scraper. By default, this is set to `True`.
+- **Description**: Determines whether to use the basic GraphQL scraper.
 
 ### `--whole_mth`
 - **Type**: `bool`
-- **Default**: `False`
-- **Description**: If set to `True`, the Whole-Month GraphQL scraper is used. The default value is `False`.
+- **Description**: If set to `True`, the Whole-Month GraphQL scraper is used.
+
+### `--japan_hotel`
+- **Type**: `bool`
+- **Description**: If set to `True`, the Japan Hotel GraphQL scraper is used.
 
 ### `--city`
 - **Type**: `str`
@@ -15,6 +18,7 @@
 
 ### `--country`
 - **Type**: `str`
+- **Default**: `Japan`
 - **Description**: Specifies the country where the hotels are located. Default is Japan.
 
 ### `--check_in`
@@ -42,18 +46,20 @@
 
 ### `--selected_currency`
 - **Type**: `str`
-- **Default**: `'USD'`
-- **Description**: The currency for the room prices. By default, this is set to `'USD'`.
+- **Default**: `USD`
+- **Description**: The currency for the room prices. By default, this is set to `USD`.
 
 ### `--scrape_only_hotel`
 - **Type**: `bool`
-- **Default**: `True`
-- **Description**: If set to `True`, the scraper will only target hotel properties. The default value is `True`.
+- **Description**: If set to `True`, the scraper will only target hotel properties.
 
 ### `--sqlite_name`
 - **Type**: `str`
-- **Default**: `'avg_japan_hotel_price_test.db'`
-- **Description**: The name of the SQLite database file to use. The default value is `'avg_japan_hotel_price_test.db'`.
+- **Description**: The name of the SQLite database file to use. Only used for Basic and Whole-Month Scraper.
+
+### `--duckdb_name`
+- **Type**: `str`
+- **Description**: The name of the DuckDB database file to use. Only used for Japan Hotel Scraper.
 
 ### `--year`
 - **Type**: `int`
