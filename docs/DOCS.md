@@ -29,7 +29,10 @@
 [utils.py](japan_avg_hotel_price_finder%2Futils.py)
 - Contain utility functions.
 
-### [graphql_scraper_func](japan_avg_hotel_price_finder%2Fgraphql_scraper_func) Package
+[main_argparse.py](..%2Fjapan_avg_hotel_price_finder%2Fmain_argparse.py)
+- Contain argparse configuration for the ```main.py``` script.
+
+## [graphql_scraper_func](japan_avg_hotel_price_finder%2Fgraphql_scraper_func) Package
 [graphql_data_extractor.py](japan_avg_hotel_price_finder%2Fgraphql_scraper_func%2Fgraphql_data_extractor.py)
 - Contain functions related to extracting data for GraphQL scrapers
 
