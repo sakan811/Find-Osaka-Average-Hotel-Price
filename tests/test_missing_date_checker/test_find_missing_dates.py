@@ -17,7 +17,7 @@ def test_find_missing_dates():
 
     dates_in_db = {first_day_of_month, third_day_of_month, fifth_day_of_month}
 
-    result = find_missing_dates(dates_in_db, days_in_month, month, year)
+    result = find_missing_dates(dates_in_db, days_in_month, month, year, today)
 
     expected_missing_dates = []
     for day in range(1, days_in_month + 1):
@@ -50,7 +50,7 @@ def test_find_missing_dates_of_different_months():
         date2 = datetime.date(year, month, 5).strftime('%Y-%m-%d')
 
         dates_in_db = {date1, date2}
-        result += find_missing_dates(dates_in_db, days_in_month, month, year)
+        result += find_missing_dates(dates_in_db, days_in_month, month, year, today)
 
         for day in range(1, days_in_month + 1):
             date_str = datetime.datetime(year, month, day).strftime('%Y-%m-%d')
@@ -69,8 +69,9 @@ def test_handles_empty_set_of_dates():
     year = today.year + 1
 
     # When
-    missing_dates = find_missing_dates(dates_in_db, days_in_month, month, year)
-    expected_missing_dates = [datetime.datetime(year, month, day).strftime('%Y-%m-%d') for day in range(1, days_in_month + 1)]
+    missing_dates = find_missing_dates(dates_in_db, days_in_month, month, year, today)
+    expected_missing_dates = [datetime.datetime(year, month, day).strftime('%Y-%m-%d')
+                              for day in range(1, days_in_month + 1)]
     # The missing dates should be all dates of the given month that are not the dates of the given month in the database
     assert missing_dates == expected_missing_dates
 
@@ -89,7 +90,7 @@ def test_handles_leap_year_feb_missing_dates():
         days_in_month = 28
 
     # When
-    missing_dates = find_missing_dates(dates_in_db, days_in_month, month, year)
+    missing_dates = find_missing_dates(dates_in_db, days_in_month, month, year, today)
 
     expected_missing_dates = []
     for day in range(1, days_in_month + 1):
@@ -102,10 +103,11 @@ def test_handles_leap_year_feb_missing_dates():
 
 
 def test_past_dates_in_db():
+    today = datetime.datetime.today()
     dates_in_db = {'2020-03-01', '2020-03-02', '2020-03-03', '2020-03-04'}
     days_in_month = 31
     month = 3
     year = 2020
-    missing_dates = find_missing_dates(dates_in_db, days_in_month, month, year)
+    missing_dates = find_missing_dates(dates_in_db, days_in_month, month, year, today)
 
     assert missing_dates == []
