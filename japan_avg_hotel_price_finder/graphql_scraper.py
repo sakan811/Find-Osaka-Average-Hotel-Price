@@ -680,8 +680,8 @@ class BasicGraphQLScraper:
         """
         try:
             total_page_num = self.data['data']['searchQueries']['search']['pagination']['nbResultsTotal']
-        except TypeError:
-            main_logger.error("TypeError: Total page number not found.")
+        except (TypeError, KeyError):
+            main_logger.error("Total page number not found.")
             main_logger.error("Return 0 as total page number")
             total_page_num = 0
         return total_page_num
