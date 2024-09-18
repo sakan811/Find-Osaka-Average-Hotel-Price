@@ -1,0 +1,21 @@
+name: Release Drafter
+
+categories:
+  - title: 'Features'
+    labels:
+      - 'feat'
+  - title: 'Bug Fixes'
+    labels:
+      - 'fix'
+  - title: 'Chores'
+    labels:
+      - 'chore'
+  - title: 'Documentation'
+    labels:
+      - 'docs'
+  - title: 'Refactoring'
+    labels:
+      - 'refactor'
+  - title: 'Miscellaneous'
+    labels:
+      - '*'
