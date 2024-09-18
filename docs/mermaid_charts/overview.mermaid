@@ -1,0 +1,52 @@
+---
+title: main.py Overview
+---
+
+flowchart TD
+    main([start])
+    whole_mth{Use --whole_mth}
+    parse_args["Parse command line arguments"]
+    japan{Use --japan_hotel}
+    basic_arg{Use --scraper}
+    stop([stop])
+    error[Error]
+    jp_scraper[Use Japan GraphQL Scraper]
+    basic[Use Basic GraphQL Scraper]
+    whole_mth_scraper[Use Whole-Month GraphQL Scraper]
+
+    scrape_data[Scrape data from GraphQL response]
+    basic[Use Basic GraphQL Scraper]
+    jp_scraper[Use Japan GraphQL Scraper]
+    whole_mth_scraper[Use Whole-Month GraphQL Scraper]
+
+    load_data_decis{Use Whole-Month
+                    or Basic GraphQL Scraper}
+
+    sqlite[Save data to SQLite]
+    duckdb[Save data to DuckDB]
+
+    main --> parse_args
+
+    parse_args --> whole_mth
+
+    whole_mth -->|No| japan
+    whole_mth -->|Yes| whole_mth_scraper
+
+
+    japan --> |No| basic_arg
+    basic_arg --> |Yes| basic
+    basic_arg --> |No| error
+    error --> stop
+
+    japan --> |Yes| jp_scraper
+
+    basic --> scrape_data
+    jp_scraper --> scrape_data
+    whole_mth_scraper --> scrape_data
+
+    scrape_data --> load_data_decis
+    load_data_decis --> |Yes| sqlite
+    load_data_decis --> |No| duckdb
+
+    sqlite --> stop
+    duckdb --> stop

@@ -40,9 +40,9 @@ Built on top of [Find the Hotel's Average Room Price in Osaka](#find-the-hotels-
 ### Find the Hotel's Average Room Price in Osaka Project
 Collect **Osaka hotel** property data from Booking.com
 
-Data **collecting period** for Year 2025: 
+Data **collecting period** for Year 2025: 4 Sep 2024—Present
 
-Consists of room price from 
+Consists of room price from 4 Sep 2024—Present
 
 Data was collected daily using GitHub action.
 
@@ -131,9 +131,19 @@ _**Made only for the [Find the Hotel's Average Room Price in Osaka](#find-the-ho
 - Year of dates can be specified with `--year`
   - Default is the current year.
 
-## Code Base Details 
+## Code Base Details
 [Click here](docs/DOCS.md) to read a brief docs of the scripts.
 
+### Flowchart
 [Click here](docs/FLOW.md) to see the flowchart of this codebase.
-
-
+- Created with [Mermaid.js](https://mermaid.js.org/)
+- To use Mermaid.js:
+  * ```commandline
+    npm install mermaid.cli
+    ```
+- Create `.mermaid` or `.mmd` file.
+- [Click here](https://mermaid.js.org/intro/) to see `Mermaid.js` docs.
+- To export a flowchart, example:
+  * ```commandline
+    mmdc -i docs/mermaid_charts/overview.mermaid -o docs/mermaid_charts/images/overview.svg
+    ```
