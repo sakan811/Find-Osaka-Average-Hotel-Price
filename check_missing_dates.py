@@ -58,13 +58,12 @@ def find_missing_dates(dates_in_db: set[str],
     return missing_dates_list
 
 
-async def scrape_missing_dates(missing_dates_list: list[str] = None, is_test: bool = False, test_db: str = None,
-                               booking_details_class: 'BookingDetailsParam' = None, country: str = 'Japan'):
+async def scrape_missing_dates(missing_dates_list: list[str] = None,
+                               booking_details_class: 'BookingDetailsParam' = None,
+                               country: str = 'Japan') -> None:
     """
     Scrape missing dates with BasicScraper and load them into a database.
     :param missing_dates_list: Missing dates.
-    :param is_test: Whether this function is executed for testing purposes.
-    :param test_db: Test database, default is None.
     :param booking_details_class: Dataclass of booking details as parameters, default is None.
     :param country: Country where the hotels are located, default is Japan.
     :return: None
@@ -93,10 +92,7 @@ async def scrape_missing_dates(missing_dates_list: list[str] = None, is_test: bo
                                           scrape_only_hotel=scrape_only_hotel, sqlite_name=sqlite_name, country=country)
             df = await scraper.scrape_graphql()
 
-            if is_test:
-                save_scraped_data(dataframe=df, db=test_db)
-            else:
-                save_scraped_data(dataframe=df, db=scraper.sqlite_name)
+            save_scraped_data(dataframe=df, db=scraper.sqlite_name)
     else:
         main_logger.warning(f"Missing dates is None. No missing dates to scrape.")
 
