@@ -16,23 +16,18 @@ def find_missing_dates(dates_in_db: set[str],
                        days_in_month: int,
                        month: int,
                        year: int,
-                       timezone=None) -> list[str]:
+                       today: datetime.datetime) -> list[str]:
     """
     Find missing dates of the given month.
-    Only check date from today onward.
     :param dates_in_db: Dates of that month in the database of the current AsOf Date.
                         Date format: '%Y-%m-%d'.
     :param days_in_month: Total days in the given month.
     :param month: Month.
     :param year: Year.
-    :param timezone: Timezone, default is None, mostly for testing purpose.
+    :param today: Datetime object of today, used to find the missing dates.
     :returns: Missing Dates as a list.
     """
     main_logger.info(f"Find missing date of {calendar.month_name[month]} {year}.")
-    if timezone:
-        today: datetime = datetime.datetime.now(timezone)
-    else:
-        today: datetime = datetime.datetime.today()
 
     # convert date string to a date object
     dates_in_db_date_obj: list[datetime] = [datetime.datetime.strptime(date, '%Y-%m-%d').date()
@@ -153,7 +148,7 @@ class MissingDateChecker:
         :param count_of_date_by_mth_asof_today_list: Count of dates by month as of today as a list of Tuple.
         :param current_month: Current month.
         :param missing_date_list: List of missing dates.
-        :param today: Today's date.
+        :param today: Today's date used to check missing dates.
         :param year: Year of the dates to check whether they are missing.
         :return: None
         """
@@ -172,11 +167,11 @@ class MissingDateChecker:
             else:
                 main_logger.warning(f"Not all dates of {calendar.month_name[month]} {year} were scraped")
                 dates_in_db, end_date, start_date = self.find_dates_of_the_month_in_db(days_in_month, month, year)
-                new_missing_dates = find_missing_dates(dates_in_db, days_in_month, month, year)
+                new_missing_dates = find_missing_dates(dates_in_db, days_in_month, month, year, today)
                 missing_date_list.extend(new_missing_dates)
                 main_logger.warning(f"Missing dates in {start_date} to {end_date}: {new_missing_dates}")
 
-    def find_dates_of_the_month_in_db(self, days_in_month, month, year) -> tuple:
+    def find_dates_of_the_month_in_db(self, days_in_month: int, month: int, year: int) -> tuple[set[str], str, str]:
         """
         Find dates of the given month in the Database.
         :param days_in_month: Total days in the given month.
