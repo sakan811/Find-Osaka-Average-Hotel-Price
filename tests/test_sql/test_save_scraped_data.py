@@ -1,7 +1,10 @@
-import pytest
+from unittest.mock import patch
+
 import pandas as pd
-from unittest.mock import patch, MagicMock
+import pytest
+
 from japan_avg_hotel_price_finder.sql.save_to_db import save_scraped_data
+
 
 @pytest.fixture
 def sample_dataframe():
