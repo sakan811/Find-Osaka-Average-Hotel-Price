@@ -1,5 +1,6 @@
 import datetime
 
+import pydantic
 import pytest
 import pytz
 
@@ -35,8 +36,8 @@ async def test_graphql_scraper_incorrect_date():
     scraper = BasicGraphQLScraper(city='Osaka', num_rooms=1, group_adults=1, group_children=0, sqlite_name='', check_out=check_out,
                                   check_in=check_in, selected_currency='USD', scrape_only_hotel=True, country=country)
 
-    with pytest.raises(SystemExit):
-        df = await scraper.scrape_graphql()
+    with pytest.raises(pydantic.ValidationError):
+        await scraper.scrape_graphql()
 
 
 if __name__ == '__main__':

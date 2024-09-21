@@ -1,14 +1,13 @@
 import calendar
-from dataclasses import dataclass, field
 
 import duckdb
 import pandas as pd
+from pydantic import Field
 
 from japan_avg_hotel_price_finder.whole_mth_graphql_scraper import WholeMonthGraphQLScraper
 from japan_avg_hotel_price_finder.configure_logging import main_logger
 
 
-@dataclass
 class JapanScraper(WholeMonthGraphQLScraper):
     """
     Web scraper class for scraping Japan hotel data from every region.
@@ -26,7 +25,7 @@ class JapanScraper(WholeMonthGraphQLScraper):
                     For example, nights = 1 means scraping the hotel with room price for 1 night.
     """
 
-    japan_regions: dict = field(default_factory=lambda: {
+    japan_regions: dict[str, list[str]] = {
         "Hokkaido": ["Hokkaido"],
         "Tohoku": ["Aomori", "Iwate", "Miyagi", "Akita", "Yamagata", "Fukushima"],
         "Kanto": ["Ibaraki", "Tochigi", "Gunma", "Saitama", "Chiba", "Tokyo", "Kanagawa"],
@@ -36,13 +35,13 @@ class JapanScraper(WholeMonthGraphQLScraper):
         "Shikoku": ["Tokushima", "Kagawa", "Ehime", "Kochi"],
         "Kyushu": ["Fukuoka", "Saga", "Nagasaki", "Kumamoto", "Oita", "Miyazaki", "Kagoshima"],
         "Okinawa": ["Okinawa"]
-    })
+    }
 
     duckdb_path: str = ''
     region: str = ''
 
-    start_month: int = 1  # month to start scraping
-    end_month: int = 12  # last month to scrape
+    start_month: int = Field(1, gt=0, le=12)  # month to start scraping
+    end_month: int = Field(12, gt=0, le=12)  # last month to scrape
 
     async def scrape_japan_hotels(self) -> None:
         """
@@ -102,9 +101,9 @@ class JapanScraper(WholeMonthGraphQLScraper):
             conn.register("temp_hotel_data", prefecture_hotel_data)
 
             insert_data_q = '''
-            INSERT INTO JapanHotels (Hotel, Price, Review, "Price/Review", Date, Region, Prefecture, Location, AsOfDate)
-            SELECT Hotel, Price, Review, "Price/Review", temp_hotel_data.Date, Region, City, Location, temp_hotel_data.AsOf 
-            FROM temp_hotel_data
+                INSERT INTO JapanHotels (Hotel, Price, Review, "Price/Review", Date, Region, Prefecture, Location, AsOfDate)
+                SELECT Hotel, Price, Review, "Price/Review", temp_hotel_data.Date, Region, City, Location, temp_hotel_data.AsOf 
+                FROM temp_hotel_data
             '''
             conn.sql(insert_data_q)
 

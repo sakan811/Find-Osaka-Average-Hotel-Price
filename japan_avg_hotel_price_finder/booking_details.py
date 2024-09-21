@@ -1,8 +1,7 @@
-from dataclasses import dataclass
+from pydantic import BaseModel, Field
 
 
-@dataclass
-class BookingDetails:
+class BookingDetails(BaseModel):
     """
     Data class to store booking details.
 
@@ -22,9 +21,9 @@ class BookingDetails:
     country: str = ''
     check_in: str = ''
     check_out: str = ''
-    group_adults: int = 1
-    num_rooms: int = 1
-    group_children: int = 0
+    group_adults: int = Field(1, gt=0)
+    num_rooms: int = Field(1, gt=0)
+    group_children: int = Field(0, ge=0)
     selected_currency: str = ''
     scrape_only_hotel: bool = True
     sqlite_name: str = ''

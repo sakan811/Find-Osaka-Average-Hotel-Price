@@ -91,7 +91,7 @@ async def scrape_missing_dates(missing_dates_list: list[str] = None,
 
             save_scraped_data(dataframe=df, db=scraper.sqlite_name)
     else:
-        main_logger.warning(f"Missing dates is None. No missing dates to scrape.")
+        main_logger.warning("Missing dates is None. No missing dates to scrape.")
 
 
 @dataclass
@@ -184,7 +184,7 @@ class MissingDateChecker:
                 Date format for all values in the Tuple: '%Y-%m-%d'.
         """
         main_logger.info(f'Get dates of {calendar.month_name[month]} {year} in the database for {self.city}...')
-        main_logger.info(f'As of today, UTC time')
+        main_logger.info('As of today, UTC time')
 
         query: str = get_dates_of_each_month_asof_today_query()
         start_date: str = datetime.datetime(year, month, 1).strftime('%Y-%m-%d')

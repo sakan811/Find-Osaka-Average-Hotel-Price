@@ -1,15 +1,14 @@
 import calendar
 import datetime
-from dataclasses import dataclass
 
 import pandas as pd
+from pydantic import Field
 
 from japan_avg_hotel_price_finder.configure_logging import main_logger
 from japan_avg_hotel_price_finder.date_utils.date_utils import check_if_current_date_has_passed
 from japan_avg_hotel_price_finder.graphql_scraper import BasicGraphQLScraper
 
 
-@dataclass
 class WholeMonthGraphQLScraper(BasicGraphQLScraper):
     """
     A dataclass designed to scrape hotel booking details from a GraphQL endpoint for the whole month.
@@ -30,10 +29,10 @@ class WholeMonthGraphQLScraper(BasicGraphQLScraper):
         sqlite_name (str): Name of SQLite database to store the scraped data.
     """
     # Set the start day, month, year, and length of stay
-    year: int = datetime.datetime.now().year
-    month: int = datetime.datetime.now().month
-    start_day: int = 1
-    nights: int = 1
+    year: int = Field(datetime.datetime.now().year, gt=0)
+    month: int = Field(datetime.datetime.now().month, gt=0, le=12)
+    start_day: int = Field(1, gt=0, le=31)
+    nights: int = Field(1, gt=0)
 
     async def scrape_whole_month(self, timezone=None) -> pd.DataFrame:
         """
