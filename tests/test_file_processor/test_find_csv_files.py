@@ -1,4 +1,4 @@
-from japan_avg_hotel_price_finder.utils import find_csv_files
+from japan_avg_hotel_price_finder.file_processor.file_processor import find_csv_files
 
 
 def test_find_csv_files():
