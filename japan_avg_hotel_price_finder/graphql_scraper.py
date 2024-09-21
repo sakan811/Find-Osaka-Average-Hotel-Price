@@ -1,15 +1,27 @@
 import asyncio
+import json
 from dataclasses import dataclass, field
 from typing import Any
 
 import aiohttp
 import pandas as pd
+from aiohttp import ContentTypeError
 
+from japan_avg_hotel_price_finder.booking_details import BookingDetails
 from japan_avg_hotel_price_finder.configure_logging import main_logger
 from japan_avg_hotel_price_finder.graphql_scraper_func.graphql_data_extractor import extract_hotel_data
 from japan_avg_hotel_price_finder.graphql_scraper_func.graphql_data_transformer import transform_data_in_df
 from japan_avg_hotel_price_finder.graphql_scraper_func.graphql_request_func import get_header, fetch_hotel_data
 from japan_avg_hotel_price_finder.graphql_scraper_func.graphql_utils_func import concat_df_list
+
+
+def log_booking_details(booking_details: BookingDetails):
+    """
+    Log the details of the BookingDetails instance for debugging.
+    """
+    for key in booking_details.__annotations__.keys():
+        value = getattr(booking_details, key)
+        main_logger.debug(f'BookingDetails {key}: {value}')
 
 
 @dataclass
@@ -53,11 +65,7 @@ class BasicGraphQLScraper:
         :return: DataFrame containing hotel data from GraphQL endpoint
         """
         main_logger.info("Start scraping data from GraphQL endpoint...")
-
-        main_logger.debug(
-            f"City: {self.city} | Check-in: {self.check_in} | Check-out: {self.check_out} | Currency: {self.selected_currency}")
-        main_logger.debug(f"Adults: {self.group_adults} | Children: {self.group_children} | Rooms: {self.num_rooms}")
-        main_logger.debug(f"Only hotel properties: {self.scrape_only_hotel}")
+        self._log_initial_details()
 
         self.url = f'https://www.booking.com/dml/graphql?selected_currency={self.selected_currency}'
         self.headers = get_header()
@@ -67,24 +75,16 @@ class BasicGraphQLScraper:
             return pd.DataFrame()
 
         graphql_query = self._get_graphql_query()
+        self.data = await self._get_response_data(graphql_query)
 
-        self.data: dict = await self._get_response_data(graphql_query)
-
-        total_page_num, hotel_data_dict = await self.check_info()
+        total_page_num = await self.check_info()
         main_logger.debug(f"Total page number: {total_page_num}")
 
         if not total_page_num:
             main_logger.warning("Total page number not found. Return an empty DataFrame.")
             return pd.DataFrame()
 
-        df_list = []
-        main_logger.info("Scraping data from GraphQL endpoint...")
-
-        results: tuple[Any] = await self._fetch_hotel_data(total_page_num)
-
-        for hotel_data_list in results:
-            if hotel_data_list:
-                extract_hotel_data(df_list, hotel_data_list)
+        df_list = await self._scrape_data_from_endpoint(total_page_num)
 
         if df_list:
             df = concat_df_list(df_list)
@@ -92,6 +92,32 @@ class BasicGraphQLScraper:
         else:
             main_logger.warning("No hotel data was found. Return an empty DataFrame.")
             return pd.DataFrame()
+
+    def _log_initial_details(self) -> None:
+        """
+        Log initial details for debugging.
+        """
+        main_logger.debug(f"City: {self.city} | Check-in: {self.check_in} | Check-out: {self.check_out}")
+        main_logger.debug(f"Currency: {self.selected_currency}")
+        main_logger.debug(f"Adults: {self.group_adults} | Children: {self.group_children} | Rooms: {self.num_rooms}")
+        main_logger.debug(f"Only hotel properties: {self.scrape_only_hotel}")
+
+    async def _scrape_data_from_endpoint(self, total_page_num: int) -> list[Any]:
+        """
+        Scrape data from the GraphQL endpoint.
+        :param total_page_num: Total page number of the hotel data.
+        :return: List of DataFrames containing hotel data.
+        """
+        df_list = []
+        main_logger.info("Scraping data from GraphQL endpoint...")
+
+        results: list[Any] = await self._fetch_hotel_data(total_page_num)
+
+        for hotel_data_list in results:
+            if hotel_data_list:
+                extract_hotel_data(df_list, hotel_data_list)
+
+        return df_list
 
     async def _get_response_data(self, graphql_query: dict) -> dict:
         """
@@ -102,16 +128,23 @@ class BasicGraphQLScraper:
         async with aiohttp.ClientSession() as session:
             async with session.post(self.url, headers=self.headers, json=graphql_query) as response:
                 if response.status == 200:
-                    return await response.json()
+                    try:
+                        return await response.json()
+                    except json.JSONDecodeError as e:
+                        main_logger.error(f"Error: Invalid JSON in response - {str(e)}")
+                        return {}
+                    except ContentTypeError as e:
+                        main_logger.error(f"Error: Unexpected content type - {str(e)}")
+                        return {}
                 else:
-                    main_logger.error(f"Error: {response.status}")
+                    main_logger.error(f"Error: HTTP status {response.status}")
                     return {}
 
-    async def _fetch_hotel_data(self, total_page_num: int) -> tuple[Any]:
+    async def _fetch_hotel_data(self, total_page_num: int) -> list[Any]:
         """
         Scrape hotel data from GraphQL endpoint with Async.
         :param total_page_num: Total page of the hotel data.
-        :return: Hotel data as Tuple.
+        :return: Hotel data as a list.
         """
         async with aiohttp.ClientSession() as session:
             tasks = []
@@ -130,7 +163,7 @@ class BasicGraphQLScraper:
         """
         return all([self.city, self.check_in, self.check_out, self.selected_currency])
 
-    def _get_graphql_query(self, page_offset: int = 0) -> dict:
+    def _get_graphql_query(self, page_offset: int = 0) -> dict[str, Any]:
         """
         Constructs and returns a GraphQL query as a dictionary.
         :param page_offset: The offset for pagination, default is 0.
@@ -526,20 +559,17 @@ class BasicGraphQLScraper:
                             selected_currency_data = block['finalPrice']['currency']
                             break
         except KeyError:
-            main_logger.error('KeyError: Currency data not found')
+            main_logger.error('KeyError: Currency data not found', exc_info=True)
             raise KeyError
-        except IndexError:
-            main_logger.error('IndexError: Currency data not found')
-            raise IndexError
         return selected_currency_data
 
     def _check_city_data(self) -> str:
         """
         Check city data from the GraphQL response and match it with the entered city.
-        :return: Matched city name or None if not found.
+        :return: Matched city name or 'Not Match' if not found.
         """
         main_logger.info("Checking city data from the GraphQL response...")
-        city_data = ''
+        city_data = 'Not Match'
 
         try:
             # Loop through each breadcrumb in the GraphQL response
@@ -555,16 +585,13 @@ class BasicGraphQLScraper:
                     return city_data
 
             # In case no match is found for the entered city
-            if city_data == '':
+            if city_data == 'Not Match':
                 main_logger.warning(f"City '{self.city}' not found in GraphQL breadcrumbs.")
         except KeyError:
             main_logger.error('KeyError: Issue while parsing city data')
             raise KeyError
-        except IndexError:
-            main_logger.error('IndexError: Issue while parsing city data')
-            raise IndexError
 
-        return city_data  # Returns None if no match is found
+        return city_data
 
     def _check_hotel_filter_data(self) -> bool:
         """
@@ -582,9 +609,6 @@ class BasicGraphQLScraper:
                         return True
         except KeyError:
             main_logger.error('KeyError: hotel_filter not found')
-            return False
-        except IndexError:
-            main_logger.error('IndexError: hotel_filter not found')
             return False
 
         return False
@@ -616,16 +640,13 @@ class BasicGraphQLScraper:
         except KeyError:
             main_logger.error('KeyError: Issue while parsing country data')
             raise KeyError
-        except IndexError:
-            main_logger.error('IndexError: Issue while parsing country data')
-            raise IndexError
 
         return country_data  # Returns None if no match is found
 
-    async def check_info(self) -> tuple[int, dict]:
+    async def check_info(self) -> int:
         """
         Check whether the user-entered data matches with the data from GraphQL response.
-        :return: Total page number and hotel data as a dictionary.
+        :return: Total page number.
         """
         main_logger.info('Checking whether entered data matches the data from GraphQL response...')
         total_page_num = await self._find_total_page_num()
@@ -636,42 +657,36 @@ class BasicGraphQLScraper:
             selected_currency_data = self._check_currency_data()
             scrape_only_hotel = self._check_hotel_filter_data()
 
-            data_mapping = {
-                "city": city_data,
-                "country": country_data,
-                "check_in":
-                    self.data['data']['searchQueries']['search']['flexibleDatesConfig']['dateRangeCalendar']['checkin'][
-                        0],
-                "check_out":
-                    self.data['data']['searchQueries']['search']['flexibleDatesConfig']['dateRangeCalendar'][
-                        'checkout'][0],
-                "group_adults": self.data['data']['searchQueries']['search']['searchMeta']['nbAdults'],
-                "group_children": self.data['data']['searchQueries']['search']['searchMeta']['nbChildren'],
-                "num_rooms": self.data['data']['searchQueries']['search']['searchMeta']['nbRooms'],
-                "selected_currency": selected_currency_data,
-                "scrape_only_hotel": scrape_only_hotel
-            }
+            booking_details = BookingDetails(
+                city=city_data,
+                country=country_data,
+                check_in=self.data['data']['searchQueries']['search']['flexibleDatesConfig']['dateRangeCalendar']['checkin'][0],
+                check_out=self.data['data']['searchQueries']['search']['flexibleDatesConfig']['dateRangeCalendar']['checkout'][0],
+                group_adults=self.data['data']['searchQueries']['search']['searchMeta']['nbAdults'],
+                group_children=self.data['data']['searchQueries']['search']['searchMeta']['nbChildren'],
+                num_rooms=self.data['data']['searchQueries']['search']['searchMeta']['nbRooms'],
+                selected_currency=selected_currency_data,
+                scrape_only_hotel=scrape_only_hotel
+            )
 
-            for key, value in data_mapping.items():
+            log_booking_details(booking_details)
+
+            keys_to_check = ['city', 'country', 'check_in', 'check_out', 'group_adults', 'group_children', 'num_rooms',
+                             'selected_currency', 'scrape_only_hotel']
+
+            for key in keys_to_check:
+                value_from_response = getattr(booking_details, key)
                 entered_value = getattr(self, key, None)
                 main_logger.debug(f'Entered Value {key}: {entered_value}')
-                main_logger.debug(f'Response Value {key}: {value}')
-                if entered_value != value:
-                    error_message = f"Error {key.replace('_', ' ').title()} not match: {entered_value} != {value}"
+                main_logger.debug(f'Response Value {key}: {value_from_response}')
+                if entered_value != value_from_response:
+                    error_message = f"Error {key.replace('_', ' ').title()} not match: {entered_value} != {value_from_response}"
                     main_logger.error(error_message)
                     raise SystemExit(error_message)
         else:
-            data_mapping = {
-                "city": 'Not found',
-                "country": 'Not found',
-                "check_in": 'Not found',
-                "check_out": 'Not found',
-                "num_adult": 0,
-                "num_children": 0,
-                "num_room": 0,
-                "selected_currency": 'Not found'
-            }
-        return total_page_num, data_mapping
+            total_page_num = 0
+
+        return total_page_num
 
     async def _find_total_page_num(self) -> int:
         """
