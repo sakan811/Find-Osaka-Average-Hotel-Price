@@ -635,7 +635,7 @@ class BasicGraphQLScraper(BaseModel):
 
             # In case no match is found for the entered city
             if country_data == '':
-                main_logger.warning(f"Country name not found in GraphQL breadcrumbs.")
+                main_logger.warning("Country name not found in GraphQL breadcrumbs.")
         except KeyError:
             main_logger.error('KeyError: Issue while parsing country data')
             raise KeyError

@@ -1,5 +1,4 @@
 import pytest
-from unittest.mock import AsyncMock, patch
 from japan_avg_hotel_price_finder.graphql_scraper import BasicGraphQLScraper
 
 @pytest.fixture
