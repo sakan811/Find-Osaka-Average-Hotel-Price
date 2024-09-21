@@ -8,6 +8,7 @@ from dataclasses import dataclass
 
 from japan_avg_hotel_price_finder.configure_logging import main_logger
 from japan_avg_hotel_price_finder.graphql_scraper import BasicGraphQLScraper
+from japan_avg_hotel_price_finder.booking_details import BookingDetails
 from japan_avg_hotel_price_finder.utils import save_scraped_data, \
     get_count_of_date_by_mth_asof_today_query, get_dates_of_each_month_asof_today_query
 
@@ -54,7 +55,7 @@ def find_missing_dates(dates_in_db: set[str],
 
 
 async def scrape_missing_dates(missing_dates_list: list[str] = None,
-                               booking_details_class: 'BookingDetailsParam' = None,
+                               booking_details_class: 'BookingDetails' = None,
                                country: str = 'Japan') -> None:
     """
     Scrape missing dates with BasicScraper and load them into a database.
@@ -197,28 +198,6 @@ class MissingDateChecker:
         return dates_in_db, end_date, start_date
 
 
-@dataclass
-class BookingDetailsParam:
-    """
-    Data class to store booking details as parameters.
-    Attributes:
-    - city (str): City where the hotels are located.
-    - group_adults (int): Number of Adults.
-    - num_rooms (int): Number of Rooms.
-    - group_children (int): Number of Children.
-    - selected_currency (str): Room price currency.
-    - scrape_only_hotel (bool): Whether to scrape only hotel
-    - sqlite_name (str): Path to SQLite database.
-    """
-    city: str
-    group_adults: int
-    num_rooms: int
-    group_children: int
-    selected_currency: str
-    scrape_only_hotel: bool
-    sqlite_name: str
-
-
 def parse_arguments() -> argparse.Namespace:
     """
     Parse the command line arguments
@@ -243,12 +222,12 @@ def parse_arguments() -> argparse.Namespace:
 if __name__ == '__main__':
     args = parse_arguments()
 
-    booking_details_params = BookingDetailsParam(city=args.city, group_adults=args.group_adults,
-                                                 num_rooms=args.num_rooms, group_children=args.group_children,
-                                                 selected_currency=args.selected_currency,
-                                                 scrape_only_hotel=args.scrape_only_hotel, sqlite_name=args.sqlite_name)
+    booking_details = BookingDetails(city=args.city, group_adults=args.group_adults,
+                                            num_rooms=args.num_rooms, group_children=args.group_children,
+                                            selected_currency=args.selected_currency,
+                                            scrape_only_hotel=args.scrape_only_hotel, sqlite_name=args.sqlite_name)
 
     db_path: str = args.sqlite_name
     missing_date_checker = MissingDateChecker(sqlite_name=db_path, city=args.city)
     missing_dates: list[str] = missing_date_checker.find_missing_dates_in_db(year=args.year)
-    asyncio.run(scrape_missing_dates(missing_dates, booking_details_class=booking_details_params))
+    asyncio.run(scrape_missing_dates(missing_dates, booking_details_class=booking_details))
