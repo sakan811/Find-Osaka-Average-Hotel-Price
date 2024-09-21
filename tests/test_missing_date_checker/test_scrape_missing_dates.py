@@ -3,7 +3,7 @@ import sqlite3
 
 import pytest
 
-from check_missing_dates import scrape_missing_dates, BookingDetailsParam
+from check_missing_dates import scrape_missing_dates, BookingDetails
 from japan_avg_hotel_price_finder.utils import get_count_of_date_by_mth_asof_today_query
 
 
@@ -11,8 +11,8 @@ from japan_avg_hotel_price_finder.utils import get_count_of_date_by_mth_asof_tod
 async def test_scrape_missing_dates() -> None:
     db = 'test_scrape_missing_dates.db'
 
-    booking_details_param = BookingDetailsParam(city='Osaka', group_adults=1, num_rooms=1, group_children=0,
-                                                selected_currency='USD', scrape_only_hotel=True, sqlite_name=db)
+    booking_details_param = BookingDetails(city='Osaka', group_adults=1, num_rooms=1, group_children=0,
+                                           selected_currency='USD', scrape_only_hotel=True, sqlite_name=db)
 
     today = datetime.datetime.today()
     if today.month == 12:

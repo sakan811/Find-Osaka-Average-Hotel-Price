@@ -56,17 +56,7 @@ async def test_returns_correct_total_page_number_and_data_mapping():
     result = await scraper.check_info()
 
     # Then
-    assert result == (1, {
-        "city": "Test City",
-        "country": "Test Country",
-        "check_in": "2023-01-01",
-        "check_out": "2023-01-02",
-        "group_adults": 2,
-        "group_children": 1,
-        "num_rooms": 1,
-        'scrape_only_hotel': False,
-        "selected_currency": "USD"
-    })
+    assert result == 1
 
 
 @pytest.mark.asyncio
@@ -584,16 +574,7 @@ async def test_total_page_num_is_zero():
     result = await scraper.check_info()
 
     # Then
-    assert result == (0, {
-        "city": 'Not found',
-        'country': 'Not found',
-        "check_in": 'Not found',
-        "check_out": 'Not found',
-        "num_adult": 0,
-        "num_children": 0,
-        "num_room": 0,
-        "selected_currency": 'Not found'
-    })
+    assert result == 0
 
 
 @pytest.mark.asyncio
