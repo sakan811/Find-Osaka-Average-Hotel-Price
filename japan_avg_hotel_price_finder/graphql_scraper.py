@@ -1,11 +1,11 @@
 import asyncio
 import json
-from dataclasses import dataclass, field
 from typing import Any
 
 import aiohttp
 import pandas as pd
 from aiohttp import ContentTypeError
+from pydantic import BaseModel, Field
 
 from japan_avg_hotel_price_finder.booking_details import BookingDetails
 from japan_avg_hotel_price_finder.configure_logging import main_logger
@@ -24,8 +24,7 @@ def log_booking_details(booking_details: BookingDetails):
         main_logger.debug(f'BookingDetails {key}: {value}')
 
 
-@dataclass
-class BasicGraphQLScraper:
+class BasicGraphQLScraper(BaseModel):
     """
     A dataclass designed to scrape hotel booking details from a GraphQL endpoint
 
@@ -49,15 +48,15 @@ class BasicGraphQLScraper:
     country: str
     check_in: str
     check_out: str
-    group_adults: int = 1
-    num_rooms: int = 1
-    group_children: int = 0
+    group_adults: int = Field(1, gt=0)
+    num_rooms: int = Field(1, gt=0)
+    group_children: int = Field(0, ge=0)
     selected_currency: str = 'USD'
     scrape_only_hotel: bool = True
 
     url: str = ''
-    headers: dict = field(default_factory=dict)
-    data: dict = field(default_factory=dict)
+    headers: dict = {}
+    data: dict = {}
 
     async def scrape_graphql(self) -> pd.DataFrame:
         """
@@ -119,7 +118,7 @@ class BasicGraphQLScraper:
 
         return df_list
 
-    async def _get_response_data(self, graphql_query: dict) -> dict:
+    async def _get_response_data(self, graphql_query: dict[str, Any]) -> dict[str, Any]:
         """
         Get hotel data from a response with Async.
         :param graphql_query: GraphQL query as a dictionary.
