@@ -104,7 +104,7 @@ async def test_handles_response_with_missing_or_null_fields_gracefully():
                                       group_children=entered_num_children, num_rooms=entered_num_room,
                                       scrape_only_hotel=entered_hotel_filter, country=entered_country, sqlite_name='')
         scraper.data = data
-        result = await scraper.check_info()
+        await scraper.check_info()
 
 
 @pytest.mark.asyncio
@@ -156,7 +156,7 @@ async def test_handles_response_with_currency_is_none():
                                       group_children=entered_num_children, num_rooms=entered_num_room,
                                       scrape_only_hotel=entered_hotel_filter, country=entered_country, sqlite_name='')
         scraper.data = data
-        result = await scraper.check_info()
+        await scraper.check_info()
 
 
 @pytest.mark.asyncio
@@ -208,7 +208,7 @@ async def test_data_mapping_check_in_not_match():
                                       group_children=entered_num_children, num_rooms=entered_num_room,
                                       scrape_only_hotel=entered_hotel_filter, country=entered_country, sqlite_name='')
         scraper.data = data
-        result = await scraper.check_info()
+        await scraper.check_info()
 
 
 @pytest.mark.asyncio
@@ -260,7 +260,7 @@ async def test_data_mapping_check_out_not_match():
                                       group_children=entered_num_children, num_rooms=entered_num_room,
                                       scrape_only_hotel=entered_hotel_filter, country=entered_country, sqlite_name='')
         scraper.data = data
-        result = await scraper.check_info()
+        await scraper.check_info()
 
 
 @pytest.mark.asyncio
@@ -312,7 +312,7 @@ async def test_data_mapping_adult_not_match():
                                       group_children=entered_num_children, num_rooms=entered_num_room,
                                       scrape_only_hotel=entered_hotel_filter, country=entered_country, sqlite_name='')
         scraper.data = data
-        result = await scraper.check_info()
+        await scraper.check_info()
 
 
 @pytest.mark.asyncio
@@ -364,7 +364,7 @@ async def test_data_mapping_room_not_match():
                                       group_children=entered_num_children, num_rooms=entered_num_room,
                                       scrape_only_hotel=entered_hotel_filter, country=entered_country, sqlite_name='')
         scraper.data = data
-        result = await scraper.check_info()
+        await scraper.check_info()
 
 
 @pytest.mark.asyncio
@@ -415,7 +415,7 @@ async def test_data_mapping_children_not_match():
                                       group_children=entered_num_children, num_rooms=entered_num_room,
                                       scrape_only_hotel=entered_hotel_filter, country=entered_country, sqlite_name='')
         scraper.data = data
-        result = await scraper.check_info()
+        await scraper.check_info()
 
 
 @pytest.mark.asyncio
@@ -467,7 +467,7 @@ async def test_data_mapping_currency_not_match():
                                       group_children=entered_num_children, num_rooms=entered_num_room,
                                       scrape_only_hotel=entered_hotel_filter, country=entered_country, sqlite_name='')
         scraper.data = data
-        result = await scraper.check_info()
+        await scraper.check_info()
 
 
 @pytest.mark.asyncio
@@ -519,7 +519,7 @@ async def test_data_mapping_city_not_match():
                                       group_children=entered_num_children, num_rooms=entered_num_room,
                                       scrape_only_hotel=entered_hotel_filter, country=entered_country, sqlite_name='')
         scraper.data = data
-        result = await scraper.check_info()
+        await scraper.check_info()
 
 
 @pytest.mark.asyncio
@@ -626,7 +626,7 @@ async def test_data_mapping_hotel_filter_not_match():
                                       group_children=entered_num_children, num_rooms=entered_num_room,
                                       scrape_only_hotel=entered_hotel_filter, country=entered_country, sqlite_name='')
         scraper.data = data
-        result = await scraper.check_info()
+        await scraper.check_info()
 
 if __name__ == '__main__':
     pytest.main()

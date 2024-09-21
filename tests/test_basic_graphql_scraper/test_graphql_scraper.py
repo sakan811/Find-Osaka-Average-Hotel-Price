@@ -36,7 +36,7 @@ async def test_graphql_scraper_incorrect_date():
                                   check_in=check_in, selected_currency='USD', scrape_only_hotel=True, country=country)
 
     with pytest.raises(SystemExit):
-        df = await scraper.scrape_graphql()
+        await scraper.scrape_graphql()
 
 
 if __name__ == '__main__':
