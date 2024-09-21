@@ -132,8 +132,6 @@ _**Made only for the [Find the Hotel's Average Room Price in Osaka](#find-the-ho
   - Default is the current year.
 
 ## Code Base Details
-[Click here](docs/DOCS.md) to read a brief docs of the scripts.
-
 ### Flowchart
 [Click here](docs/FLOW.md) to see the flowchart of this codebase.
 - Created with [Mermaid.js](https://mermaid.js.org/)
