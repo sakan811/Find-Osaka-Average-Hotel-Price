@@ -1,12 +1,12 @@
 import calendar
 import datetime
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 import pandas as pd
 
 from japan_avg_hotel_price_finder.configure_logging import main_logger
+from japan_avg_hotel_price_finder.date_utils.date_utils import check_if_current_date_has_passed
 from japan_avg_hotel_price_finder.graphql_scraper import BasicGraphQLScraper
-from japan_avg_hotel_price_finder.utils import check_if_current_date_has_passed
 
 
 @dataclass
