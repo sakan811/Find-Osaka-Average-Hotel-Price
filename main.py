@@ -5,7 +5,7 @@ from japan_avg_hotel_price_finder.configure_logging import main_logger
 from japan_avg_hotel_price_finder.graphql_scraper import BasicGraphQLScraper
 from japan_avg_hotel_price_finder.japan_hotel_scraper import JapanScraper
 from japan_avg_hotel_price_finder.main_argparse import parse_arguments
-from japan_avg_hotel_price_finder.utils import save_scraped_data
+from japan_avg_hotel_price_finder.sql.save_to_db import save_scraped_data
 from japan_avg_hotel_price_finder.whole_mth_graphql_scraper import WholeMonthGraphQLScraper
 
 

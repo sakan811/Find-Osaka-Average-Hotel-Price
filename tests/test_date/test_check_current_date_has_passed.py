@@ -2,7 +2,7 @@ import datetime
 
 import pytest
 
-from japan_avg_hotel_price_finder.utils import check_if_current_date_has_passed
+from japan_avg_hotel_price_finder.date_utils.date_utils import check_if_current_date_has_passed
 
 
 def test_check_if_current_date_has_passed():

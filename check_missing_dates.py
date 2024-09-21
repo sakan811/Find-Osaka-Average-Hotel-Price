@@ -9,8 +9,9 @@ from dataclasses import dataclass
 from japan_avg_hotel_price_finder.configure_logging import main_logger
 from japan_avg_hotel_price_finder.graphql_scraper import BasicGraphQLScraper
 from japan_avg_hotel_price_finder.booking_details import BookingDetails
-from japan_avg_hotel_price_finder.utils import save_scraped_data, \
-    get_count_of_date_by_mth_asof_today_query, get_dates_of_each_month_asof_today_query
+from japan_avg_hotel_price_finder.sql.save_to_db import save_scraped_data
+from japan_avg_hotel_price_finder.sql.sql_query import get_count_of_date_by_mth_asof_today_query, \
+    get_dates_of_each_month_asof_today_query
 
 
 def find_missing_dates(dates_in_db: set[str],

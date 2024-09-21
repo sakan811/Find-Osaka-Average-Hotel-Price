@@ -2,7 +2,7 @@ import sqlite3
 
 import pandas as pd
 
-from japan_avg_hotel_price_finder.migrate_to_sqlite import migrate_data_to_sqlite
+from japan_avg_hotel_price_finder.sql.migrate_to_sqlite import migrate_data_to_sqlite
 
 
 def test_successful_connection_to_sqlite():

@@ -4,7 +4,7 @@ import sqlite3
 import pytest
 
 from check_missing_dates import scrape_missing_dates, BookingDetails
-from japan_avg_hotel_price_finder.utils import get_count_of_date_by_mth_asof_today_query
+from japan_avg_hotel_price_finder.sql.sql_query import get_count_of_date_by_mth_asof_today_query
 
 
 @pytest.mark.asyncio
