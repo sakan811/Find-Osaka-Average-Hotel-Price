@@ -2,7 +2,6 @@ import argparse
 import asyncio
 import calendar
 import os
-from dataclasses import dataclass
 
 from japan_avg_hotel_price_finder.configure_logging import main_logger
 from japan_avg_hotel_price_finder.whole_mth_graphql_scraper import WholeMonthGraphQLScraper
@@ -14,7 +13,6 @@ parser.add_argument('--japan', type=bool, default=False, help='Whether to scrape
 args = parser.parse_args()
 
 
-@dataclass
 class AutomatedScraper(WholeMonthGraphQLScraper):
     async def main(self):
         df = await self.scrape_whole_month()
@@ -39,7 +37,7 @@ if __name__ == '__main__':
         main_logger.warning('Please specify month to scrape data with --month argument')
     else:
         year = 2025
-        scraper = AutomatedScraper(city='Osaka', year=year, month=args.month, start_day=1, check_in='',
+        scraper = AutomatedScraper(year=year, month=args.month, start_day=1, check_in='',
                                    check_out='', group_adults=1, group_children=0, num_rooms=1, nights=1,
                                    selected_currency='USD', sqlite_name='', scrape_only_hotel=True,
                                    country='Japan')
