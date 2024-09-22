@@ -40,7 +40,7 @@ if __name__ == '__main__':
         scraper = AutomatedScraper(year=year, month=args.month, start_day=1, check_in='',
                                    check_out='', group_adults=1, group_children=0, num_rooms=1, nights=1,
                                    selected_currency='USD', sqlite_name='', scrape_only_hotel=True,
-                                   country='Japan')
+                                   country='Japan', city='Osaka')
         main_logger.info(f'Setting month to scrape to {args.month} for {scraper.__class__.__name__}...')
 
         asyncio.run(scraper.main())
