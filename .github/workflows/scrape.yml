@@ -23,11 +23,11 @@ jobs:
       - name: Install requirements
         run: pip install -r requirements.txt
 
-      - name: Run Scraper For January
-        run: python automated_scraper.py --month=1
-
-      - name: Run Scraper For February
-        run: python automated_scraper.py --month=2
+#      - name: Run Scraper For January
+#        run: python automated_scraper.py --month=1
+#
+#      - name: Run Scraper For February
+#        run: python automated_scraper.py --month=2
 
       - name: Run Scraper For March
         run: python automated_scraper.py --month=3
