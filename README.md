@@ -1,4 +1,4 @@
-# Find the Hotel's Average Room Price in Osaka 
+# Find the Hotels Average Room Price in Osaka 
 
 Showcase **visualizations** about the hotel's **Average Room Price** in **Osaka**.
 
