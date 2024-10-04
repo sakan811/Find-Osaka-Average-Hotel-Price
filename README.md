@@ -38,25 +38,25 @@ Built on top of [Find the Hotel's Average Room Price in Osaka](#find-the-hotels-
 
 ## Project Details
 ### Find the Hotel's Average Room Price in Osaka Project
-Collect **Osaka hotel** property data from Booking.com
+- Collect **Osaka hotel** property data from Booking.com
 
-Data **collecting period** for Year 2025: 4 Sep 2024—Present
+- Data **collecting period** for Year 2025: 4 Sep 2024—Present
 
-Consists of room price from 4 Sep 2024—Present
+- Consists of room price from 4 Sep 2024—Present
 
-Data was collected daily using GitHub action.
+- Data was collected daily using GitHub action.
 
-Consists of **Basic GraphQL** and **Whole-Month GraphQL** scraper.
+- Consists of **Basic GraphQL** and **Whole-Month GraphQL** scraper.
 
-These scrapers can also be used to scrape data from other cities in Japan.
+- These scrapers can also be used to scrape data from other cities in Japan.
 
 ### Find the Hotel's Average Room Price in Japan Project
 
-Collect **Japan hotel** property data for all **Prefectures** from Booking.com
+- Collect **Japan hotel** property data for all **Prefectures** from Booking.com
 
-Data collecting dates: 23 Aug 2024.
+- Data collecting dates: 23 Aug 2024.
 
-Use **Japan GraphQL** scraper to scrape data.
+- Use **Japan GraphQL** scraper to scrape data.
 
 ## Collected Data Archive
 [Click here](docs/DATA.md) to access a document about collected data.
@@ -114,7 +114,7 @@ Use **Japan GraphQL** scraper to scrape data.
 To ensure that all dates of the month were scraped, a function in
 [check_missing_dates.py](check_missing_dates.py) will check in the given SQLite database to find the missing dates.
 
-_**Made only for the [Find the Hotel's Average Room Price in Osaka](#find-the-hotels-average-room-price-in-osaka-) project
+> _**Made only for the [Find the Hotel's Average Room Price in Osaka](#find-the-hotels-average-room-price-in-osaka-) project
   which saves scraped data in SQLite.**_
 
 - To check in the database, use the following command line as an example, only include required argument:
