@@ -40,8 +40,6 @@ def migrate_data_to_sqlite(df_filtered: pd.DataFrame, db: str) -> None:
 
         main_logger.info(f'Data has been saved to {db}')
 
-        create_average_room_price_by_date_view(db)
-
         create_avg_hotel_room_price_by_date_table(db)
 
         create_avg_room_price_by_review_table(db)
@@ -70,23 +68,6 @@ def get_hotel_price_dtype() -> dict:
         'AsOf': 'text not null'
     }
     return hotel_price_dtype
-
-
-def create_average_room_price_by_date_view(db: str) -> None:
-    """
-    Create AverageRoomPriceByDate view
-    :param db: SQLite database path
-    :return: None
-    """
-    main_logger.info('Create AverageRoomPriceByDate view...')
-    with sqlite3.connect(db) as con:
-        query = '''
-        CREATE VIEW IF NOT EXISTS AverageRoomPriceByDate AS 
-        select Date, avg(Price) as AveragePrice, City
-        from HotelPrice
-        GROUP BY Date
-        '''
-        con.execute(query)
 
 
 def create_avg_hotel_room_price_by_date_table(db: str) -> None:
