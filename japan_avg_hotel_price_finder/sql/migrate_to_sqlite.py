@@ -337,9 +337,9 @@ def create_avg_room_price_by_location(db: str) -> None:
         INSERT INTO AverageHotelRoomPriceByLocation (Location, AveragePrice, AverageRating, AveragePricePerReview)
         SELECT
             Location,
-            AVG(CASE WHEN price_quartile IN (2, 3) THEN Price END) AS IQM_Price,
-            AVG(CASE WHEN review_quartile IN (2, 3) THEN Review END) AS IQM_Rating,
-            AVG(CASE WHEN price_per_review_quartile IN (2, 3) THEN "Price/Review" END) AS IQM_PricePerReview
+            COALESCE(AVG(CASE WHEN price_quartile IN (2, 3) THEN Price END), 0) AS IQM_Price,
+            COALESCE(AVG(CASE WHEN review_quartile IN (2, 3) THEN Review END), 0) AS IQM_Rating,
+            COALESCE(AVG(CASE WHEN price_per_review_quartile IN (2, 3) THEN "Price/Review" END), 0) AS IQM_PricePerReview
         FROM LocationMetrics
         GROUP BY Location;
         '''
