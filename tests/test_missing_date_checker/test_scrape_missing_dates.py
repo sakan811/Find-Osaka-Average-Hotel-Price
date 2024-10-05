@@ -4,7 +4,7 @@ import sqlite3
 import pytest
 
 from check_missing_dates import scrape_missing_dates, BookingDetails
-from japan_avg_hotel_price_finder.sql.sql_query import get_count_of_date_by_mth_asof_today_query
+from japan_avg_hotel_price_finder.sql.sql_query import get_count_of_date_by_mth_as_of_today_query
 
 
 @pytest.mark.asyncio
@@ -33,7 +33,7 @@ async def test_scrape_missing_dates() -> None:
     await scrape_missing_dates(missing_dates_list=missing_dates, booking_details_class=booking_details_param)
 
     with sqlite3.connect(db) as con:
-        query = get_count_of_date_by_mth_asof_today_query()
+        query = get_count_of_date_by_mth_as_of_today_query()
         result = con.execute(query, ('Osaka',)).fetchall()
         for row in result:
             assert row[1] == 3

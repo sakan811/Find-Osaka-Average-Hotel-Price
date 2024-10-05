@@ -10,8 +10,8 @@ from japan_avg_hotel_price_finder.configure_logging import main_logger
 from japan_avg_hotel_price_finder.graphql_scraper import BasicGraphQLScraper
 from japan_avg_hotel_price_finder.booking_details import BookingDetails
 from japan_avg_hotel_price_finder.sql.save_to_db import save_scraped_data
-from japan_avg_hotel_price_finder.sql.sql_query import get_count_of_date_by_mth_asof_today_query, \
-    get_dates_of_each_month_asof_today_query
+from japan_avg_hotel_price_finder.sql.sql_query import get_count_of_date_by_mth_as_of_today_query, \
+    get_dates_of_each_month_as_of_today_query
 
 
 def find_missing_dates(dates_in_db: set[str],
@@ -119,7 +119,7 @@ class MissingDateChecker:
         with sqlite3.connect(self.sqlite_name) as con:
             main_logger.info(f'Get a distinct date count of each month for today scraped data, '
                              f'UTC time, for city {self.city}...')
-            query: str = get_count_of_date_by_mth_asof_today_query()
+            query: str = get_count_of_date_by_mth_as_of_today_query()
             cursor = con.execute(query, (self.city,))
             count_of_date_by_mth_asof_today_list: list[tuple] = cursor.fetchall()
             cursor.close()
@@ -186,7 +186,7 @@ class MissingDateChecker:
         main_logger.info(f'Get dates of {calendar.month_name[month]} {year} in the database for {self.city}...')
         main_logger.info('As of today, UTC time')
 
-        query: str = get_dates_of_each_month_asof_today_query()
+        query: str = get_dates_of_each_month_as_of_today_query()
         start_date: str = datetime.datetime(year, month, 1).strftime('%Y-%m-%d')
         end_date: str = datetime.datetime(year, month, days_in_month).strftime('%Y-%m-%d')
 
