@@ -49,3 +49,15 @@ def format_date(date_obj: datetime.date) -> str:
     except Exception as e:
         main_logger.error(f"Unexpected error: {str(e)}")
         raise Exception(f'Unexpected error: {str(e)}')
+
+
+def calculate_check_out_date(current_date: datetime.date, nights: int) -> datetime.date:
+    """
+    Calculates the check-out date for the current date.
+
+    :param current_date: Current date.
+    :param nights: Number of nights.
+    :return: Check-out date.
+    """
+    check_out_date = current_date + datetime.timedelta(days=nights)
+    return check_out_date

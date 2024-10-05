@@ -6,7 +6,8 @@ import pandas as pd
 from pydantic import Field
 
 from japan_avg_hotel_price_finder.configure_logging import main_logger
-from japan_avg_hotel_price_finder.date_utils.date_utils import check_if_current_date_has_passed, format_date
+from japan_avg_hotel_price_finder.date_utils.date_utils import check_if_current_date_has_passed, format_date, \
+    calculate_check_out_date
 from japan_avg_hotel_price_finder.graphql_scraper import BasicGraphQLScraper
 
 
@@ -63,7 +64,7 @@ class WholeMonthGraphQLScraper(BasicGraphQLScraper):
                 self.check_in: str = format_date(current_date)
                 main_logger.debug(f'Check-in date is {self.check_in}')
 
-                check_out: date = self._calculate_check_out_date(current_date=current_date)
+                check_out: date = calculate_check_out_date(current_date=current_date, nights=self.nights)
                 self.check_out: str = format_date(check_out)
                 main_logger.debug(f'Check-out date is {self.check_out}')
                 main_logger.debug(f'Nights: {self.nights}')
@@ -96,16 +97,6 @@ class WholeMonthGraphQLScraper(BasicGraphQLScraper):
         except Exception as e:
             main_logger.error(f"Unexpected error: {str(e)}")
             raise
-
-    def _calculate_check_out_date(self, current_date: datetime.date) -> date:
-        """
-        Calculates the check-out date for the current date.
-
-        :param current_date: Current date.
-        :return: Check-out date.
-        """
-        check_out_date = current_date + datetime.timedelta(days=self.nights)
-        return check_out_date
 
 
 if __name__ == '__main__':
