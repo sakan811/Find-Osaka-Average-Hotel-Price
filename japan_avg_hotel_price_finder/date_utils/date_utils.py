@@ -40,7 +40,9 @@ def format_date(date_obj: datetime.date) -> str:
     """
     try:
         date_str = date_obj.strftime('%Y-%m-%d')
-        return date_str
+        # Ensure the year is always 4 digits
+        year, month, day = date_str.split('-')
+        return f"{int(year):04d}-{month}-{day}"
     except AttributeError as e:
         main_logger.error(f"Invalid date: {date_obj}. {str(e)}")
         raise AttributeError(f'Invalid date: {date_obj}. {str(e)}')
