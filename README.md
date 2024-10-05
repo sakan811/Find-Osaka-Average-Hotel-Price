@@ -1,4 +1,4 @@
-# Find the Hotel's Average Room Price in Osaka 
+# Find the Hotel's Average Room Price in Osaka
 
 Showcase **visualizations** about the hotel's **Average Room Price** in **Osaka**.
 
@@ -14,7 +14,7 @@ Showcase **visualizations** about the hotel's **Average Room Price** for all **p
 
 Price in **USD**.
 
-Built on top of [Find the Hotel's Average Room Price in Osaka](#find-the-hotels-average-room-price-in-osaka-) project.
+Built on top of [Find the Hotel's Average Room Price in Osaka](#find-the-hotels-average-room-price-in-osaka) project.
 
 ## Status
 [![CodeQL](https://github.com/sakan811/Find-Osaka-Average-Hotel-Price/actions/workflows/codeql.yml/badge.svg)](https://github.com/sakan811/Find-Osaka-Average-Hotel-Price/actions/workflows/codeql.yml)    
@@ -106,6 +106,8 @@ Built on top of [Find the Hotel's Average Room Price in Osaka](#find-the-hotels-
   ```
 - Data is saved to **DuckDB**.
 
+> If the not match error happened (SystemExit exception), please try running the scraper again.
+
 ## Scraper's Arguments
 [Click here](docs/SCRAPER_ARGS.md) for Scraper's arguments details.
 
@@ -114,7 +116,7 @@ Built on top of [Find the Hotel's Average Room Price in Osaka](#find-the-hotels-
 To ensure that all dates of the month were scraped, a function in
 [check_missing_dates.py](check_missing_dates.py) will check in the given SQLite database to find the missing dates.
 
-> _**Made only for the [Find the Hotel's Average Room Price in Osaka](#find-the-hotels-average-room-price-in-osaka-) project
+> _**Made only for the [Find the Hotel's Average Room Price in Osaka](#find-the-hotels-average-room-price-in-osaka) project
   which saves scraped data in SQLite.**_
 
 - To check in the database, use the following command line as an example, only include required argument:
@@ -130,3 +132,5 @@ To ensure that all dates of the month were scraped, a function in
   - Default is `avg_japan_hotel_price_test.db`
 - Year of dates can be specified with `--year`
   - Default is the current year.
+
+> If the not match error happened (SystemExit exception), please try running the Missing Date Checker again.
