@@ -1,5 +1,4 @@
 import pandas as pd
-import pytest
 
 from japan_avg_hotel_price_finder.graphql_scraper_func.graphql_utils_func import concat_df_list
 
@@ -15,7 +14,8 @@ def test_concatenate_multiple_non_empty_dataframes():
 
     # Then
     assert not result.empty
-    assert result.equals(pd.concat([df1, df2]))
+    expected = pd.DataFrame({'A': [1, 2, 5, 6], 'B': [3, 4, 7, 8]})
+    pd.testing.assert_frame_equal(result, expected, check_index_type=False)
 
 
 def test_concatenate_empty_list():
@@ -26,7 +26,7 @@ def test_concatenate_empty_list():
     result = concat_df_list(df_list)
 
     # Then
-    assert len(result) == 0
+    assert result.empty
 
 
 def test_concatenate_dataframes_with_missing_values():
@@ -40,7 +40,8 @@ def test_concatenate_dataframes_with_missing_values():
 
     # Then
     assert not result.empty
-    assert result.equals(pd.concat([df1, df2]))
+    expected = pd.DataFrame({'A': [1, 2, 5, 6], 'B': [3, 4, 7, None]})
+    pd.testing.assert_frame_equal(result, expected, check_index_type=False)
 
 
 def test_concatenate_mixed_empty_non_empty_dataframes():
@@ -55,7 +56,8 @@ def test_concatenate_mixed_empty_non_empty_dataframes():
 
     # Then
     assert not result.empty
-    assert result.equals(pd.concat([df1, df2]))
+    expected = pd.DataFrame({'A': [1, 2, 5, 6], 'B': [3, 4, 7, 8]})
+    pd.testing.assert_frame_equal(result, expected, check_index_type=False)
 
 
 def test_concatenate_dataframes_with_different_index_types():
@@ -71,7 +73,8 @@ def test_concatenate_dataframes_with_different_index_types():
 
     # Then
     assert not result.empty
-    assert result.equals(pd.concat([df1, df2]))
+    expected = pd.DataFrame({'A': [1, 2, 5, 6], 'B': [3, 4, 7, 8]})
+    pd.testing.assert_frame_equal(result, expected, check_index_type=False)
 
 
 def test_concatenate_dataframes_with_duplicate_indices():
@@ -85,8 +88,5 @@ def test_concatenate_dataframes_with_duplicate_indices():
 
     # Then
     assert not result.empty
-    assert result.equals(pd.concat([df1, df2]))
-
-
-if __name__ == '__main__':
-    pytest.main()
+    expected = pd.DataFrame({'A': [1, 2, 5, 6], 'B': [3, 4, 7, 8]})
+    pd.testing.assert_frame_equal(result, expected, check_index_type=False)

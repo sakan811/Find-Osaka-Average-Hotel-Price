@@ -7,6 +7,7 @@ from calendar import monthrange
 from dataclasses import dataclass
 
 from japan_avg_hotel_price_finder.configure_logging import main_logger
+from japan_avg_hotel_price_finder.date_utils.date_utils import format_date, calculate_check_out_date
 from japan_avg_hotel_price_finder.graphql_scraper import BasicGraphQLScraper
 from japan_avg_hotel_price_finder.booking_details import BookingDetails
 from japan_avg_hotel_price_finder.sql.save_to_db import save_scraped_data
@@ -32,27 +33,48 @@ def find_missing_dates(dates_in_db: set[str],
     main_logger.info(f"Find missing date of {calendar.month_name[month]} {year}.")
 
     # convert date string to a date object
-    dates_in_db_date_obj: list[datetime] = [datetime.datetime.strptime(date, '%Y-%m-%d').date()
-                                            for date in dates_in_db]
+    dates_in_db_date_obj = convert_to_date_obj(dates_in_db)
 
     # filter out past date
-    filtered_dates: list[datetime] = [date for date in dates_in_db_date_obj if date >= today.date()]
+    filtered_dates = filter_past_date(dates_in_db_date_obj, today)
 
     today_date_obj: datetime.date = today.date()
     missing_dates_list: list[str] = []
 
     # find missing dates of the given month
     for day in range(1, days_in_month + 1):
-        date_to_check: datetime = datetime.datetime(year, month, day)
-        date_to_check_str: str = date_to_check.strftime('%Y-%m-%d')
-        date_to_check_date_obj: datetime.date = date_to_check.date()
-        if date_to_check_date_obj < today_date_obj:
+        date_to_check: datetime = datetime.datetime(year, month, day).date()
+        date_to_check_str: str = format_date(date_to_check)
+        if date_to_check < today_date_obj:
             main_logger.warning(f"{date_to_check_str} has passed. Skip this date.")
         else:
-            if date_to_check_date_obj not in filtered_dates:
+            if date_to_check not in filtered_dates:
                 missing_dates_list.append(date_to_check_str)
 
     return missing_dates_list
+
+
+def convert_to_date_obj(dates_in_db: set[str]) -> list[datetime.date]:
+    """
+    Convert a list of date strings to date objects.
+    :param dates_in_db: A set of date strings in 'YYYY-MM-DD' format.
+    :return: A list of datetime.date objects corresponding to the input date strings.
+    """
+    dates_in_db_date_obj: list[datetime.date] = [datetime.datetime.strptime(date, '%Y-%m-%d').date()
+                                                 for date in dates_in_db]
+    return dates_in_db_date_obj
+
+
+def filter_past_date(dates_in_db_date_obj: list[datetime.date], today: datetime.datetime) -> list[datetime.date]:
+    """
+    Filter out past dates from a list of dates.
+    :param dates_in_db_date_obj: A list of date objects to filter.
+    :param today: The reference date used for filtering.
+    :return: A new list containing only the dates from the input list
+             that are equal to or greater than the reference date.
+    """
+    filtered_dates: list[datetime.date] = [date for date in dates_in_db_date_obj if date >= today.date()]
+    return filtered_dates
 
 
 async def scrape_missing_dates(missing_dates_list: list[str] = None,
@@ -69,8 +91,9 @@ async def scrape_missing_dates(missing_dates_list: list[str] = None,
     if missing_dates_list:
         for date in missing_dates_list:
             check_in: str = date
-            check_out_date_obj = datetime.datetime.strptime(check_in, '%Y-%m-%d') + datetime.timedelta(days=1)
-            check_out: str = check_out_date_obj.strftime('%Y-%m-%d')
+            check_in_date_obj = datetime.datetime.strptime(check_in, '%Y-%m-%d').date()
+            check_out_date_obj: datetime.date = calculate_check_out_date(current_date=check_in_date_obj, nights=1)
+            check_out: str = format_date(check_out_date_obj)
 
             if booking_details_class is None:
                 main_logger.warning('The BookingDetailsParam class which contains attributes for scraper is None.')
@@ -121,10 +144,10 @@ class MissingDateChecker:
                              f'UTC time, for city {self.city}...')
             query: str = get_count_of_date_by_mth_as_of_today_query()
             cursor = con.execute(query, (self.city,))
-            count_of_date_by_mth_asof_today_list: list[tuple] = cursor.fetchall()
+            count_of_date_by_mth_as_of_today_list: list[tuple] = cursor.fetchall()
             cursor.close()
 
-            if not count_of_date_by_mth_asof_today_list:
+            if not count_of_date_by_mth_as_of_today_list:
                 today = datetime.datetime.now(datetime.timezone.utc).date()
                 main_logger.warning(f"No scraped data for today, {today}, UTC time for city {self.city} in"
                                     f" {self.sqlite_name}.")
@@ -134,20 +157,20 @@ class MissingDateChecker:
             year: int = year
             current_month: str = today.strftime('%Y-%m')
 
-            self.check_missing_dates(count_of_date_by_mth_asof_today_list, current_month, missing_date_list, today,
+            self.check_missing_dates(count_of_date_by_mth_as_of_today_list, current_month, missing_date_list, today,
                                      year)
 
         return missing_date_list
 
     def check_missing_dates(self,
-                            count_of_date_by_mth_asof_today_list: list[tuple],
+                            count_of_date_by_mth_as_of_today_list: list[tuple],
                             current_month: str,
                             missing_date_list: list[str],
                             today: datetime.datetime,
                             year: int) -> None:
         """
         Check missing dates of each month.
-        :param count_of_date_by_mth_asof_today_list: Count of dates by month as of today as a list of Tuple.
+        :param count_of_date_by_mth_as_of_today_list: Count of dates by month as of today as a list of Tuple.
         :param current_month: Current month.
         :param missing_date_list: List of missing dates.
         :param today: Today's date used to check missing dates.
@@ -155,7 +178,7 @@ class MissingDateChecker:
         :return: None
         """
         main_logger.info(f"Check missing dates of each month in the database for {self.city}...")
-        for row in count_of_date_by_mth_asof_today_list:
+        for row in count_of_date_by_mth_as_of_today_list:
             month_str, count = row[:2]
             date_obj = datetime.datetime.strptime(month_str, '%Y-%m')
             month: int = date_obj.month
