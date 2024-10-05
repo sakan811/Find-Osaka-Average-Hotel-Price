@@ -1,11 +1,12 @@
 import calendar
 import datetime
+from datetime import date
 
 import pandas as pd
 from pydantic import Field
 
 from japan_avg_hotel_price_finder.configure_logging import main_logger
-from japan_avg_hotel_price_finder.date_utils.date_utils import check_if_current_date_has_passed
+from japan_avg_hotel_price_finder.date_utils.date_utils import check_if_current_date_has_passed, format_date
 from japan_avg_hotel_price_finder.graphql_scraper import BasicGraphQLScraper
 
 
@@ -44,7 +45,7 @@ class WholeMonthGraphQLScraper(BasicGraphQLScraper):
         main_logger.info('Using Whole-Month GraphQL scraper...')
 
         # Determine the last day of the given month
-        last_day: int = calendar.monthrange(self.year, self.month)[1]
+        last_day: int = await self._find_last_day_of_the_month()
         main_logger.debug(f'Last day of {calendar.month_name[self.month]}-{self.year}: {last_day}')
 
         df_list = []
@@ -59,10 +60,11 @@ class WholeMonthGraphQLScraper(BasicGraphQLScraper):
                 current_date: datetime = datetime.datetime(self.year, self.month, day)
                 main_logger.debug(f'The current date is {current_date}')
 
-                self.check_in: str = current_date.strftime('%Y-%m-%d')
+                self.check_in: str = format_date(current_date)
                 main_logger.debug(f'Check-in date is {self.check_in}')
 
-                self.check_out: str = (current_date + datetime.timedelta(days=self.nights)).strftime('%Y-%m-%d')
+                check_out: date = self._calculate_check_out_date(current_date=current_date)
+                self.check_out: str = format_date(check_out)
                 main_logger.debug(f'Check-out date is {self.check_out}')
                 main_logger.debug(f'Nights: {self.nights}')
 
@@ -73,6 +75,37 @@ class WholeMonthGraphQLScraper(BasicGraphQLScraper):
             return pd.concat(df_list)
         else:
             return pd.DataFrame()
+
+    async def _find_last_day_of_the_month(self) -> int:
+        """
+        Calculates the last day of the month for the current year and month.
+        Uses calendar.monthrange() to determine the number of days in the month.
+        Assumes self.year and self.month are already set.
+        :return: Last day of the given month.
+        """
+        try:
+            if self.year <= 0:
+                raise ValueError(f"Invalid year: {self.year}. Year must be positive.")
+            if self.month < 1 or self.month > 12:
+                raise ValueError(f"Invalid month: {self.month}. Month must be between 1 and 12.")
+            last_day: int = calendar.monthrange(self.year, self.month)[1]
+            return last_day
+        except ValueError as e:
+            main_logger.error(f"Invalid date: {self.year}-{self.month}. {str(e)}")
+            raise
+        except Exception as e:
+            main_logger.error(f"Unexpected error: {str(e)}")
+            raise
+
+    def _calculate_check_out_date(self, current_date: datetime.date) -> date:
+        """
+        Calculates the check-out date for the current date.
+
+        :param current_date: Current date.
+        :return: Check-out date.
+        """
+        check_out_date = current_date + datetime.timedelta(days=self.nights)
+        return check_out_date
 
 
 if __name__ == '__main__':
