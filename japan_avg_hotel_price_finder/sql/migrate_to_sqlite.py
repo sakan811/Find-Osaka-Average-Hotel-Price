@@ -36,11 +36,11 @@ def migrate_data_to_sqlite(df_filtered: pd.DataFrame, db: str) -> None:
             # Save the DataFrame to a table named 'HotelPrice'
             df_filtered.to_sql('HotelPrice', con=con, if_exists='append', index=False, dtype=hotel_price_dtype)
 
-            create_avg_hotel_room_price_by_date_table(db)
-            create_avg_room_price_by_review_table(db)
-            create_avg_hotel_price_by_dow_table(db)
-            create_avg_hotel_price_by_month_table(db)
-            create_avg_room_price_by_location(db)
+            create_avg_hotel_room_price_by_date_table(con)
+            create_avg_room_price_by_review_table(con)
+            create_avg_hotel_price_by_dow_table(con)
+            create_avg_hotel_price_by_month_table(con)
+            create_avg_room_price_by_location(con)
 
             con.commit()
             main_logger.info(f'Data has been saved to {db}')
@@ -75,14 +75,14 @@ def get_hotel_price_dtype() -> dict[str, str]:
     return hotel_price_dtype
 
 
-def create_avg_hotel_room_price_by_date_table(db: str) -> None:
+def create_avg_hotel_room_price_by_date_table(connection: sqlite3.Connection) -> None:
     """
     Create AverageHotelRoomPriceByDate table
-    :param db: SQLite database path
+    :param connection: SQLite database connection
     :return: None
     """
     main_logger.info('Create AverageRoomPriceByDate table...')
-    with sqlite3.connect(db) as con:
+    with connection.cursor() as cursor:
         query = '''
         CREATE table IF NOT EXISTS AverageRoomPriceByDateTable (
             Date TEXT NOT NULL PRIMARY KEY,
@@ -90,12 +90,12 @@ def create_avg_hotel_room_price_by_date_table(db: str) -> None:
             City TEXT NOT NULL
         ) 
         '''
-        con.execute(query)
+        cursor.execute(query)
 
         query = '''
         delete from AverageRoomPriceByDateTable 
         '''
-        con.execute(query)
+        cursor.execute(query)
 
         query = '''
         insert into AverageRoomPriceByDateTable (Date, AveragePrice, City)
@@ -103,29 +103,29 @@ def create_avg_hotel_room_price_by_date_table(db: str) -> None:
         from HotelPrice
         GROUP BY Date
         '''
-        con.execute(query)
+        cursor.execute(query)
 
 
-def create_avg_room_price_by_review_table(db: str) -> None:
+def create_avg_room_price_by_review_table(connection: sqlite3.Connection) -> None:
     """
     Create AverageHotelRoomPriceByReview table.
-    :param db: SQLite database path.
+    :param connection: SQLite database connection.
     :return: None
     """
     main_logger.info("Create AverageHotelRoomPriceByReview table...")
-    with sqlite3.connect(db) as con:
+    with connection.cursor() as cursor:
         query = '''
         CREATE table IF NOT EXISTS AverageHotelRoomPriceByReview (
             Review REAL NOT NULL PRIMARY KEY,
             AveragePrice REAL NOT NULL
         ) 
         '''
-        con.execute(query)
+        cursor.execute(query)
 
         query = '''
         delete from AverageHotelRoomPriceByReview 
         '''
-        con.execute(query)
+        cursor.execute(query)
 
         query = '''
         insert into AverageHotelRoomPriceByReview (Review, AveragePrice)
@@ -133,29 +133,29 @@ def create_avg_room_price_by_review_table(db: str) -> None:
         FROM HotelPrice
         group by Review
         '''
-        con.execute(query)
+        cursor.execute(query)
 
 
-def create_avg_hotel_price_by_dow_table(db: str) -> None:
+def create_avg_hotel_price_by_dow_table(connection: sqlite3.Connection) -> None:
     """
     Create AverageHotelRoomPriceByDayOfWeek table.
-    :param db: SQLite database path.
+    :param connection: SQLite database connection.
     :return: None
     """
     main_logger.info("Create AverageHotelRoomPriceByDayOfWeek table...")
-    with sqlite3.connect(db) as con:
+    with connection.cursor() as cursor:
         query = '''
         CREATE table IF NOT EXISTS AverageHotelRoomPriceByDayOfWeek (
             DayOfWeek TEXT NOT NULL PRIMARY KEY,
             AveragePrice REAL NOT NULL
         ) 
         '''
-        con.execute(query)
+        cursor.execute(query)
 
         query = '''
         delete from AverageHotelRoomPriceByDayOfWeek 
         '''
-        con.execute(query)
+        cursor.execute(query)
 
         query = '''
         insert into AverageHotelRoomPriceByDayOfWeek (DayOfWeek, AveragePrice)
@@ -175,17 +175,17 @@ def create_avg_hotel_price_by_dow_table(db: str) -> None:
         GROUP BY
             day_of_week;
         '''
-        con.execute(query)
+        cursor.execute(query)
 
 
-def create_avg_hotel_price_by_month_table(db: str) -> None:
+def create_avg_hotel_price_by_month_table(connection: sqlite3.Connection) -> None:
     """
     Create AverageHotelRoomPriceByMonth table.
-    :param db: SQLite database path.
+    :param connection: SQLite database connection.
     :return: None
     """
     main_logger.info("Create AverageHotelRoomPriceByMonth table...")
-    with sqlite3.connect(db) as con:
+    with connection.cursor() as cursor:
         query = '''
         CREATE table IF NOT EXISTS AverageHotelRoomPriceByMonth (
             Month TEXT NOT NULL PRIMARY KEY,
@@ -193,12 +193,12 @@ def create_avg_hotel_price_by_month_table(db: str) -> None:
             Quarter TEXT NOT NULL
         ) 
         '''
-        con.execute(query)
+        cursor.execute(query)
 
         query = '''
         delete from AverageHotelRoomPriceByMonth 
         '''
-        con.execute(query)
+        cursor.execute(query)
 
         query = '''
         insert into AverageHotelRoomPriceByMonth (Month, AveragePrice, Quarter)
@@ -229,17 +229,17 @@ def create_avg_hotel_price_by_month_table(db: str) -> None:
         GROUP BY
             month;
         '''
-        con.execute(query)
+        cursor.execute(query)
 
 
-def create_avg_room_price_by_location(db: str) -> None:
+def create_avg_room_price_by_location(connection: sqlite3.Connection) -> None:
     """
     Create AverageHotelRoomPriceByLocation table.
-    :param db: SQLite database path.
+    :param connection: SQLite database connection.
     :return: None
     """
     main_logger.info("Create AverageHotelRoomPriceByLocation table...")
-    with sqlite3.connect(db) as con:
+    with connection.cursor() as cursor:
         query = '''
         CREATE table IF NOT EXISTS AverageHotelRoomPriceByLocation (
             Location TEXT NOT NULL PRIMARY KEY,
@@ -248,12 +248,12 @@ def create_avg_room_price_by_location(db: str) -> None:
             AveragePricePerReview REAL NOT NULL
         ) 
         '''
-        con.execute(query)
+        cursor.execute(query)
 
         query = '''
         delete from AverageHotelRoomPriceByLocation
         '''
-        con.execute(query)
+        cursor.execute(query)
 
         query = '''
         insert into AverageHotelRoomPriceByLocation (Location, AveragePrice, AverageRating, AveragePricePerReview)
@@ -264,7 +264,7 @@ def create_avg_room_price_by_location(db: str) -> None:
         from HotelPrice
         group by Location;
         '''
-        con.execute(query)
+        cursor.execute(query)
 
 
 if __name__ == '__main__':
