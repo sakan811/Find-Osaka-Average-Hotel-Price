@@ -15,43 +15,48 @@ def migrate_data_to_sqlite(df_filtered: pd.DataFrame, db: str) -> None:
     main_logger.info('Connecting to SQLite database (or create it if it doesn\'t exist)...')
 
     with sqlite3.connect(db) as con:
-        query = '''
-        CREATE TABLE IF NOT EXISTS HotelPrice (
-            ID INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-            Hotel TEXT NOT NULL,
-            Price REAL NOT NULL,
-            Review REAL NOT NULL,
-            Location TEXT NOT NULL,
-            "Price/Review" REAL NOT NULL,
-            City TEXT NOT NULL,
-            Date TEXT NOT NULL,
-            AsOf TEXT NOT NULL
-        )
-        '''
+        try:
+            query = '''
+            CREATE TABLE IF NOT EXISTS HotelPrice (
+                ID INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                Hotel TEXT NOT NULL,
+                Price REAL NOT NULL,
+                Review REAL NOT NULL,
+                Location TEXT NOT NULL,
+                "Price/Review" REAL NOT NULL,
+                City TEXT NOT NULL,
+                Date TEXT NOT NULL,
+                AsOf TEXT NOT NULL
+            )
+            '''
+            con.execute(query)
 
-        con.execute(query)
+            hotel_price_dtype: dict[str, str] = get_hotel_price_dtype()
 
-        hotel_price_dtype: dict[str, str] = get_hotel_price_dtype()
+            # Save the DataFrame to a table named 'HotelPrice'
+            df_filtered.to_sql('HotelPrice', con=con, if_exists='append', index=False, dtype=hotel_price_dtype)
 
-        # Save the DataFrame to a table named 'HotelPrice'
-        df_filtered.to_sql('HotelPrice', con=con, if_exists='append', index=False, dtype=hotel_price_dtype)
+            create_avg_hotel_room_price_by_date_table(db)
+            create_avg_room_price_by_review_table(db)
+            create_avg_hotel_price_by_dow_table(db)
+            create_avg_hotel_price_by_month_table(db)
+            create_avg_room_price_by_location(db)
 
-        con.commit()
+            con.commit()
+            main_logger.info(f'Data has been saved to {db}')
+        except sqlite3.OperationalError as e:
+            con.rollback()
+            main_logger.error(f"An operational error occurred: {str(e)}")
+            main_logger.error("Database changes have been rolled back.")
+            raise sqlite3.OperationalError(f"An operational error occurred: {str(e)}")
+        except Exception as e:
+            con.rollback()
+            main_logger.error(f"An unexpected error occurred: {str(e)}")
+            main_logger.error("Database changes have been rolled back.")
+            raise Exception(f"An unexpected error occurred: {str(e)}")
 
-        main_logger.info(f'Data has been saved to {db}')
 
-        create_avg_hotel_room_price_by_date_table(db)
-
-        create_avg_room_price_by_review_table(db)
-
-        create_avg_hotel_price_by_dow_table(db)
-
-        create_avg_hotel_price_by_month_table(db)
-
-        create_avg_room_price_by_location(db)
-
-
-def get_hotel_price_dtype() -> dict:
+def get_hotel_price_dtype() -> dict[str, str]:
     """
     Get HotelPrice datatype.
     :return: HotelPrice datatype.
@@ -263,14 +268,4 @@ def create_avg_room_price_by_location(db: str) -> None:
 
 
 if __name__ == '__main__':
-    db = '../../avg_japan_hotel_price.db'
-    create_avg_hotel_room_price_by_date_table(db)
-
-    create_avg_room_price_by_review_table(db)
-
-    create_avg_hotel_price_by_dow_table(db)
-
-    create_avg_hotel_price_by_month_table(db)
-
-    create_avg_room_price_by_location(db)
     pass
