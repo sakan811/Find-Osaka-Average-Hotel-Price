@@ -39,7 +39,7 @@ def test_current_month(mock_sqlite3, checker, mock_today):
 
         year = datetime.datetime.today().year
 
-        with patch('japan_avg_hotel_price_finder.sql.sql_query.get_count_of_date_by_mth_asof_today_query'):
+        with patch('japan_avg_hotel_price_finder.sql.sql_query.get_count_of_date_by_mth_as_of_today_query'):
             with patch.object(checker, 'find_dates_of_the_month_in_db', return_value=([], mock_today.replace(day=1).strftime('%Y-%m-%d'), mock_today.strftime('%Y-%m-%d'))):
                 with patch('check_missing_dates.find_missing_dates', return_value=[
                     (mock_today + datetime.timedelta(days=1)).strftime('%Y-%m-%d'),
@@ -65,7 +65,7 @@ def test_future_month(mock_sqlite3, checker, mock_today):
 
         year = datetime.datetime.today().year
 
-        with patch('japan_avg_hotel_price_finder.sql.sql_query.get_count_of_date_by_mth_asof_today_query'):
+        with patch('japan_avg_hotel_price_finder.sql.sql_query.get_count_of_date_by_mth_as_of_today_query'):
             with patch('check_missing_dates.find_missing_dates', return_value=[]):
                 result = checker.find_missing_dates_in_db(year)
 
@@ -85,7 +85,7 @@ def test_past_month(mock_sqlite3, checker, mock_today):
 
         year = datetime.datetime.today().year
 
-        with patch('japan_avg_hotel_price_finder.sql.sql_query.get_count_of_date_by_mth_asof_today_query'):
+        with patch('japan_avg_hotel_price_finder.sql.sql_query.get_count_of_date_by_mth_as_of_today_query'):
             with patch.object(checker, 'find_dates_of_the_month_in_db', return_value=([], past_date.replace(day=1).strftime('%Y-%m-%d'), past_date.replace(day=31).strftime('%Y-%m-%d'))):
                 with patch('check_missing_dates.find_missing_dates', return_value=[past_date.replace(day=31).strftime('%Y-%m-%d')]):
                     result = checker.find_missing_dates_in_db(year)
@@ -106,7 +106,7 @@ def test_no_data(mock_sqlite3, checker, mock_today):
 
         year = datetime.datetime.today().year
 
-        with patch('japan_avg_hotel_price_finder.sql.sql_query.get_count_of_date_by_mth_asof_today_query'):
+        with patch('japan_avg_hotel_price_finder.sql.sql_query.get_count_of_date_by_mth_as_of_today_query'):
             result = checker.find_missing_dates_in_db(year)
 
         assert result == []

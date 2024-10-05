@@ -29,3 +29,23 @@ def check_if_current_date_has_passed(year: int, month: int, day: int, timezone=N
     except ValueError:
         main_logger.error("Invalid date. Returning False")
         return False
+
+
+def format_date(date_obj: datetime.date) -> str:
+    """
+    Formats a date object to 'YYYY-MM-DD' string format.
+
+    :param date_obj: The date object to format
+    :return: Formatted date string
+    """
+    try:
+        date_str = date_obj.strftime('%Y-%m-%d')
+        # Ensure the year is always 4 digits
+        year, month, day = date_str.split('-')
+        return f"{int(year):04d}-{month}-{day}"
+    except AttributeError as e:
+        main_logger.error(f"Invalid date: {date_obj}. {str(e)}")
+        raise AttributeError(f'Invalid date: {date_obj}. {str(e)}')
+    except Exception as e:
+        main_logger.error(f"Unexpected error: {str(e)}")
+        raise Exception(f'Unexpected error: {str(e)}')
