@@ -5,7 +5,7 @@ import pandas as pd
 from japan_avg_hotel_price_finder.sql.migrate_to_sqlite import migrate_data_to_sqlite
 
 
-def test_successful_connection_to_sqlite():
+def test_successful_connection_to_sqlite(tmp_path):
     # Given
     df_filtered = pd.DataFrame({
         'Hotel': ['Hotel A', 'Hotel B'],
@@ -17,10 +17,10 @@ def test_successful_connection_to_sqlite():
         'Date': ['2022-01-01', '2022-01-02'],
         'AsOf': ['2022-01-01', '2022-01-02']
     })
-    db = 'test_successful_connection_to_sqlite.db'
+    db = tmp_path / 'test_successful_connection_to_sqlite.db'
 
     # When
-    migrate_data_to_sqlite(df_filtered, db)
+    migrate_data_to_sqlite(df_filtered, str(db))
 
     # Then
     with sqlite3.connect(db) as con:
@@ -30,13 +30,13 @@ def test_successful_connection_to_sqlite():
         assert len(result) > 0
 
 
-def test_handle_empty_dataframe():
+def test_handle_empty_dataframe(tmp_path):
     # Given
     df_filtered = pd.DataFrame(columns=['Hotel', 'Price', 'Review', 'Location', 'Price/Review', 'City', 'Date', 'AsOf'])
-    db = 'test_handle_empty_dataframe.db'
+    db = tmp_path / 'test_handle_empty_dataframe.db'
 
     # When
-    migrate_data_to_sqlite(df_filtered, db)
+    migrate_data_to_sqlite(df_filtered, str(db))
 
     # Then
     with sqlite3.connect(db) as con:
