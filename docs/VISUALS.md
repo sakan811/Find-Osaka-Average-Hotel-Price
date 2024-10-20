@@ -1,7 +1,7 @@
 # Visualizations
 ## Average Room Price in Osaka: 
 ### Year 2025
-* [Power BI]()  
+* [Power BI](https://app.powerbi.com/view?r=eyJrIjoiYjJlY2JjMTItZmU0OC00MzdmLWI0OWQtZDAyZDhlY2U0YzhiIiwidCI6ImZlMzViMTA3LTdjMmYtNGNjMy1hZDYzLTA2NTY0MzcyMDg3OCIsImMiOjEwfQ%3D%3D)  
 
 ### Year 2024
 * [Power BI](https://app.powerbi.com/view?r=eyJrIjoiMzYzMmE5ODMtYjMzNC00ZjllLTlhY2MtZDM3ZTExMmM2OTdjIiwidCI6ImZlMzViMTA3LTdjMmYtNGNjMy1hZDYzLTA2NTY0MzcyMDg3OCIsImMiOjEwfQ%3D%3D)  
