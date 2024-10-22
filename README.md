@@ -59,7 +59,7 @@ Built on top of [Find the Hotel's Average Room Price in Osaka](#find-the-hotels-
 - Use **Japan GraphQL** scraper to scrape data.
 
 ## Collected Data Archive
-[Click here](sakanbeer88/osaka-and-japan-avg-hotel-room-price-data) to access the collected hotel data hosted on HuggingFace
+[Click here](https://huggingface.co/datasets/sakanbeer88/osaka-and-japan-avg-hotel-room-price-data) to access the collected hotel data hosted on HuggingFace
 
 ## How to Scrape Hotel Data
 ### Setup Project
