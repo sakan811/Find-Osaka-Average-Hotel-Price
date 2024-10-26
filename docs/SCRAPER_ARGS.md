@@ -57,10 +57,6 @@
 - **Type**: `str`
 - **Description**: The name of the SQLite database file to use. Only used for Basic and Whole-Month Scraper.
 
-### `--duckdb_name`
-- **Type**: `str`
-- **Description**: The name of the DuckDB database file to use. Only used for Japan Hotel Scraper.
-
 ### `--year`
 - **Type**: `int`
 - **Description**: Specifies the year to scrape. This argument is required for Whole-Month Scraper.
