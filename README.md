@@ -59,7 +59,7 @@ Built on top of [Find the Hotel's Average Room Price in Osaka](#find-the-hotels-
 - Use **Japan GraphQL** scraper to scrape data.
 
 ## Collected Data Archive
-[Click here](https://huggingface.co/datasets/sakanbeer88/osaka-and-japan-avg-hotel-room-price-data) to access the collected hotel data hosted on HuggingFace
+[Click here](docs/DATA.md) to access the collected hotel data archive.
 
 ## How to Scrape Hotel Data
 ### Setup Project
@@ -128,12 +128,10 @@ Built on top of [Find the Hotel's Average Room Price in Osaka](#find-the-hotels-
      X_BOOKING_TOPIC=copied_topic
      ```
 
-
 ### General Guidelines for Using the Scraper
 - To scrape only hotel properties, use `--scrape_only_hotel` argument.
 - The SQLite database is created automatically if it doesn't exist.
-- The DuckDB database is created automatically if it doesn't exist.
-    
+ 
 ### To scrape using Whole-Month GraphQL Scraper:
 - Example usage, with only required arguments for Whole-Month GraphQL Scraper:
   ```bash
@@ -158,7 +156,7 @@ Built on top of [Find the Hotel's Average Room Price in Osaka](#find-the-hotels-
   ```bash
   python main.py --japan_hotel --sqlite_name=japan_hotel_data_test.db
   ```
-- Data is saved to **DuckDB**.
+- Data is saved to **SQLite**.
 
 > If the not match error happened (SystemExit exception), please try running the scraper again.
 
