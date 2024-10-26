@@ -34,7 +34,6 @@ def test_parse_arguments(monkeypatch):
     assert args.selected_currency == "USD"
     assert args.scrape_only_hotel is True
     assert args.sqlite_name == "test.db"
-    assert args.duckdb_name is None
 
 
 def test_missing_required_arguments(monkeypatch):
@@ -51,29 +50,6 @@ def test_missing_required_arguments(monkeypatch):
         "--selected_currency", "USD",
         "--scrape_only_hotel",
         "--sqlite_name", "test.db"
-    ]
-
-    monkeypatch.setattr(sys, 'argv', test_args)
-    with pytest.raises(SystemExit):
-        parse_arguments()
-
-
-def test_conflicting_arguments(monkeypatch):
-    # Conflicting database arguments
-    test_args = [
-        "main.py",
-        "--scraper",
-        "--city", "Tokyo",
-        "--country", "Japan",
-        "--check_in", "2024-01-01",
-        "--check_out", "2024-01-02",
-        "--group_adults", "2",
-        "--num_rooms", "1",
-        "--group_children", "0",
-        "--selected_currency", "USD",
-        "--scrape_only_hotel",
-        "--sqlite_name", "test.db",
-        "--duckdb_name", "test.duckdb"
     ]
 
     monkeypatch.setattr(sys, 'argv', test_args)
@@ -139,7 +115,7 @@ def test_valid_japan_scraper_arguments(monkeypatch):
         "--group_children", "0",
         "--selected_currency", "USD",
         "--scrape_only_hotel",
-        "--duckdb_name", "test.duckdb"
+        "--sqlite_name", "test.db"
     ]
 
     monkeypatch.setattr(sys, 'argv', test_args)
@@ -155,8 +131,7 @@ def test_valid_japan_scraper_arguments(monkeypatch):
     assert args.group_children == 0
     assert args.selected_currency == "USD"
     assert args.scrape_only_hotel is True
-    assert args.sqlite_name is None
-    assert args.duckdb_name == "test.duckdb"
+    assert args.sqlite_name == "test.db"
 
 
 def test_valid_whole_month_scraper_arguments(monkeypatch):
@@ -192,6 +167,5 @@ def test_valid_whole_month_scraper_arguments(monkeypatch):
     assert args.selected_currency == "USD"
     assert args.scrape_only_hotel is True
     assert args.sqlite_name == "test.db"
-    assert args.duckdb_name is None
     assert args.year == 2024
     assert args.month == 1
