@@ -8,7 +8,7 @@ from japan_avg_hotel_price_finder.japan_hotel_scraper import JapanScraper
 def test_japan_scraper(tmp_path):
     db = str(tmp_path / 'test_japan_scraper.db')
 
-    scraper = JapanScraper(duckdb_path=db, country='Japan', city='', check_in='', check_out='', sqlite_name='')
+    scraper = JapanScraper(sqlite_name=db, country='Japan', city='', check_in='', check_out='')
     scraper.japan_regions = {"Hokkaido": ["Hokkaido"]}
     current_month = datetime.datetime.now().month
     scraper.start_month = current_month
