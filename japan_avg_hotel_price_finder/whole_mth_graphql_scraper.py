@@ -18,17 +18,18 @@ class WholeMonthGraphQLScraper(BasicGraphQLScraper):
     Attributes:
         city (str): The city where the hotels are located.
         country (str): The country where the hotels are located.
-        group_adults (str): Number of adults.
-        num_rooms (str): Number of rooms.
-        group_children (str): Number of children.
-        selected_currency (str): Currency of the room price.
-        scrape_only_hotel (bool): Whether to scrape only the hotel property data.
-        start_day (int): Day to start scraping.
-        month (int): Month to start scraping.
-        year (int): Year to start scraping.
+        group_adults (str): Number of adults, default is 1.
+        num_rooms (str): Number of rooms, default is 1.
+        group_children (str): Number of children, default is 0.
+        selected_currency (str): Currency of the room price, default is USD.
+        scrape_only_hotel (bool): Whether to scrape only the hotel property data, default is True
+        start_day (int): Day to start scraping, default is 1.
+        month (int): Month to start scraping, default is the current month.
+        year (int): Year to start scraping, default is the current year.
         nights (int): Number of nights (Length of stay) which defines the room price.
                     For example, nights = 1 means scraping the hotel with room price for 1 night.
-        sqlite_name (str): Name of SQLite database to store the scraped data.
+                    Default is 1.
+        sqlite_name (str): Path and name of SQLite database to store the scraped data.
     """
     # Set the start day, month, year, and length of stay
     year: int = Field(datetime.datetime.now().year, gt=0)

@@ -1,13 +1,11 @@
 import calendar
 import sqlite3
 
-import duckdb
 import pandas as pd
 from pydantic import Field
 
-from japan_avg_hotel_price_finder.sql.save_to_db import save_scraped_data
-from japan_avg_hotel_price_finder.whole_mth_graphql_scraper import WholeMonthGraphQLScraper
 from japan_avg_hotel_price_finder.configure_logging import main_logger
+from japan_avg_hotel_price_finder.whole_mth_graphql_scraper import WholeMonthGraphQLScraper
 
 
 class JapanScraper(WholeMonthGraphQLScraper):
@@ -16,15 +14,22 @@ class JapanScraper(WholeMonthGraphQLScraper):
 
     Attributes:
         country (str): The country where the hotels are located.
-        group_adults (str): Number of adults.
-        num_rooms (str): Number of rooms.
-        group_children (str): Number of children.
-        selected_currency (str): Currency of the room price.
-        scrape_only_hotel (bool): Whether to scrape only the hotel property data.
-        start_day (int): Day to start scraping.
-        year (int): Year to start scraping.
+        group_adults (str): Number of adults, default is 1.
+        num_rooms (str): Number of rooms, default is 1.
+        group_children (str): Number of children, default is 0.
+        selected_currency (str): Currency of the room price, default is USD.
+        scrape_only_hotel (bool): Whether to scrape only the hotel property data, default is True
+        start_day (int): Day to start scraping, default is 1.
+        month (int): Month to start scraping, default is the current month.
+        year (int): Year to start scraping, default is the current year.
         nights (int): Number of nights (Length of stay) which defines the room price.
                     For example, nights = 1 means scraping the hotel with room price for 1 night.
+                    Default is 1.
+        japan_regions (dict[str, list[str]]): Dictionary of Japan regions and their prefectures.
+        region (str): The current region being scraped.
+        start_month (int): Month to start scraping (1-12).
+        end_month (int): Last month to scrape (1-12).
+        sqlite_name (str): Path and name of SQLite database to store the scraped data.
     """
 
     japan_regions: dict[str, list[str]] = {
