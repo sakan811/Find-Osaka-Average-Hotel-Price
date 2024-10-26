@@ -33,11 +33,11 @@ class BasicGraphQLScraper(BaseModel):
         country (str): The country where the hotels are located.
         check_in (str): The check-in date.
         check_out (str): The check-out date.
-        group_adults (str): Number of adults.
-        num_rooms (str): Number of rooms.
-        group_children (str): Number of children.
-        selected_currency (str): Currency of the room price.
-        scrape_only_hotel (bool): Whether to scrape only the hotel property data.
+        group_adults (str): Number of adults, default is 1.
+        num_rooms (str): Number of rooms, default is 1.
+        group_children (str): Number of children, default is 0.
+        selected_currency (str): Currency of the room price, default is USD.
+        scrape_only_hotel (bool): Whether to scrape only the hotel property data, default is True
         sqlite_name (str): Name of SQLite database to store the scraped data.
     """
     # Set SQLite database name

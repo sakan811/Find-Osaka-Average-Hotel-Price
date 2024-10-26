@@ -40,7 +40,6 @@ def add_database_arguments(parser: argparse.ArgumentParser) -> None:
     """
     db_group = parser.add_mutually_exclusive_group(required=True)
     db_group.add_argument('--sqlite_name', type=str, help='SQLite database path')
-    db_group.add_argument('--duckdb_name', type=str, help='DuckDB database path')
 
 
 def add_date_arguments(parser: argparse.ArgumentParser) -> None:
@@ -54,29 +53,6 @@ def add_date_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument('--start_day', type=int, default=1,
                         help='The day of the month to start scraping from, default is 1')
     parser.add_argument('--nights', type=int, default=1, help='Length of stay, default is 1')
-
-
-def enforce_database_constraints(args: argparse.Namespace) -> None:
-    """
-    Enforce the use of SQLite for basic and whole-month scrapers, and DuckDB for Japan scraper.
-    :param args: argparse.Namespace
-    :return: None
-    """
-    if args.scraper or args.whole_mth:
-        if args.duckdb_name:
-            main_logger.error("Error: DuckDB should not be used with the basic or whole-month scraper.")
-            raise SystemExit
-        if not args.sqlite_name:
-            main_logger.error("Error: SQLite database path must be provided for the basic or whole-month scraper.")
-            raise SystemExit
-
-    if args.japan_hotel:
-        if args.sqlite_name:
-            main_logger.error("Error: SQLite should not be used with the Japan hotel scraper.")
-            raise SystemExit
-        if not args.duckdb_name:
-            main_logger.error("Error: DuckDB database path must be provided for the Japan hotel scraper.")
-            raise SystemExit
 
 
 def validate_booking_details_arguments(args: argparse.Namespace) -> None:
@@ -107,6 +83,5 @@ def parse_arguments() -> argparse.Namespace:
     add_database_arguments(parser)
     add_date_arguments(parser)
     args = parser.parse_args()
-    enforce_database_constraints(args)
     validate_booking_details_arguments(args)
     return args
