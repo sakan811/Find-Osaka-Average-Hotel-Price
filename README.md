@@ -156,7 +156,7 @@ Built on top of [Find the Hotel's Average Room Price in Osaka](#find-the-hotels-
 ### To scrape using Japan GraphQL Scraper:
 - Example usage, with only required arguments for Japan GraphQL Scraper:
   ```bash
-  python main.py --japan_hotel --duckdb_name=japan_hotel_data_test.duckdb
+  python main.py --japan_hotel --sqlite_name=japan_hotel_data_test.db
   ```
 - Data is saved to **DuckDB**.
 
