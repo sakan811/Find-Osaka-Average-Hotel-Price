@@ -1,265 +1,249 @@
-import sqlite3
-
 import pandas as pd
+from sqlalchemy import create_engine, func, case
+from sqlalchemy.orm import sessionmaker, Session
 
 from japan_avg_hotel_price_finder.configure_logging import main_logger
+from japan_avg_hotel_price_finder.sql.db_model import Base, HotelPrice, AverageRoomPriceByDate, \
+    AverageHotelRoomPriceByReview, AverageHotelRoomPriceByDayOfWeek, AverageHotelRoomPriceByMonth, \
+    AverageHotelRoomPriceByLocation
 
 
 def migrate_data_to_sqlite(df_filtered: pd.DataFrame, db: str) -> None:
     """
-    Migrate hotel data to sqlite database.
+    Migrate hotel data to sqlite database using SQLAlchemy ORM.
     :param df_filtered: pandas dataframe.
     :param db: SQLite database path.
     :return: None
     """
     main_logger.info('Connecting to SQLite database (or create it if it doesn\'t exist)...')
 
-    with sqlite3.connect(db) as con:
-        try:
-            query = '''
-            CREATE TABLE IF NOT EXISTS HotelPrice (
-                ID INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-                Hotel TEXT NOT NULL,
-                Price REAL NOT NULL,
-                Review REAL NOT NULL,
-                Location TEXT NOT NULL,
-                "Price/Review" REAL NOT NULL,
-                City TEXT NOT NULL,
-                Date TEXT NOT NULL,
-                AsOf TEXT NOT NULL
-            )
-            '''
-            con.execute(query)
+    engine = create_engine(f'sqlite:///{db}')
+    Base.metadata.create_all(engine)
 
-            hotel_price_dtype: dict[str, str] = get_hotel_price_dtype()
+    Session = sessionmaker(bind=engine)
+    session = Session()
 
-            # Save the DataFrame to a table named 'HotelPrice'
-            df_filtered.to_sql('HotelPrice', con=con, if_exists='append', index=False, dtype=hotel_price_dtype)
+    try:
+        # Rename Price/Review column
+        df_filtered.rename(columns={'Price/Review': 'PriceReview'}, inplace=True)
 
-            create_avg_hotel_room_price_by_date_table(con)
-            create_avg_room_price_by_review_table(con)
-            create_avg_hotel_price_by_dow_table(con)
-            create_avg_hotel_price_by_month_table(con)
-            create_avg_room_price_by_location(con)
+        # Convert DataFrame to list of dictionaries
+        records = df_filtered.to_dict('records')
 
-            con.commit()
-            main_logger.info(f'Data has been saved to {db}')
-        except sqlite3.OperationalError as e:
-            con.rollback()
-            main_logger.error(f"An operational error occurred: {str(e)}")
-            main_logger.error("Database changes have been rolled back.")
-            raise sqlite3.OperationalError(f"An operational error occurred: {str(e)}")
-        except Exception as e:
-            con.rollback()
-            main_logger.error(f"An unexpected error occurred: {str(e)}")
-            main_logger.error("Database changes have been rolled back.")
-            raise Exception(f"An unexpected error occurred: {str(e)}")
+        # Bulk insert records
+        session.bulk_insert_mappings(HotelPrice, records)
+
+        create_avg_hotel_room_price_by_date_table(session)
+        create_avg_room_price_by_review_table(session)
+        create_avg_hotel_price_by_dow_table(session)
+        create_avg_hotel_price_by_month_table(session)
+        create_avg_room_price_by_location(session)
+
+        session.commit()
+        main_logger.info(f'Data has been saved to {db}')
+    except Exception as e:
+        session.rollback()
+        main_logger.error(f"An unexpected error occurred: {str(e)}")
+        main_logger.error("Database changes have been rolled back.")
+        raise
+    finally:
+        session.close()
 
 
-def get_hotel_price_dtype() -> dict[str, str]:
+def create_avg_hotel_room_price_by_date_table(session: Session) -> None:
     """
-    Get HotelPrice datatype.
-    :return: HotelPrice datatype.
-    """
-    main_logger.info('Get HotelPrice datatype...')
-    hotel_price_dtype = {
-        'Hotel': 'text not null primary key',
-        'Price': 'real not null',
-        'Review': 'real not null',
-        'Location': 'text not null',
-        'Price/Review': 'real not null',
-        'City': 'text not null',
-        'Date': 'text not null',
-        'AsOf': 'text not null'
-    }
-    return hotel_price_dtype
-
-
-def create_avg_hotel_room_price_by_date_table(connection: sqlite3.Connection) -> None:
-    """
-    Create AverageHotelRoomPriceByDate table
-    :param connection: SQLite database connection
+    Create AverageHotelRoomPriceByDate table using SQLAlchemy ORM
+    :param session: SQLAlchemy session
     :return: None
     """
     main_logger.info('Create AverageRoomPriceByDate table...')
-    query = '''
-    CREATE table IF NOT EXISTS AverageRoomPriceByDateTable (
-        Date TEXT NOT NULL PRIMARY KEY,
-        AveragePrice REAL NOT NULL,
-        City TEXT NOT NULL
-    ) 
-    '''
-    connection.execute(query)
 
-    query = '''
-    delete from AverageRoomPriceByDateTable 
-    '''
-    connection.execute(query)
+    # Create the table if it doesn't exist
+    Base.metadata.create_all(session.bind)
 
-    query = '''
-    insert into AverageRoomPriceByDateTable (Date, AveragePrice, City)
-    select Date, avg(Price) as AveragePrice, City
-    from HotelPrice
-    GROUP BY Date
-    '''
-    connection.execute(query)
+    # Clear existing data
+    session.query(AverageRoomPriceByDate).delete()
+
+    # Insert new data
+    avg_prices = session.query(
+        HotelPrice.Date,
+        func.avg(HotelPrice.Price).label('AveragePrice'),
+        HotelPrice.City
+    ).group_by(HotelPrice.Date, HotelPrice.City).all()
+
+    new_records = [
+        AverageRoomPriceByDate(Date=date, AveragePrice=avg_price, City=city)
+        for date, avg_price, city in avg_prices
+    ]
+
+    session.bulk_save_objects(new_records)
+    session.commit()
 
 
-def create_avg_room_price_by_review_table(connection: sqlite3.Connection) -> None:
+def create_avg_room_price_by_review_table(session: Session) -> None:
     """
-    Create AverageHotelRoomPriceByReview table.
-    :param connection: SQLite database connection.
+    Create AverageHotelRoomPriceByReview table using SQLAlchemy ORM.
+    :param session: SQLAlchemy session
     :return: None
     """
     main_logger.info("Create AverageHotelRoomPriceByReview table...")
-    query = '''
-    CREATE table IF NOT EXISTS AverageHotelRoomPriceByReview (
-        Review REAL NOT NULL PRIMARY KEY,
-        AveragePrice REAL NOT NULL
-    ) 
-    '''
-    connection.execute(query)
 
-    query = '''
-    delete from AverageHotelRoomPriceByReview 
-    '''
-    connection.execute(query)
+    # Create the table if it doesn't exist
+    Base.metadata.create_all(session.bind)
 
-    query = '''
-    insert into AverageHotelRoomPriceByReview (Review, AveragePrice)
-    select Review, avg(Price)
-    FROM HotelPrice
-    group by Review
-    '''
-    connection.execute(query)
+    # Clear existing data
+    session.query(AverageHotelRoomPriceByReview).delete()
+
+    # Calculate average prices by review
+    avg_prices = session.query(
+        HotelPrice.Review,
+        func.avg(HotelPrice.Price).label('AveragePrice')
+    ).group_by(HotelPrice.Review).all()
+
+    # Create new records
+    new_records = [
+        AverageHotelRoomPriceByReview(Review=review, AveragePrice=avg_price)
+        for review, avg_price in avg_prices
+    ]
+
+    # Bulk insert new records
+    session.bulk_save_objects(new_records)
+    session.commit()
 
 
-def create_avg_hotel_price_by_dow_table(connection: sqlite3.Connection) -> None:
+def create_avg_hotel_price_by_dow_table(session: Session) -> None:
     """
-    Create AverageHotelRoomPriceByDayOfWeek table.
-    :param connection: SQLite database connection.
+    Create AverageHotelRoomPriceByDayOfWeek table using SQLAlchemy ORM.
+    :param session: SQLAlchemy session
     :return: None
     """
     main_logger.info("Create AverageHotelRoomPriceByDayOfWeek table...")
-    query = '''
-    CREATE table IF NOT EXISTS AverageHotelRoomPriceByDayOfWeek (
-        DayOfWeek TEXT NOT NULL PRIMARY KEY,
-        AveragePrice REAL NOT NULL
-    ) 
-    '''
-    connection.execute(query)
 
-    query = '''
-    delete from AverageHotelRoomPriceByDayOfWeek 
-    '''
-    connection.execute(query)
+    # Create the table if it doesn't exist
+    Base.metadata.create_all(session.bind)
 
-    query = '''
-    insert into AverageHotelRoomPriceByDayOfWeek (DayOfWeek, AveragePrice)
-    SELECT
-        CASE strftime('%w', Date)
-            WHEN '0' THEN 'Sunday'
-            WHEN '1' THEN 'Monday'
-            WHEN '2' THEN 'Tuesday'
-            WHEN '3' THEN 'Wednesday'
-            WHEN '4' THEN 'Thursday'
-            WHEN '5' THEN 'Friday'
-            WHEN '6' THEN 'Saturday'
-        END AS day_of_week,
-        AVG(Price) AS avg_price
-    FROM
-        HotelPrice
-    GROUP BY
-        day_of_week;
-    '''
-    connection.execute(query)
+    # Clear existing data
+    session.query(AverageHotelRoomPriceByDayOfWeek).delete()
+
+    # Calculate average prices by day of week
+    day_of_week_case = case(
+        (func.strftime('%w', HotelPrice.Date) == '0', 'Sunday'),
+        (func.strftime('%w', HotelPrice.Date) == '1', 'Monday'),
+        (func.strftime('%w', HotelPrice.Date) == '2', 'Tuesday'),
+        (func.strftime('%w', HotelPrice.Date) == '3', 'Wednesday'),
+        (func.strftime('%w', HotelPrice.Date) == '4', 'Thursday'),
+        (func.strftime('%w', HotelPrice.Date) == '5', 'Friday'),
+        (func.strftime('%w', HotelPrice.Date) == '6', 'Saturday'),
+    ).label('day_of_week')
+
+    avg_prices = session.query(
+        day_of_week_case,
+        func.avg(HotelPrice.Price).label('avg_price')
+    ).group_by(day_of_week_case).all()
+
+    # Create new records
+    new_records = [
+        AverageHotelRoomPriceByDayOfWeek(DayOfWeek=day_of_week, AveragePrice=avg_price)
+        for day_of_week, avg_price in avg_prices
+    ]
+
+    # Bulk insert new records
+    session.bulk_save_objects(new_records)
+    session.commit()
 
 
-def create_avg_hotel_price_by_month_table(connection: sqlite3.Connection) -> None:
+def create_avg_hotel_price_by_month_table(session: Session) -> None:
     """
-    Create AverageHotelRoomPriceByMonth table.
-    :param connection: SQLite database connection.
+    Create AverageHotelRoomPriceByMonth table using SQLAlchemy ORM.
+    :param session: SQLAlchemy session
     :return: None
     """
     main_logger.info("Create AverageHotelRoomPriceByMonth table...")
-    query = '''
-    CREATE table IF NOT EXISTS AverageHotelRoomPriceByMonth (
-        Month TEXT NOT NULL PRIMARY KEY,
-        AveragePrice REAL NOT NULL,
-        Quarter TEXT NOT NULL
-    ) 
-    '''
-    connection.execute(query)
 
-    query = '''
-    delete from AverageHotelRoomPriceByMonth 
-    '''
-    connection.execute(query)
+    # Create the table if it doesn't exist
+    Base.metadata.create_all(session.bind)
 
-    query = '''
-    insert into AverageHotelRoomPriceByMonth (Month, AveragePrice, Quarter)
-    SELECT
-        CASE strftime('%m', Date)
-            WHEN '01' THEN 'January'
-            WHEN '02' THEN 'February'
-            WHEN '03' THEN 'March'
-            WHEN '04' THEN 'April'
-            WHEN '05' THEN 'May'
-            WHEN '06' THEN 'June'
-            WHEN '07' THEN 'July'
-            WHEN '08' THEN 'August'
-            WHEN '09' THEN 'September'
-            WHEN '10' THEN 'October'
-            WHEN '11' THEN 'November'
-            WHEN '12' THEN 'December'
-        END AS month,
-        AVG(Price) AS avg_price,
-        CASE
-            WHEN strftime('%m', Date) IN ('01', '02', '03') THEN 'Quarter1'
-            WHEN strftime('%m', Date) IN ('04', '05', '06') THEN 'Quarter2'
-            WHEN strftime('%m', Date) IN ('07', '08', '09') THEN 'Quarter3'
-            WHEN strftime('%m', Date) IN ('10', '11', '12') THEN 'Quarter4'
-        END AS quarter
-    FROM
-        HotelPrice
-    GROUP BY
-        month;
-    '''
-    connection.execute(query)
+    # Clear existing data
+    session.query(AverageHotelRoomPriceByMonth).delete()
+
+    # Define the month case
+    month_case = case(
+        (func.strftime('%m', HotelPrice.Date) == '01', 'January'),
+        (func.strftime('%m', HotelPrice.Date) == '02', 'February'),
+        (func.strftime('%m', HotelPrice.Date) == '03', 'March'),
+        (func.strftime('%m', HotelPrice.Date) == '04', 'April'),
+        (func.strftime('%m', HotelPrice.Date) == '05', 'May'),
+        (func.strftime('%m', HotelPrice.Date) == '06', 'June'),
+        (func.strftime('%m', HotelPrice.Date) == '07', 'July'),
+        (func.strftime('%m', HotelPrice.Date) == '08', 'August'),
+        (func.strftime('%m', HotelPrice.Date) == '09', 'September'),
+        (func.strftime('%m', HotelPrice.Date) == '10', 'October'),
+        (func.strftime('%m', HotelPrice.Date) == '11', 'November'),
+        (func.strftime('%m', HotelPrice.Date) == '12', 'December'),
+    ).label('month')
+
+    # Define the quarter case
+    quarter_case = case(
+        (func.strftime('%m', HotelPrice.Date).in_(['01', '02', '03']), 'Quarter1'),
+        (func.strftime('%m', HotelPrice.Date).in_(['04', '05', '06']), 'Quarter2'),
+        (func.strftime('%m', HotelPrice.Date).in_(['07', '08', '09']), 'Quarter3'),
+        (func.strftime('%m', HotelPrice.Date).in_(['10', '11', '12']), 'Quarter4'),
+    ).label('quarter')
+
+    # Calculate average prices by month
+    avg_prices = session.query(
+        month_case,
+        func.avg(HotelPrice.Price).label('avg_price'),
+        quarter_case
+    ).group_by(month_case).all()
+
+    # Create new records
+    new_records = [
+        AverageHotelRoomPriceByMonth(Month=month, AveragePrice=avg_price, Quarter=quarter)
+        for month, avg_price, quarter in avg_prices
+    ]
+
+    # Bulk insert new records
+    session.bulk_save_objects(new_records)
+    session.commit()
 
 
-def create_avg_room_price_by_location(connection: sqlite3.Connection) -> None:
+def create_avg_room_price_by_location(session: Session) -> None:
     """
-    Create AverageHotelRoomPriceByLocation table.
-    :param connection: SQLite database connection.
+    Create AverageHotelRoomPriceByLocation table using SQLAlchemy ORM.
+    :param session: SQLAlchemy session
     :return: None
     """
     main_logger.info("Create AverageHotelRoomPriceByLocation table...")
-    query = '''
-    CREATE table IF NOT EXISTS AverageHotelRoomPriceByLocation (
-        Location TEXT NOT NULL PRIMARY KEY,
-        AveragePrice REAL NOT NULL,
-        AverageRating REAL NOT NULL,
-        AveragePricePerReview REAL NOT NULL
-    ) 
-    '''
-    connection.execute(query)
 
-    query = '''
-    delete from AverageHotelRoomPriceByLocation
-    '''
-    connection.execute(query)
+    # Create the table if it doesn't exist
+    Base.metadata.create_all(session.bind)
 
-    query = '''
-    insert into AverageHotelRoomPriceByLocation (Location, AveragePrice, AverageRating, AveragePricePerReview)
-    select Location, 
-            avg(Price) as AveragePrice, 
-            avg(Review) as AverageRating, 
-            avg("Price/Review") as AveragePricePerReview
-    from HotelPrice
-    group by Location;
-    '''
-    connection.execute(query)
+    # Clear existing data
+    session.query(AverageHotelRoomPriceByLocation).delete()
+
+    # Calculate average prices, ratings, and price per review by location
+    avg_data = session.query(
+        HotelPrice.Location,
+        func.avg(HotelPrice.Price).label('AveragePrice'),
+        func.avg(HotelPrice.Review).label('AverageRating'),
+        func.avg(HotelPrice.PriceReview).label('AveragePricePerReview')
+    ).group_by(HotelPrice.Location).all()
+
+    # Create new records
+    new_records = [
+        AverageHotelRoomPriceByLocation(
+            Location=location,
+            AveragePrice=avg_price,
+            AverageRating=avg_rating,
+            AveragePricePerReview=avg_price_per_review
+        )
+        for location, avg_price, avg_rating, avg_price_per_review in avg_data
+    ]
+
+    # Bulk insert new records
+    session.bulk_save_objects(new_records)
+    session.commit()
 
 
 if __name__ == '__main__':
