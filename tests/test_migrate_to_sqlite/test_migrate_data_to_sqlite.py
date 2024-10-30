@@ -15,7 +15,7 @@ def test_successful_connection_to_sqlite(tmp_path):
         'Location': ['San Francisco', 'San Francisco'],
         'City': ['City X', 'City Y'],
         'Date': ['2022-01-01', '2022-01-02'],
-        'AsOf': ['2022-01-01', '2022-01-02']
+        'AsOf': [pd.Timestamp('2022-01-01'), pd.Timestamp('2022-01-02')]
     })
     db = tmp_path / 'test_successful_connection_to_sqlite.db'
 
