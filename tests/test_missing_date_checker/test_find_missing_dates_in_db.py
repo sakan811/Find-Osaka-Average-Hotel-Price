@@ -1,112 +1,104 @@
-import datetime
-from unittest.mock import patch, MagicMock
-from dateutil.relativedelta import relativedelta
+from datetime import datetime, timedelta
+from unittest.mock import MagicMock, patch
 
 import pytest
+from sqlalchemy.orm import Session
 
 from check_missing_dates import MissingDateChecker
 
 
 @pytest.fixture
-def mock_sqlite3():
-    with patch('sqlite3.connect') as mock_connect:
-        yield mock_connect
-
-
-@pytest.fixture
-def checker():
-    return MissingDateChecker("test.db", "Test City")
-
-
-@pytest.fixture
 def mock_today():
-    today = datetime.datetime(2024, 8, 15)
-    with patch('datetime.datetime') as mock_datetime:
-        mock_datetime.now.return_value = today
-        mock_datetime.today.return_value = today
-        yield today
+    return datetime(2023, 12, 31)
 
 
-def test_current_month(mock_sqlite3, checker, mock_today):
-    with patch('datetime.datetime') as mock_datetime:
-        mock_datetime.now.return_value = mock_today
-        mock_datetime.today.return_value = mock_today
-        mock_datetime.strptime.return_value = mock_today
-
-        mock_cursor = MagicMock()
-        mock_cursor.fetchall.return_value = [(mock_today.strftime('%Y-%m'), mock_today.day)]
-        mock_sqlite3.return_value.__enter__.return_value.execute.return_value = mock_cursor
-
-        year = datetime.datetime.today().year
-
-        with patch('japan_avg_hotel_price_finder.sql.sql_query.get_count_of_date_by_mth_as_of_today_query'):
-            with patch.object(checker, 'find_dates_of_the_month_in_db', return_value=([], mock_today.replace(day=1).strftime('%Y-%m-%d'), mock_today.strftime('%Y-%m-%d'))):
-                with patch('check_missing_dates.find_missing_dates', return_value=[
-                    (mock_today + datetime.timedelta(days=1)).strftime('%Y-%m-%d'),
-                    (mock_today + datetime.timedelta(days=2)).strftime('%Y-%m-%d')
-                ]):
-                    result = checker.find_missing_dates_in_db(year)
-
-        assert len(result) == 2
-        assert result[0] == (mock_today + datetime.timedelta(days=1)).strftime('%Y-%m-%d')
-        assert result[1] == (mock_today + datetime.timedelta(days=2)).strftime('%Y-%m-%d')
+@pytest.fixture
+def missing_date_checker(mock_today):
+    return MissingDateChecker(sqlite_name='test.db', city='TestCity')
 
 
-def test_future_month(mock_sqlite3, checker, mock_today):
-    future_date = mock_today + relativedelta(months=1)
-    with patch('datetime.datetime') as mock_datetime:
-        mock_datetime.now.return_value = mock_today
-        mock_datetime.today.return_value = mock_today
-        mock_datetime.strptime.return_value = future_date
-
-        mock_cursor = MagicMock()
-        mock_cursor.fetchall.return_value = [(future_date.strftime('%Y-%m'), future_date.day)]
-        mock_sqlite3.return_value.__enter__.return_value.execute.return_value = mock_cursor
-
-        year = datetime.datetime.today().year
-
-        with patch('japan_avg_hotel_price_finder.sql.sql_query.get_count_of_date_by_mth_as_of_today_query'):
-            with patch('check_missing_dates.find_missing_dates', return_value=[]):
-                result = checker.find_missing_dates_in_db(year)
-
-        assert result == []
+@pytest.fixture
+def mock_session(mock_today):
+    session = MagicMock(spec=Session)
+    # You can set up any session-wide mocks here that depend on the date
+    return session
 
 
-def test_past_month(mock_sqlite3, checker, mock_today):
-    past_date = mock_today - relativedelta(months=1)
-    with patch('datetime.datetime') as mock_datetime:
-        mock_datetime.now.return_value = mock_today
-        mock_datetime.today.return_value = mock_today
-        mock_datetime.strptime.return_value = past_date
+def test_find_missing_dates_in_db_no_data(missing_date_checker, mock_session, mock_today):
+    missing_date_checker.Session = MagicMock(return_value=mock_session)
+    mock_session.query.return_value.filter.return_value.filter.return_value.group_by.return_value.all.return_value = []
 
-        mock_cursor = MagicMock()
-        mock_cursor.fetchall.return_value = [(past_date.strftime('%Y-%m'), past_date.day)]
-        mock_sqlite3.return_value.__enter__.return_value.execute.return_value = mock_cursor
+    result = missing_date_checker.find_missing_dates_in_db(mock_today.year)
 
-        year = datetime.datetime.today().year
-
-        with patch('japan_avg_hotel_price_finder.sql.sql_query.get_count_of_date_by_mth_as_of_today_query'):
-            with patch.object(checker, 'find_dates_of_the_month_in_db', return_value=([], past_date.replace(day=1).strftime('%Y-%m-%d'), past_date.replace(day=31).strftime('%Y-%m-%d'))):
-                with patch('check_missing_dates.find_missing_dates', return_value=[past_date.replace(day=31).strftime('%Y-%m-%d')]):
-                    result = checker.find_missing_dates_in_db(year)
-
-        assert len(result) == 1
-        assert result[0] == past_date.replace(day=31).strftime('%Y-%m-%d')
+    assert result == []
 
 
-def test_no_data(mock_sqlite3, checker, mock_today):
-    with patch('datetime.datetime') as mock_datetime:
-        mock_datetime.now.return_value = mock_today
-        mock_datetime.today.return_value = mock_today
-        mock_datetime.strptime.return_value = mock_today
+def test_find_missing_dates_in_db_all_dates_present(missing_date_checker, mock_session, mock_today):
+    missing_date_checker.Session = MagicMock(return_value=mock_session)
+    mock_data = [
+        (mock_today.strftime('%Y-%m'), 31)  # Use the actual number of days in the month
+    ]
+    mock_session.query.return_value.filter.return_value.filter.return_value.group_by.return_value.all.return_value = mock_data
 
-        mock_cursor = MagicMock()
-        mock_cursor.fetchall.return_value = []
-        mock_sqlite3.return_value.__enter__.return_value.execute.return_value = mock_cursor
+    with patch('check_missing_dates.MissingDateChecker.check_missing_dates') as mock_check:
+        mock_check.return_value = None
+        result = missing_date_checker.find_missing_dates_in_db(mock_today.year)
 
-        year = datetime.datetime.today().year
+    assert result == []
 
-        with patch('japan_avg_hotel_price_finder.sql.sql_query.get_count_of_date_by_mth_as_of_today_query'):
-            result = checker.find_missing_dates_in_db(year)
 
-        assert result == []
+def test_find_missing_dates_in_db_some_dates_missing(missing_date_checker, mock_session, mock_today):
+    missing_date_checker.Session = MagicMock(return_value=mock_session)
+    mock_data = [
+        (mock_today.strftime('%Y-%m'), 25)  # Assuming 6 days missing in December
+    ]
+    mock_session.query.return_value.filter.return_value.filter.return_value.group_by.return_value.all.return_value = mock_data
+
+    with patch('check_missing_dates.MissingDateChecker.check_missing_dates') as mock_check:
+        def side_effect(*args, **kwargs):
+            for i in range(26, 32):
+                date = mock_today + timedelta(days=i - 25)
+                args[2].append(date.strftime('%Y-%m-%d'))
+
+        mock_check.side_effect = side_effect
+        result = missing_date_checker.find_missing_dates_in_db(mock_today.year)
+
+    assert len(result) == 6
+    # Check if all dates are either in the current month/year or the next month/year
+    assert all(date.startswith(f"{mock_today.year}-{mock_today.month:02d}-") or
+               date.startswith(f"{mock_today.year + 1}-01-") for date in result)
+
+    # Verify the specific dates
+    expected_dates = [(mock_today + timedelta(days=i - 25)).strftime('%Y-%m-%d') for i in range(26, 32)]
+    assert result == expected_dates
+
+
+@pytest.mark.parametrize("exception", [Exception("Database error"), ValueError("Invalid query")])
+def test_find_missing_dates_in_db_exception_handling(missing_date_checker, mock_session, exception):
+    missing_date_checker.Session = MagicMock(return_value=mock_session)
+    mock_session.query.side_effect = exception
+
+    result = missing_date_checker.find_missing_dates_in_db(2023)
+
+    assert result == []
+
+
+@pytest.mark.parametrize("mock_today", [
+    datetime(2023, 12, 31),  # Year rollover
+    datetime(2024, 2, 28),  # Leap year
+    datetime(2024, 2, 29),  # Last day of leap year
+    datetime(2025, 2, 28),  # Last day of February in non-leap year
+], indirect=True)
+def test_find_missing_dates_in_db_special_dates(missing_date_checker, mock_session, mock_today):
+    missing_date_checker.Session = MagicMock(return_value=mock_session)
+    mock_data = [
+        (mock_today.strftime('%Y-%m'), mock_today.day - 1)  # Assuming the last day is missing
+    ]
+    mock_session.query.return_value.filter.return_value.filter.return_value.group_by.return_value.all.return_value = mock_data
+
+    with patch('check_missing_dates.MissingDateChecker.check_missing_dates') as mock_check:
+        mock_check.side_effect = lambda *args, **kwargs: args[2].append(mock_today.strftime('%Y-%m-%d'))
+        result = missing_date_checker.find_missing_dates_in_db(mock_today.year)
+
+    assert len(result) == 1
+    assert result[0] == mock_today.strftime('%Y-%m-%d')

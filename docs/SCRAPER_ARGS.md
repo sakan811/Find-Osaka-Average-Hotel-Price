@@ -74,3 +74,7 @@
 - **Type**: `int`
 - **Default**: `1`
 - **Description**: Specifies the length of stay in nights. The default value is `1`.
+
+### `--prefecture`
+- **Type**: `str`
+- **Description**: Specifies the prefecture where the hotels are located. This argument is required for Japan Hotel Scraper.

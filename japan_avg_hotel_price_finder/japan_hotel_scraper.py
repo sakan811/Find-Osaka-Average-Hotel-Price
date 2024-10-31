@@ -1,10 +1,13 @@
 import calendar
-import sqlite3
+from typing import Any
 
 import pandas as pd
 from pydantic import Field
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
 from japan_avg_hotel_price_finder.configure_logging import main_logger
+from japan_avg_hotel_price_finder.sql.db_model import Base, JapanHotel
 from japan_avg_hotel_price_finder.whole_mth_graphql_scraper import WholeMonthGraphQLScraper
 
 
@@ -49,12 +52,48 @@ class JapanScraper(WholeMonthGraphQLScraper):
     start_month: int = Field(1, gt=0, le=12)  # month to start scraping
     end_month: int = Field(12, gt=0, le=12)  # last month to scrape
 
+    def map_prefecture_to_region(self, prefecture: str) -> str:
+        """
+        Map a prefecture to its corresponding region.
+        :param prefecture: Prefecture to map
+        :return: the Region to which the prefecture belongs
+        """
+        for region, prefectures in self.japan_regions.items():
+            if prefecture in prefectures:
+                return region
+        return "Unknown"  # If the prefecture is not found in any region
+
+    def create_prefecture_region_mapping(self) -> dict[Any, list[str]]:
+        """
+        Create a mapping of prefectures to regions based on the input city.
+        :return: A dictionary mapping prefectures to regions.
+        """
+        # Split the comma-separated string into a list of prefectures
+        prefectures = [prefecture.strip() for prefecture in self.city.split(',')]
+
+        # Create a new dictionary mapping each prefecture to its region
+        new_japan_regions = {}
+        for prefecture in prefectures:
+            region = self.map_prefecture_to_region(prefecture)
+            if region in new_japan_regions:
+                new_japan_regions[region].append(prefecture)
+            else:
+                new_japan_regions[region] = [prefecture]
+
+        # Return the japan_regions with the new mapping
+        return new_japan_regions
+
     async def scrape_japan_hotels(self) -> None:
         """
         Scrape Japan hotel data by Prefectures and Region
         :return: None
         """
-        for region, prefectures in self.japan_regions.items():
+        if self.city:
+            japan_regions_to_be_used = self.create_prefecture_region_mapping()
+        else:
+            japan_regions_to_be_used = self.japan_regions
+
+        for region, prefectures in japan_regions_to_be_used.items():
             self.region = region
             main_logger.info(f"Scraping Japan hotels for region {self.region}")
 
@@ -81,7 +120,7 @@ class JapanScraper(WholeMonthGraphQLScraper):
 
     def _load_to_sqlite(self, prefecture_hotel_data: pd.DataFrame) -> None:
         """
-        Load hotel data of all Japan Prefectures to SQlite
+        Load hotel data of all Japan Prefectures to SQLite using SQLAlchemy ORM
         :param prefecture_hotel_data: DataFrame with the whole-year hotel data of the given prefecture.
         :return: None
         """
@@ -90,37 +129,32 @@ class JapanScraper(WholeMonthGraphQLScraper):
         # Rename 'City' column to 'Prefecture'
         prefecture_hotel_data = prefecture_hotel_data.rename(columns={'City': 'Prefecture'})
 
-        with sqlite3.connect(self.sqlite_name) as conn:
-            create_table_q = '''
-            CREATE TABLE IF NOT EXISTS JapanHotels (
-                ID             INTEGER PRIMARY KEY AUTOINCREMENT,
-                Hotel          TEXT NOT NULL,
-                Price          FLOAT NOT NULL,
-                Review         FLOAT NOT NULL,
-                "Price/Review" FLOAT NOT NULL,
-                Date           DATE NOT NULL,
-                Region         TEXT NOT NULL,
-                Prefecture     TEXT NOT NULL,
-                Location       TEXT NOT NULL,                
-                AsOf       TIMESTAMP NOT NULL
-            );    
-            '''
-            conn.execute(create_table_q)
+        # Rename Price/Review column
+        prefecture_hotel_data.rename(columns={'Price/Review': 'PriceReview'}, inplace=True)
 
-            prefecture_hotel_data.to_sql('JapanHotels', conn, if_exists='append', index=False,
-                                         dtype={
-                                             'Hotel': 'TEXT',
-                                             'Price': 'FLOAT',
-                                             'Review': 'FLOAT',
-                                             'Price/Review': 'FLOAT',
-                                             'Date': 'DATE',
-                                             'Region': 'TEXT',
-                                             'Prefecture': 'TEXT',
-                                             'Location': 'TEXT',
-                                             'AsOf': 'TIMESTAMP'
-                                         })
+        engine = create_engine(f'sqlite:///{self.sqlite_name}')
+        Base.metadata.tables['JapanHotels'].create(engine, checkfirst=True)
+        Session = sessionmaker(bind=engine)
+        session = Session()
 
-        main_logger.info(f"Hotel data for {self.city} loaded to SQLite successfully.")
+        try:
+            # Convert DataFrame to list of dictionaries
+            records = prefecture_hotel_data.to_dict('records')
+
+            # Create HotelPrice objects
+            hotel_prices = [JapanHotel(**record) for record in records]
+
+            # Bulk insert records
+            session.bulk_save_objects(hotel_prices)
+
+            session.commit()
+            main_logger.info(f"Hotel data for {self.city} loaded to SQLite successfully.")
+        except Exception as e:
+            session.rollback()
+            main_logger.error(f"An error occurred while saving data: {str(e)}")
+            raise
+        finally:
+            session.close()
 
 
 if __name__ == '__main__':

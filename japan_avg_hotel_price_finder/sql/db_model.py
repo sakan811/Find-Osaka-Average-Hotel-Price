@@ -3,6 +3,7 @@ from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
 
+
 class HotelPrice(Base):
     __tablename__ = 'HotelPrice'
 
@@ -54,3 +55,18 @@ class AverageHotelRoomPriceByLocation(Base):
     AveragePrice = Column(Float, nullable=False)
     AverageRating = Column(Float, nullable=False)
     AveragePricePerReview = Column(Float, nullable=False)
+
+
+class JapanHotel(Base):
+    __tablename__ = 'JapanHotels'
+
+    ID = Column(Integer, primary_key=True, autoincrement=True)
+    Hotel = Column(String, nullable=False)
+    Price = Column(Float, nullable=False)
+    Review = Column(Float, nullable=False)
+    PriceReview = Column('Price/Review', Float, nullable=False)
+    Date = Column(String, nullable=False)
+    Region = Column(String, nullable=False)
+    Prefecture = Column(String, nullable=False)
+    Location = Column(String, nullable=False)
+    AsOf = Column(TIMESTAMP, nullable=False)
