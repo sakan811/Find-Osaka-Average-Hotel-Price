@@ -37,11 +37,9 @@ class WholeMonthGraphQLScraper(BasicGraphQLScraper):
     start_day: int = Field(1, gt=0, le=31)
     nights: int = Field(1, gt=0)
 
-    async def scrape_whole_month(self, timezone=None) -> pd.DataFrame:
+    async def scrape_whole_month(self) -> pd.DataFrame:
         """
         Scrape data from the GraphQL endpoint for the whole month.
-        :param timezone: Timezone.
-                        Default is None.
         :return: Pandas Dataframe containing hotel data from the whole month.
         """
         main_logger.info('Using Whole-Month GraphQL scraper...')
@@ -54,7 +52,7 @@ class WholeMonthGraphQLScraper(BasicGraphQLScraper):
         for day in range(self.start_day, last_day + 1):
             main_logger.debug(f'Process day {day} of {calendar.month_name[self.month]}-{self.year}')
 
-            date_has_passed: bool = check_if_current_date_has_passed(self.year, self.month, day, timezone)
+            date_has_passed: bool = check_if_current_date_has_passed(self.year, self.month, day)
 
             if date_has_passed:
                 main_logger.warning(f'The current date has passed. Skip {self.year}-{self.month}-{day}.')
