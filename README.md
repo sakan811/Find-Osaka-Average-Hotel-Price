@@ -179,7 +179,7 @@ To ensure that all dates of the month were scraped, a function in
 [check_missing_dates.py](check_missing_dates.py) will check in the given SQLite database to find the missing dates.
 
 > _**Made only for the [Find the Hotel's Average Room Price in Osaka](#find-the-hotels-average-room-price-in-osaka) project
-  which saves scraped data in SQLite.**_
+  which saves scraped data in SQLite, HotelPrice table.**_
 
 - To check in the database, use the following command line as an example, only include required argument:
   ```bash
