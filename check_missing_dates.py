@@ -1,18 +1,20 @@
+import argparse
 import asyncio
 import calendar
 import datetime
-import sqlite3
-import argparse
 from calendar import monthrange
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from typing import Any
 
+from sqlalchemy import create_engine, func
+from sqlalchemy.orm import sessionmaker
+
+from japan_avg_hotel_price_finder.booking_details import BookingDetails
 from japan_avg_hotel_price_finder.configure_logging import main_logger
 from japan_avg_hotel_price_finder.date_utils.date_utils import format_date, calculate_check_out_date
 from japan_avg_hotel_price_finder.graphql_scraper import BasicGraphQLScraper
-from japan_avg_hotel_price_finder.booking_details import BookingDetails
+from japan_avg_hotel_price_finder.sql.db_model import HotelPrice
 from japan_avg_hotel_price_finder.sql.save_to_db import save_scraped_data
-from japan_avg_hotel_price_finder.sql.sql_query import get_count_of_date_by_mth_as_of_today_query, \
-    get_dates_of_each_month_as_of_today_query
 
 
 def find_missing_dates(dates_in_db: set[str],
@@ -130,35 +132,54 @@ class MissingDateChecker:
     sqlite_name: str
     city: str
 
+    # sqlalchemy
+    engine: Any = field(init=False)
+    Session: Any = field(init=False)
+
+    def __post_init__(self):
+        self.engine = create_engine(f'sqlite:///{self.sqlite_name}')
+        self.Session = sessionmaker(bind=self.engine)
+
     def find_missing_dates_in_db(self, year: int) -> list[str]:
         """
-        Find missing dates in the database.
+        Find missing dates in the database using SQLAlchemy ORM.
         :param year: Year of the dates to check whether they are missing.
         :return: List of missing dates.
         """
         main_logger.info(f"Checking if all dates were scraped in {self.sqlite_name}...")
         missing_date_list: list[str] = []
 
-        with sqlite3.connect(self.sqlite_name) as con:
+        session = self.Session()
+        try:
             main_logger.info(f'Get a distinct date count of each month for today scraped data, '
                              f'UTC time, for city {self.city}...')
-            query: str = get_count_of_date_by_mth_as_of_today_query()
-            cursor = con.execute(query, (self.city,))
-            count_of_date_by_mth_as_of_today_list: list[tuple] = cursor.fetchall()
-            cursor.close()
 
-            if not count_of_date_by_mth_as_of_today_list:
+            count_of_date_by_mth_as_of_today = (
+                session.query(
+                    func.strftime('%Y-%m', HotelPrice.Date).label('month'),
+                    func.count(func.distinct(HotelPrice.Date)).label('count')
+                )
+                .filter(HotelPrice.City == self.city)
+                .filter(func.date(HotelPrice.AsOf) == func.date('now'))
+                .group_by(func.strftime('%Y-%m', HotelPrice.Date))
+                .all()
+            )
+
+            if not count_of_date_by_mth_as_of_today:
                 today = datetime.datetime.now(datetime.timezone.utc).date()
                 main_logger.warning(f"No scraped data for today, {today}, UTC time for city {self.city} in"
                                     f" {self.sqlite_name}.")
                 return missing_date_list
 
             today = datetime.datetime.today()
-            year: int = year
             current_month: str = today.strftime('%Y-%m')
 
-            self.check_missing_dates(count_of_date_by_mth_as_of_today_list, current_month, missing_date_list, today,
-                                     year)
+            self.check_missing_dates(count_of_date_by_mth_as_of_today, current_month, missing_date_list, today, year)
+        except Exception as e:
+            main_logger.error(f"An error occurred while querying the database: {str(e)}")
+            return missing_date_list
+        finally:
+            session.close()
 
         return missing_date_list
 
@@ -202,24 +223,30 @@ class MissingDateChecker:
         :param days_in_month: Total days in the given month.
         :param month: Month.
         :param year: Year.
-
         :return: Tuple of (Dates in the database, End Date, Start Date).
                 Date format for all values in the Tuple: '%Y-%m-%d'.
         """
         main_logger.info(f'Get dates of {calendar.month_name[month]} {year} in the database for {self.city}...')
         main_logger.info('As of today, UTC time')
 
-        query: str = get_dates_of_each_month_as_of_today_query()
         start_date: str = datetime.datetime(year, month, 1).strftime('%Y-%m-%d')
         end_date: str = datetime.datetime(year, month, days_in_month).strftime('%Y-%m-%d')
 
-        with sqlite3.connect(self.sqlite_name) as con:
-            cursor = con.execute(query, (start_date, end_date, self.city))
-            result = cursor.fetchall()
-            cursor.close()
+        session = self.Session()
+        try:
+            result = (
+                session.query(func.strftime('%Y-%m-%d', HotelPrice.Date).label('Date'))
+                .filter(HotelPrice.Date.between(start_date, end_date))
+                .filter(HotelPrice.City == self.city)
+                .filter(func.date(HotelPrice.AsOf) == func.date('now'))
+                .group_by(HotelPrice.Date)
+                .all()
+            )
 
-        dates_in_db: set[str] = set([row[0] for row in result])
-        return dates_in_db, end_date, start_date
+            dates_in_db: set[str] = set(row.Date for row in result)
+            return dates_in_db, end_date, start_date
+        finally:
+            session.close()
 
 
 def parse_arguments() -> argparse.Namespace:
