@@ -48,10 +48,15 @@ def run_japan_hotel_scraper(arguments: argparse.Namespace) -> None:
     :param arguments: Arguments to pass to the scraper
     :return: None
     """
+    if arguments.prefecture:
+        city = ','.join(arguments.prefecture)
+    else:
+        city = ''
+
     year: int = 2024
     month: int = 1
     scraper = JapanScraper(
-        city='', year=year, month=month, start_day=arguments.start_day, nights=arguments.nights,
+        city=city, year=year, month=month, start_day=arguments.start_day, nights=arguments.nights,
         scrape_only_hotel=arguments.scrape_only_hotel, sqlite_name=arguments.sqlite_name,
         selected_currency=arguments.selected_currency, group_adults=arguments.group_adults,
         num_rooms=arguments.num_rooms, group_children=arguments.group_children, check_in='', check_out='',

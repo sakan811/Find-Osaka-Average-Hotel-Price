@@ -55,6 +55,27 @@ def add_date_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument('--nights', type=int, default=1, help='Length of stay, default is 1')
 
 
+def add_japan_arguments(parser: argparse.ArgumentParser) -> None:
+    """
+    Add Japan-related arguments to the parser.
+    :param parser: argparse.ArgumentParser
+    :return: None
+    """
+    parser.add_argument('--prefecture', type=str, nargs='+', help='Prefecture(s) to scrape data for')
+
+
+def validate_japan_arguments(args: argparse.Namespace) -> None:
+    """
+    Validate Japan-specific arguments.
+    :param args: Argparse.Namespace
+    :return: None
+    """
+    if args.prefecture and not args.japan_hotel:
+        main_logger.error(
+            "Error: The --prefecture argument can only be used with the Japan hotel scraper (--japan_hotel).")
+        raise SystemExit
+
+
 def validate_booking_details_arguments(args: argparse.Namespace) -> None:
     """
     Validate the parsed arguments of booking details.
@@ -82,6 +103,8 @@ def parse_arguments() -> argparse.Namespace:
     add_booking_details_arguments(parser)
     add_database_arguments(parser)
     add_date_arguments(parser)
+    add_japan_arguments(parser)
     args = parser.parse_args()
     validate_booking_details_arguments(args)
+    validate_japan_arguments(args)
     return args
