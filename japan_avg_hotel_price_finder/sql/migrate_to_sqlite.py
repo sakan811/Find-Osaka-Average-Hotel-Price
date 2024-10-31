@@ -1,5 +1,5 @@
 import pandas as pd
-from sqlalchemy import create_engine, func, case
+from sqlalchemy import create_engine, func, case, MetaData
 from sqlalchemy.orm import sessionmaker, Session
 
 from japan_avg_hotel_price_finder.configure_logging import main_logger
@@ -18,7 +18,17 @@ def migrate_data_to_sqlite(df_filtered: pd.DataFrame, db: str) -> None:
     main_logger.info('Connecting to SQLite database (or create it if it doesn\'t exist)...')
 
     engine = create_engine(f'sqlite:///{db}')
-    Base.metadata.create_all(engine)
+
+    # Create a new MetaData instance
+    metadata = MetaData()
+
+    # Copy all tables from Base.metadata except JapanHotels
+    for table_name, table in Base.metadata.tables.items():
+        if table_name != 'JapanHotels':
+            table.tometadata(metadata)
+
+    # Create all tables in the new metadata
+    metadata.create_all(engine)
 
     Session = sessionmaker(bind=engine)
     session = Session()
@@ -58,9 +68,6 @@ def create_avg_hotel_room_price_by_date_table(session: Session) -> None:
     """
     main_logger.info('Create AverageRoomPriceByDate table...')
 
-    # Create the table if it doesn't exist
-    Base.metadata.create_all(session.bind)
-
     # Clear existing data
     session.query(AverageRoomPriceByDate).delete()
 
@@ -87,9 +94,6 @@ def create_avg_room_price_by_review_table(session: Session) -> None:
     :return: None
     """
     main_logger.info("Create AverageHotelRoomPriceByReview table...")
-
-    # Create the table if it doesn't exist
-    Base.metadata.create_all(session.bind)
 
     # Clear existing data
     session.query(AverageHotelRoomPriceByReview).delete()
@@ -118,9 +122,6 @@ def create_avg_hotel_price_by_dow_table(session: Session) -> None:
     :return: None
     """
     main_logger.info("Create AverageHotelRoomPriceByDayOfWeek table...")
-
-    # Create the table if it doesn't exist
-    Base.metadata.create_all(session.bind)
 
     # Clear existing data
     session.query(AverageHotelRoomPriceByDayOfWeek).delete()
@@ -159,9 +160,6 @@ def create_avg_hotel_price_by_month_table(session: Session) -> None:
     :return: None
     """
     main_logger.info("Create AverageHotelRoomPriceByMonth table...")
-
-    # Create the table if it doesn't exist
-    Base.metadata.create_all(session.bind)
 
     # Clear existing data
     session.query(AverageHotelRoomPriceByMonth).delete()
@@ -215,9 +213,6 @@ def create_avg_room_price_by_location(session: Session) -> None:
     :return: None
     """
     main_logger.info("Create AverageHotelRoomPriceByLocation table...")
-
-    # Create the table if it doesn't exist
-    Base.metadata.create_all(session.bind)
 
     # Clear existing data
     session.query(AverageHotelRoomPriceByLocation).delete()
