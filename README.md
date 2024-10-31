@@ -157,6 +157,16 @@ Built on top of [Find the Hotel's Average Room Price in Osaka](#find-the-hotels-
   python main.py --japan_hotel --sqlite_name=japan_hotel_data_test.db
   ```
 - Data is saved to **SQLite**.
+- Prefecture to scrape can be specified with `--prefecture` argument, for example:
+  - ```bash
+    python main.py --japan_hotel --prefecture Tokyo --sqlite_name=japan_hotel_data_test.db
+    ```
+  - If `--prefecture` argument is not specified, all prefectures will be scraped.
+  - Multiple prefectures can be specified.
+    - ```bash
+      python main.py --japan_hotel --prefecture Tokyo Osaka --sqlite_name=japan_hotel_data_test.db
+      ```
+  - You can use the prefecture name on Booking.com as a reference.
 
 > If the not match error happened (SystemExit exception), please try running the scraper again.
 
