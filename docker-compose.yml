@@ -6,11 +6,13 @@ services:
     container_name: jp_scraper
     hostname: jp_scraper
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_HOST=localhost
+      - POSTGRES_PORT=5500
+      - POSTGRES_DB=postgres
     volumes:
-      - ./postgres_data:/var/lib/postgresql/data
+      - ${POSTGRES_DATA_PATH}:/var/lib/postgresql/data
     ports:
       - "5500:5432"
     networks:
