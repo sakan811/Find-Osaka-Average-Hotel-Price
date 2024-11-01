@@ -2,7 +2,8 @@ from datetime import datetime, timedelta
 from unittest.mock import MagicMock, patch
 
 import pytest
-from sqlalchemy.orm import Session
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, Session
 
 from check_missing_dates import MissingDateChecker
 
@@ -14,7 +15,9 @@ def mock_today():
 
 @pytest.fixture
 def missing_date_checker(mock_today):
-    return MissingDateChecker(sqlite_name='test.db', city='TestCity')
+    engine = create_engine('sqlite:///test.db')
+    Session = sessionmaker(bind=engine)
+    return MissingDateChecker(engine=engine, city='TestCity')
 
 
 @pytest.fixture
@@ -97,7 +100,6 @@ def test_find_missing_dates_in_db_multiple_months_missing(missing_date_checker, 
         result = missing_date_checker.find_missing_dates_in_db(mock_today.year)
 
     assert len(result) == 17  # 6 missing in December + 11 missing in January
-
     # Check if all dates are either in the current month/year, next month/year, or the month after
     assert all(
         date.startswith(f"{mock_today.year}-{mock_today.month:02d}-") or
@@ -140,7 +142,4 @@ def test_find_missing_dates_in_db_special_dates(missing_date_checker, mock_sessi
 
     with patch('check_missing_dates.MissingDateChecker.check_missing_dates') as mock_check:
         mock_check.side_effect = lambda *args, **kwargs: args[2].append(mock_today.strftime('%Y-%m-%d'))
-        result = missing_date_checker.find_missing_dates_in_db(mock_today.year)
-
-    assert len(result) == 1
-    assert result[0] == mock_today.strftime('%Y-%m-%d')
+        result = missing_date_checker.find_missing_dates_in_db

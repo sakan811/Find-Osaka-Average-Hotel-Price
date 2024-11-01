@@ -2,11 +2,13 @@ import argparse
 import asyncio
 import calendar
 import datetime
+import os
 from calendar import monthrange
 from dataclasses import dataclass, field
 from typing import Any
 
-from sqlalchemy import create_engine, func
+from dotenv import load_dotenv
+from sqlalchemy import create_engine, func, Engine
 from sqlalchemy.orm import sessionmaker
 
 from japan_avg_hotel_price_finder.booking_details import BookingDetails
@@ -15,6 +17,14 @@ from japan_avg_hotel_price_finder.date_utils.date_utils import format_date, calc
 from japan_avg_hotel_price_finder.graphql_scraper import BasicGraphQLScraper
 from japan_avg_hotel_price_finder.sql.db_model import HotelPrice
 from japan_avg_hotel_price_finder.sql.save_to_db import save_scraped_data
+
+load_dotenv(dotenv_path='.env')
+
+postgres_host = os.getenv('POSTGRES_HOST')
+postgres_port = os.getenv('POSTGRES_PORT')
+postgres_user = os.getenv('POSTGRES_USER')
+postgres_password = os.getenv('POSTGRES_PASSWORD')
+postgres_db = os.getenv('POSTGRES_DB')
 
 
 def find_missing_dates(dates_in_db: set[str],
@@ -81,12 +91,14 @@ def filter_past_date(dates_in_db_date_obj: list[datetime.date], today: datetime.
 
 async def scrape_missing_dates(missing_dates_list: list[str] = None,
                                booking_details_class: 'BookingDetails' = None,
-                               country: str = 'Japan') -> None:
+                               country: str = 'Japan',
+                               engine: Engine = None) -> None:
     """
     Scrape missing dates with BasicScraper and load them into a database.
     :param missing_dates_list: Missing dates.
     :param booking_details_class: Dataclass of booking details as parameters, default is None.
     :param country: Country where the hotels are located, default is Japan.
+    :param engine: SQLAlchemy engine.
     :return: None
     """
     main_logger.info("Scraping missing dates...")
@@ -106,15 +118,14 @@ async def scrape_missing_dates(missing_dates_list: list[str] = None,
             num_rooms = booking_details_class.num_rooms
             selected_currency = booking_details_class.selected_currency
             scrape_only_hotel = booking_details_class.scrape_only_hotel
-            sqlite_name = booking_details_class.sqlite_name
 
             scraper = BasicGraphQLScraper(check_in=check_in, check_out=check_out, city=city, group_adults=group_adults,
                                           group_children=group_children, num_rooms=num_rooms,
                                           selected_currency=selected_currency,
-                                          scrape_only_hotel=scrape_only_hotel, sqlite_name=sqlite_name, country=country)
+                                          scrape_only_hotel=scrape_only_hotel, country=country)
             df = await scraper.scrape_graphql()
 
-            save_scraped_data(dataframe=df, db=scraper.sqlite_name)
+            save_scraped_data(dataframe=df, engine=engine)
     else:
         main_logger.warning("Missing dates is None. No missing dates to scrape.")
 
@@ -126,18 +137,15 @@ class MissingDateChecker:
     It only checks the data scraped today, UTC Time.
 
     Attributes:
-        sqlite_name (str): Path to SQLite database.
         city (str): City where the hotels are located.
     """
-    sqlite_name: str
     city: str
 
     # sqlalchemy
-    engine: Any = field(init=False)
+    engine: Any = field(init=True)
     Session: Any = field(init=False)
 
     def __post_init__(self):
-        self.engine = create_engine(f'sqlite:///{self.sqlite_name}')
         self.Session = sessionmaker(bind=self.engine)
 
     def find_missing_dates_in_db(self, year: int) -> list[str]:
@@ -146,7 +154,7 @@ class MissingDateChecker:
         :param year: Year of the dates to check whether they are missing.
         :return: List of missing dates.
         """
-        main_logger.info(f"Checking if all dates were scraped in {self.sqlite_name}...")
+        main_logger.info(f"Checking if all dates were scraped in a database...")
         missing_date_list: list[str] = []
 
         session = self.Session()
@@ -167,8 +175,7 @@ class MissingDateChecker:
 
             if not count_of_date_by_mth_as_of_today:
                 today = datetime.datetime.now(datetime.timezone.utc).date()
-                main_logger.warning(f"No scraped data for today, {today}, UTC time for city {self.city} in"
-                                    f" {self.sqlite_name}.")
+                main_logger.warning(f"No scraped data for today, {today}, UTC time for city {self.city} in  a database")
                 return missing_date_list
 
             today = datetime.datetime.today()
@@ -255,8 +262,6 @@ def parse_arguments() -> argparse.Namespace:
     :return: argparse.Namespace
     """
     parser = argparse.ArgumentParser(description='Parser which controls Missing Date Checker.')
-    parser.add_argument('--sqlite_name', type=str, default='avg_japan_hotel_price_test.db',
-                        help='SQLite database path, default is "avg_japan_hotel_price_test.db"')
     parser.add_argument('--city', type=str, help='City where the hotels are located', required=True)
     parser.add_argument('--group_adults', type=int, default=1, help='Number of Adults, default is 1')
     parser.add_argument('--num_rooms', type=int, default=1, help='Number of Rooms, default is 1')
@@ -274,11 +279,12 @@ if __name__ == '__main__':
     args = parse_arguments()
 
     booking_details = BookingDetails(city=args.city, group_adults=args.group_adults,
-                                            num_rooms=args.num_rooms, group_children=args.group_children,
-                                            selected_currency=args.selected_currency,
-                                            scrape_only_hotel=args.scrape_only_hotel, sqlite_name=args.sqlite_name)
+                                     num_rooms=args.num_rooms, group_children=args.group_children,
+                                     selected_currency=args.selected_currency,
+                                     scrape_only_hotel=args.scrape_only_hotel)
 
-    db_path: str = args.sqlite_name
-    missing_date_checker = MissingDateChecker(sqlite_name=db_path, city=args.city)
+    postgres_url = f"postgresql://{postgres_user}:{postgres_password}@{postgres_host}:{postgres_port}/{postgres_db}"
+    engine = create_engine(postgres_url)
+    missing_date_checker = MissingDateChecker(engine=engine, city=args.city)
     missing_dates: list[str] = missing_date_checker.find_missing_dates_in_db(year=args.year)
-    asyncio.run(scrape_missing_dates(missing_dates, booking_details_class=booking_details))
+    asyncio.run(scrape_missing_dates(missing_dates, booking_details_class=booking_details, engine=engine))

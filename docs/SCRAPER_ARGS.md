@@ -53,10 +53,6 @@
 - **Type**: `bool`
 - **Description**: If set to `True`, the scraper will only target hotel properties.
 
-### `--sqlite_name`
-- **Type**: `str`
-- **Description**: The name of the SQLite database file to use. Only used for Basic and Whole-Month Scraper.
-
 ### `--year`
 - **Type**: `int`
 - **Description**: Specifies the year to scrape. This argument is required for Whole-Month Scraper.

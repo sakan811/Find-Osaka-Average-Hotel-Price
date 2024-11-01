@@ -67,6 +67,13 @@ Built on top of [Find the Hotel's Average Room Price in Osaka](#find-the-hotels-
 - Create a virtual environment and activate it.
 - Install all dependencies listed in [requirements.txt](requirements.txt)
 - Rename a `.env.example` to `.env`
+
+### Setup a Database
+- Download [Docker Desktop](https://www.docker.com/products/docker-desktop)
+- Ensure that Docker Desktop is running.
+- Run: `export POSTGRES_DATA_PATH='<your_container_volume_path>'` to set the container volume 
+  to the directory path of your choice.
+- Run: `docker compose up -d`
   
 ### Find your **User Agent**:
   - Go to https://www.whatismybrowser.com/detect/what-is-my-user-agent/
@@ -130,41 +137,36 @@ Built on top of [Find the Hotel's Average Room Price in Osaka](#find-the-hotels-
 
 ### General Guidelines for Using the Scraper
 - To scrape only hotel properties, use `--scrape_only_hotel` argument.
-- The SQLite database is created automatically if it doesn't exist.
- 
+- Ensure that Docker Desktop and Postgres container are running.
+
 ### To scrape using Whole-Month GraphQL Scraper:
 - Example usage, with only required arguments for Whole-Month GraphQL Scraper:
   ```bash
-  python main.py --whole_mth --year=2024 --month=12 --city=Osaka  \
-                 --sqlite_name=avg_japan_hotel_price_test.db
+  python main.py --whole_mth --year=2024 --month=12 --city=Osaka
   ```
 - Scrape data start from the given day of the month to the end of the same month.
   - Default **start day** is 1.
   - **Start day** can be set with `--start_day` argument.
-- Data is saved to **SQLite**.
 
 ### To scrape using Basic GraphQL Scraper:
 - Example usage, with only required arguments for Basic GraphQL Scraper:
   ```bash
-  python main.py --city=Osaka --check_in=2024-12-25 --check_out=2024-12-26 --scraper \
-                 --sqlite_name=avg_japan_hotel_price_test.db
+  python main.py --city=Osaka --check_in=2024-12-25 --check_out=2024-12-26 --scraper              
   ```
-- Data is saved to **SQLite**.
 
 ### To scrape using Japan GraphQL Scraper:
 - Example usage, with only required arguments for Japan GraphQL Scraper:
   ```bash
-  python main.py --japan_hotel --sqlite_name=japan_hotel_data_test.db
+  python main.py --japan_hotel
   ```
-- Data is saved to **SQLite**.
 - Prefecture to scrape can be specified with `--prefecture` argument, for example:
   - ```bash
-    python main.py --japan_hotel --prefecture Tokyo --sqlite_name=japan_hotel_data_test.db
+    python main.py --japan_hotel --prefecture Tokyo
     ```
   - If `--prefecture` argument is not specified, all prefectures will be scraped.
   - Multiple prefectures can be specified.
     - ```bash
-      python main.py --japan_hotel --prefecture Tokyo Osaka --sqlite_name=japan_hotel_data_test.db
+      python main.py --japan_hotel --prefecture Tokyo Osaka
       ```
   - You can use the prefecture name on Booking.com as a reference.
 

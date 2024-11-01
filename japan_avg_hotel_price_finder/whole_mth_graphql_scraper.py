@@ -29,7 +29,6 @@ class WholeMonthGraphQLScraper(BasicGraphQLScraper):
         nights (int): Number of nights (Length of stay) which defines the room price.
                     For example, nights = 1 means scraping the hotel with room price for 1 night.
                     Default is 1.
-        sqlite_name (str): Path and name of SQLite database to store the scraped data.
     """
     # Set the start day, month, year, and length of stay
     year: int = Field(datetime.datetime.now().year, gt=0)

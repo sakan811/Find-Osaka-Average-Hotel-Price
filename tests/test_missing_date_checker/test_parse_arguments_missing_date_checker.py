@@ -12,7 +12,6 @@ def test_valid_arguments(monkeypatch):
         "--group_children", "0",
         "--selected_currency", "USD",
         "--scrape_only_hotel", "True",
-        "--sqlite_name", "test.db",
         "--year", "2024"
     ]
     monkeypatch.setattr(sys, 'argv', test_args)
@@ -24,7 +23,6 @@ def test_valid_arguments(monkeypatch):
     assert args.group_children == 0
     assert args.selected_currency == "USD"
     assert args.scrape_only_hotel is True
-    assert args.sqlite_name == "test.db"
     assert args.year == 2024
 
 
@@ -36,7 +34,6 @@ def test_missing_required_arguments(monkeypatch):
         "--group_children", "0",
         "--selected_currency", "USD",
         "--scrape_only_hotel", "True",
-        "--sqlite_name", "test.db",
         "--year", "2024"
     ]
     monkeypatch.setattr(sys, 'argv', test_args)
@@ -53,7 +50,6 @@ def test_invalid_argument_types(monkeypatch):
         "--group_children", "0",
         "--selected_currency", "USD",
         "--scrape_only_hotel", "True",
-        "--sqlite_name", "test.db",
         "--year", "2024"
     ]
     monkeypatch.setattr(sys, 'argv', test_args)
@@ -70,7 +66,6 @@ def test_boundary_values(monkeypatch):
         "--group_children", "0",
         "--selected_currency", "USD",
         "--scrape_only_hotel", "True",
-        "--sqlite_name", "test.db",
         "--year", "2024"
     ]
     monkeypatch.setattr(sys, 'argv', test_args)

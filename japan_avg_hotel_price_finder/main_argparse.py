@@ -32,16 +32,6 @@ def add_booking_details_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument('--scrape_only_hotel', action='store_true', help='Whether to scrape only hotel properties')
 
 
-def add_database_arguments(parser: argparse.ArgumentParser) -> None:
-    """
-    Add database-related arguments to the parser.
-    :param parser: argparse.ArgumentParser
-    :return: None
-    """
-    db_group = parser.add_mutually_exclusive_group(required=True)
-    db_group.add_argument('--sqlite_name', type=str, help='SQLite database path')
-
-
 def add_date_arguments(parser: argparse.ArgumentParser) -> None:
     """
     Add date and length of stay arguments to the parser.
@@ -101,7 +91,6 @@ def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description='Parser that controls which kind of scraper to use.')
     add_scraper_arguments(parser)
     add_booking_details_arguments(parser)
-    add_database_arguments(parser)
     add_date_arguments(parser)
     add_japan_arguments(parser)
     args = parser.parse_args()

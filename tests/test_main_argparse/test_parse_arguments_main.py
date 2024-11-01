@@ -17,7 +17,6 @@ def test_parse_arguments(monkeypatch):
         "--group_children", "0",
         "--selected_currency", "USD",
         "--scrape_only_hotel",
-        "--sqlite_name", "test.db"
     ]
 
     monkeypatch.setattr(sys, 'argv', test_args)
@@ -33,7 +32,6 @@ def test_parse_arguments(monkeypatch):
     assert args.group_children == 0
     assert args.selected_currency == "USD"
     assert args.scrape_only_hotel is True
-    assert args.sqlite_name == "test.db"
 
 
 def test_missing_required_arguments(monkeypatch):
@@ -49,7 +47,6 @@ def test_missing_required_arguments(monkeypatch):
         "--group_children", "0",
         "--selected_currency", "USD",
         "--scrape_only_hotel",
-        "--sqlite_name", "test.db"
     ]
 
     monkeypatch.setattr(sys, 'argv', test_args)
@@ -71,7 +68,6 @@ def test_invalid_argument_types(monkeypatch):
         "--group_children", "0",
         "--selected_currency", "USD",
         "--scrape_only_hotel",
-        "--sqlite_name", "test.db"
     ]
 
     monkeypatch.setattr(sys, 'argv', test_args)
@@ -93,7 +89,6 @@ def test_boundary_values(monkeypatch):
         "--group_children", "0",
         "--selected_currency", "USD",
         "--scrape_only_hotel",
-        "--sqlite_name", "test.db"
     ]
 
     monkeypatch.setattr(sys, 'argv', test_args)
@@ -115,7 +110,6 @@ def test_valid_japan_scraper_arguments(monkeypatch):
         "--group_children", "0",
         "--selected_currency", "USD",
         "--scrape_only_hotel",
-        "--sqlite_name", "test.db"
     ]
 
     monkeypatch.setattr(sys, 'argv', test_args)
@@ -131,7 +125,6 @@ def test_valid_japan_scraper_arguments(monkeypatch):
     assert args.group_children == 0
     assert args.selected_currency == "USD"
     assert args.scrape_only_hotel is True
-    assert args.sqlite_name == "test.db"
 
 
 def test_valid_whole_month_scraper_arguments(monkeypatch):
@@ -148,7 +141,6 @@ def test_valid_whole_month_scraper_arguments(monkeypatch):
         "--group_children", "0",
         "--selected_currency", "USD",
         "--scrape_only_hotel",
-        "--sqlite_name", "test.db",
         "--year", "2024",
         "--month", "1"
     ]
@@ -166,7 +158,6 @@ def test_valid_whole_month_scraper_arguments(monkeypatch):
     assert args.group_children == 0
     assert args.selected_currency == "USD"
     assert args.scrape_only_hotel is True
-    assert args.sqlite_name == "test.db"
     assert args.year == 2024
     assert args.month == 1
 
@@ -186,7 +177,6 @@ def test_japan_arguments(monkeypatch):
         "--group_children", "0",
         "--selected_currency", "USD",
         "--scrape_only_hotel",
-        "--sqlite_name", "test.db"
     ]
 
     monkeypatch.setattr(sys, 'argv', test_args)
@@ -209,4 +199,3 @@ def test_japan_arguments(monkeypatch):
     assert args.group_children == 0
     assert args.selected_currency == "USD"
     assert args.scrape_only_hotel is True
-    assert args.sqlite_name == "test.db"
