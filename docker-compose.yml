@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:latest
+    container_name: jp_scraper
+    hostname: jp_scraper
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5500:5432"
+    networks:
+      - internal_net
+    restart: always
+
+networks:
+  internal_net:
+    driver: bridge
