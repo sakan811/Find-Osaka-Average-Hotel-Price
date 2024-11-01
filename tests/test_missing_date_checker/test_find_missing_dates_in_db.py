@@ -72,6 +72,48 @@ def test_find_missing_dates_in_db_some_dates_missing(missing_date_checker, mock_
     expected_dates = [(mock_today + timedelta(days=i - 25)).strftime('%Y-%m-%d') for i in range(26, 32)]
     assert result == expected_dates
 
+def test_find_missing_dates_in_db_multiple_months_missing(missing_date_checker, mock_session, mock_today):
+    missing_date_checker.Session = MagicMock(return_value=mock_session)
+
+    # Simulate missing data across two months, e.g., December and January
+    mock_data = [
+        (mock_today.strftime('%Y-%m'), 25),  # Assuming 6 days missing in December
+        ((mock_today + timedelta(days=31)).strftime('%Y-%m'), 20)  # Assuming 11 days missing in January
+    ]
+    mock_session.query.return_value.filter.return_value.filter.return_value.group_by.return_value.all.return_value = mock_data
+
+    with patch('check_missing_dates.MissingDateChecker.check_missing_dates') as mock_check:
+        def side_effect(*args, **kwargs):
+            # Handle missing dates in December
+            for i in range(26, 32):
+                date_dec = mock_today + timedelta(days=i - 25)
+                args[2].append(date_dec.strftime('%Y-%m-%d'))
+            # Handle missing dates in January
+            for i in range(1, 12):
+                date_jan = (mock_today + timedelta(days=31)).replace(day=i)
+                args[2].append(date_jan.strftime('%Y-%m-%d'))
+
+        mock_check.side_effect = side_effect
+        result = missing_date_checker.find_missing_dates_in_db(mock_today.year)
+
+    assert len(result) == 17  # 6 missing in December + 11 missing in January
+
+    # Check if all dates are either in the current month/year, next month/year, or the month after
+    assert all(
+        date.startswith(f"{mock_today.year}-{mock_today.month:02d}-") or
+        date.startswith(f"{mock_today.year + 1}-01-") for date in result
+    )
+
+    # Verify the specific dates
+    expected_dates = [
+        # December missing dates
+        (mock_today + timedelta(days=i - 25)).strftime('%Y-%m-%d') for i in range(26, 32)
+    ] + [
+        # January missing dates
+        (mock_today.replace(month=12, day=31) + timedelta(days=i)).strftime('%Y-%m-%d') for i in range(1, 12)
+    ]
+    assert result == expected_dates
+
 
 @pytest.mark.parametrize("exception", [Exception("Database error"), ValueError("Invalid query")])
 def test_find_missing_dates_in_db_exception_handling(missing_date_checker, mock_session, exception):
