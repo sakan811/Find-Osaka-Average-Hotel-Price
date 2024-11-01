@@ -1,5 +1,6 @@
 import pandas as pd
-from sqlalchemy import create_engine, MetaData, func, case, Engine, Float
+from sqlalchemy import create_engine, MetaData, func, case, Engine, Float, extract, Integer, cast
+from sqlalchemy.dialects import sqlite, postgresql
 from sqlalchemy.orm import sessionmaker, Session
 
 from japan_avg_hotel_price_finder.configure_logging import main_logger
@@ -131,15 +132,27 @@ def create_avg_hotel_price_by_dow_table(session: Session) -> None:
     # Clear existing data
     session.query(AverageHotelRoomPriceByDayOfWeek).delete()
 
+    # Detect database dialect
+    dialect = session.bind.dialect
+
+    if isinstance(dialect, postgresql.dialect):
+        # PostgreSQL specific date extraction
+        dow_func = extract('dow', func.to_date(HotelPrice.Date, 'YYYY-MM-DD'))
+    elif isinstance(dialect, sqlite.dialect):
+        # SQLite specific date extraction
+        dow_func = func.cast(func.strftime('%w', func.date(HotelPrice.Date)), Integer)
+    else:
+        raise NotImplementedError(f"Unsupported dialect: {dialect}")
+
     # Calculate average prices by day of week
     day_of_week_case = case(
-        (func.extract('dow', func.to_date(HotelPrice.Date, 'YYYY-MM-DD')) == 0, 'Sunday'),
-        (func.extract('dow', func.to_date(HotelPrice.Date, 'YYYY-MM-DD')) == 1, 'Monday'),
-        (func.extract('dow', func.to_date(HotelPrice.Date, 'YYYY-MM-DD')) == 2, 'Tuesday'),
-        (func.extract('dow', func.to_date(HotelPrice.Date, 'YYYY-MM-DD')) == 3, 'Wednesday'),
-        (func.extract('dow', func.to_date(HotelPrice.Date, 'YYYY-MM-DD')) == 4, 'Thursday'),
-        (func.extract('dow', func.to_date(HotelPrice.Date, 'YYYY-MM-DD')) == 5, 'Friday'),
-        (func.extract('dow', func.to_date(HotelPrice.Date, 'YYYY-MM-DD')) == 6, 'Saturday'),
+        (dow_func == 0, 'Sunday'),
+        (dow_func == 1, 'Monday'),
+        (dow_func == 2, 'Tuesday'),
+        (dow_func == 3, 'Wednesday'),
+        (dow_func == 4, 'Thursday'),
+        (dow_func == 5, 'Friday'),
+        (dow_func == 6, 'Saturday'),
     ).label('day_of_week')
 
     avg_prices = session.query(
@@ -169,28 +182,40 @@ def create_avg_hotel_price_by_month_table(session: Session) -> None:
     # Clear existing data
     session.query(AverageHotelRoomPriceByMonth).delete()
 
+    # Detect database dialect
+    dialect = session.bind.dialect
+
+    if isinstance(dialect, postgresql.dialect):
+        # PostgreSQL specific date extraction
+        month_func = extract('month', func.to_date(HotelPrice.Date, 'YYYY-MM-DD'))
+    elif isinstance(dialect, sqlite.dialect):
+        # SQLite specific date extraction
+        month_func = cast(func.strftime('%m', HotelPrice.Date), Integer)
+    else:
+        raise NotImplementedError(f"Unsupported dialect: {dialect}")
+
     # Define the month case
     month_case = case(
-        (func.extract('month', func.to_date(HotelPrice.Date, 'YYYY-MM-DD')) == 1, 'January'),
-        (func.extract('month', func.to_date(HotelPrice.Date, 'YYYY-MM-DD')) == 2, 'February'),
-        (func.extract('month', func.to_date(HotelPrice.Date, 'YYYY-MM-DD')) == 3, 'March'),
-        (func.extract('month', func.to_date(HotelPrice.Date, 'YYYY-MM-DD')) == 4, 'April'),
-        (func.extract('month', func.to_date(HotelPrice.Date, 'YYYY-MM-DD')) == 5, 'May'),
-        (func.extract('month', func.to_date(HotelPrice.Date, 'YYYY-MM-DD')) == 6, 'June'),
-        (func.extract('month', func.to_date(HotelPrice.Date, 'YYYY-MM-DD')) == 7, 'July'),
-        (func.extract('month', func.to_date(HotelPrice.Date, 'YYYY-MM-DD')) == 8, 'August'),
-        (func.extract('month', func.to_date(HotelPrice.Date, 'YYYY-MM-DD')) == 9, 'September'),
-        (func.extract('month', func.to_date(HotelPrice.Date, 'YYYY-MM-DD')) == 10, 'October'),
-        (func.extract('month', func.to_date(HotelPrice.Date, 'YYYY-MM-DD')) == 11, 'November'),
-        (func.extract('month', func.to_date(HotelPrice.Date, 'YYYY-MM-DD')) == 12, 'December'),
+        (month_func == 1, 'January'),
+        (month_func == 2, 'February'),
+        (month_func == 3, 'March'),
+        (month_func == 4, 'April'),
+        (month_func == 5, 'May'),
+        (month_func == 6, 'June'),
+        (month_func == 7, 'July'),
+        (month_func == 8, 'August'),
+        (month_func == 9, 'September'),
+        (month_func == 10, 'October'),
+        (month_func == 11, 'November'),
+        (month_func == 12, 'December'),
     ).label('month')
 
     # Define the quarter case
     quarter_case = case(
-        (func.extract('month', func.to_date(HotelPrice.Date, 'YYYY-MM-DD')).in_([1, 2, 3]), 'Quarter1'),
-        (func.extract('month', func.to_date(HotelPrice.Date, 'YYYY-MM-DD')).in_([4, 5, 6]), 'Quarter2'),
-        (func.extract('month', func.to_date(HotelPrice.Date, 'YYYY-MM-DD')).in_([7, 8, 9]), 'Quarter3'),
-        (func.extract('month', func.to_date(HotelPrice.Date, 'YYYY-MM-DD')).in_([10, 11, 12]), 'Quarter4'),
+        (month_func.in_([1, 2, 3]), 'Quarter1'),
+        (month_func.in_([4, 5, 6]), 'Quarter2'),
+        (month_func.in_([7, 8, 9]), 'Quarter3'),
+        (month_func.in_([10, 11, 12]), 'Quarter4'),
     ).label('quarter')
 
     # Calculate average prices by month
@@ -208,6 +233,7 @@ def create_avg_hotel_price_by_month_table(session: Session) -> None:
 
     # Bulk insert new records
     session.bulk_save_objects(new_records)
+    session.commit()
 
 
 def create_avg_room_price_by_location(session: Session) -> None:
