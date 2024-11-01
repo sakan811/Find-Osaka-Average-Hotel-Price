@@ -15,7 +15,6 @@ class BookingDetails(BaseModel):
     - group_children (int): Number of children.
     - selected_currency (str): Room price currency.
     - scrape_only_hotel (bool): Whether to scrape only hotel.
-    - sqlite_name (str): Path to SQLite database.
     """
     city: str = ''
     country: str = ''
@@ -26,4 +25,3 @@ class BookingDetails(BaseModel):
     group_children: int = Field(0, ge=0)
     selected_currency: str = ''
     scrape_only_hotel: bool = True
-    sqlite_name: str = ''
