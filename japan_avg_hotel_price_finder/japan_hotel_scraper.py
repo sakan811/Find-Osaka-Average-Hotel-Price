@@ -2,8 +2,8 @@ import calendar
 from typing import Any
 
 import pandas as pd
-from pydantic import Field
-from sqlalchemy import create_engine
+from pydantic import Field, ConfigDict
+from sqlalchemy import Engine
 from sqlalchemy.orm import sessionmaker
 
 from japan_avg_hotel_price_finder.configure_logging import main_logger
@@ -32,8 +32,11 @@ class JapanScraper(WholeMonthGraphQLScraper):
         region (str): The current region being scraped.
         start_month (int): Month to start scraping (1-12).
         end_month (int): Last month to scrape (1-12).
-        sqlite_name (str): Path and name of SQLite database to store the scraped data.
+        engine (Engine): SQLAlchemy engine.
     """
+    engine: Engine
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     japan_regions: dict[str, list[str]] = {
         "Hokkaido": ["Hokkaido"],
@@ -114,17 +117,17 @@ class JapanScraper(WholeMonthGraphQLScraper):
             df = await self.scrape_whole_month()
             if not df.empty:
                 df['Region'] = self.region
-                self._load_to_sqlite(df)
+                self._load_to_database(df)
             else:
                 main_logger.warning(f"No data found for {self.city} for {calendar.month_name[self.month]} {self.year}")
 
-    def _load_to_sqlite(self, prefecture_hotel_data: pd.DataFrame) -> None:
+    def _load_to_database(self, prefecture_hotel_data: pd.DataFrame) -> None:
         """
-        Load hotel data of all Japan Prefectures to SQLite using SQLAlchemy ORM
+        Load hotel data of all Japan Prefectures to a database using SQLAlchemy ORM
         :param prefecture_hotel_data: DataFrame with the whole-year hotel data of the given prefecture.
         :return: None
         """
-        main_logger.info(f"Loading hotel data to SQLite {self.sqlite_name}...")
+        main_logger.info(f"Loading hotel data to database...")
 
         # Rename 'City' column to 'Prefecture'
         prefecture_hotel_data = prefecture_hotel_data.rename(columns={'City': 'Prefecture'})
@@ -132,9 +135,10 @@ class JapanScraper(WholeMonthGraphQLScraper):
         # Rename Price/Review column
         prefecture_hotel_data.rename(columns={'Price/Review': 'PriceReview'}, inplace=True)
 
-        engine = create_engine(f'sqlite:///{self.sqlite_name}')
-        Base.metadata.tables['JapanHotels'].create(engine, checkfirst=True)
-        Session = sessionmaker(bind=engine)
+        # Create all tables
+        Base.metadata.create_all(self.engine)
+
+        Session = sessionmaker(bind=self.engine)
         session = Session()
 
         try:
@@ -148,7 +152,7 @@ class JapanScraper(WholeMonthGraphQLScraper):
             session.bulk_save_objects(hotel_prices)
 
             session.commit()
-            main_logger.info(f"Hotel data for {self.city} loaded to SQLite successfully.")
+            main_logger.info(f"Hotel data for {self.city} loaded to a database successfully.")
         except Exception as e:
             session.rollback()
             main_logger.error(f"An error occurred while saving data: {str(e)}")
