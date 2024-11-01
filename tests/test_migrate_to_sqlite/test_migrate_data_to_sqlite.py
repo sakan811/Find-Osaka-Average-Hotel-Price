@@ -1,11 +1,27 @@
-import sqlite3
-
 import pandas as pd
+import pytest
+from sqlalchemy import create_engine, inspect
+from sqlalchemy.orm import sessionmaker
 
-from japan_avg_hotel_price_finder.sql.migrate_to_sqlite import migrate_data_to_sqlite
+from japan_avg_hotel_price_finder.sql.save_to_db import migrate_data_to_database
+from japan_avg_hotel_price_finder.sql.db_model import Base, HotelPrice
 
 
-def test_successful_connection_to_sqlite(tmp_path):
+@pytest.fixture
+def sqlite_engine(tmp_path):
+    db = tmp_path / 'test_successful_connection_to_sqlite.db'
+    engine = create_engine(f'sqlite:///{db}')
+    Base.metadata.create_all(engine)
+    return engine
+
+
+@pytest.fixture
+def db_session(sqlite_engine):
+    Session = sessionmaker(bind=sqlite_engine)
+    return Session()
+
+
+def test_successful_connection_to_sqlite(sqlite_engine, db_session):
     # Given
     df_filtered = pd.DataFrame({
         'Hotel': ['Hotel A', 'Hotel B'],
@@ -17,30 +33,28 @@ def test_successful_connection_to_sqlite(tmp_path):
         'Date': ['2022-01-01', '2022-01-02'],
         'AsOf': [pd.Timestamp('2022-01-01'), pd.Timestamp('2022-01-02')]
     })
-    db = tmp_path / 'test_successful_connection_to_sqlite.db'
 
     # When
-    migrate_data_to_sqlite(df_filtered, str(db))
+    migrate_data_to_database(df_filtered, sqlite_engine)
 
     # Then
-    with sqlite3.connect(db) as con:
-        result = con.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='HotelPrice';").fetchone()
-        assert result is not None
-        result = con.execute("SELECT * FROM HotelPrice;").fetchall()
-        assert len(result) > 0
+    inspector = inspect(sqlite_engine)
+    assert 'HotelPrice' in inspector.get_table_names()
+
+    result = db_session.query(HotelPrice).all()
+    assert len(result) > 0
 
 
-def test_handle_empty_dataframe(tmp_path):
+def test_handle_empty_dataframe(sqlite_engine, db_session):
     # Given
     df_filtered = pd.DataFrame(columns=['Hotel', 'Price', 'Review', 'Location', 'Price/Review', 'City', 'Date', 'AsOf'])
-    db = tmp_path / 'test_handle_empty_dataframe.db'
 
     # When
-    migrate_data_to_sqlite(df_filtered, str(db))
+    migrate_data_to_database(df_filtered, sqlite_engine)
 
     # Then
-    with sqlite3.connect(db) as con:
-        result = con.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='HotelPrice';").fetchone()
-        assert result is not None
-        result = con.execute("SELECT * FROM HotelPrice;").fetchall()
-        assert len(result) == 0
+    inspector = inspect(sqlite_engine)
+    assert 'HotelPrice' in inspector.get_table_names()
+
+    result = db_session.query(HotelPrice).all()
+    assert len(result) == 0

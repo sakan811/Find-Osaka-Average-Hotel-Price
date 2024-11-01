@@ -1,11 +1,12 @@
 import datetime
 
 import pytest
-from sqlalchemy import create_engine, func
+from sqlalchemy import func, create_engine
 from sqlalchemy.orm import sessionmaker
 
-from check_missing_dates import scrape_missing_dates, BookingDetails
-from japan_avg_hotel_price_finder.sql.db_model import Base, HotelPrice
+from check_missing_dates import scrape_missing_dates
+from japan_avg_hotel_price_finder.booking_details import BookingDetails
+from japan_avg_hotel_price_finder.sql.db_model import HotelPrice, Base
 
 
 @pytest.mark.asyncio
@@ -17,7 +18,7 @@ async def test_scrape_missing_dates(tmp_path) -> None:
     Session = sessionmaker(bind=engine)
 
     booking_details_param = BookingDetails(city='Osaka', group_adults=1, num_rooms=1, group_children=0,
-                                           selected_currency='USD', scrape_only_hotel=True, sqlite_name=str(db_file))
+                                           selected_currency='USD', scrape_only_hotel=True)
 
     today = datetime.datetime.today()
     if today.month == 12:
@@ -34,27 +35,29 @@ async def test_scrape_missing_dates(tmp_path) -> None:
     third_missing_date = f'{year}-{month_str}-20'
     missing_dates = [first_missing_date, second_missing_date, third_missing_date]
 
-    await scrape_missing_dates(missing_dates_list=missing_dates, booking_details_class=booking_details_param)
+    await scrape_missing_dates(missing_dates_list=missing_dates, booking_details_class=booking_details_param,
+                               engine=engine)
 
     session = Session()
     try:
+        # Get the AsOf date from the first record
+        asof_date = session.query(func.date(HotelPrice.AsOf)).first()[0]
+
         result = (
             session.query(func.strftime('%Y-%m', HotelPrice.Date).label('month'),
                           func.count(func.distinct(HotelPrice.Date)).label('count'))
             .filter(HotelPrice.City == 'Osaka')
-            .filter(func.date(HotelPrice.AsOf) == func.date('now'))
+            .filter(func.date(HotelPrice.AsOf) == asof_date)
             .group_by(func.strftime('%Y-%m', HotelPrice.Date))
             .all()
         )
 
-        assert len(result) == 1  # We expect only one month
-        assert result[0].count == 3  # We expect 3 dates to be scraped
+        print(f"Query result: {result}")
+
+        assert len(result) == 1, f"Expected 1 result, but got {len(result)}"
+        assert result[0].count == 3, f"Expected 3 dates, but got {result[0].count if result else 'no results'}"
     finally:
         session.close()
 
     # Clean up: drop all tables
     Base.metadata.drop_all(engine)
-
-
-if __name__ == '__main__':
-    pytest.main()
