@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import pandas as pd
 import pytest
 from sqlalchemy import create_engine, inspect
@@ -45,7 +47,12 @@ def test_successful_connection_to_sqlite(sqlite_engine, db_session):
     assert len(result) > 0
 
 
-def test_handle_empty_dataframe(sqlite_engine, db_session):
+@patch('japan_avg_hotel_price_finder.sql.save_to_db.create_avg_hotel_price_by_dow_table')
+@patch('japan_avg_hotel_price_finder.sql.save_to_db.create_avg_hotel_room_price_by_date_table')
+@patch('japan_avg_hotel_price_finder.sql.save_to_db.create_avg_room_price_by_review_table')
+@patch('japan_avg_hotel_price_finder.sql.save_to_db.create_avg_hotel_price_by_month_table')
+@patch('japan_avg_hotel_price_finder.sql.save_to_db.create_avg_room_price_by_location')
+def test_handle_empty_dataframe(mock_location, mock_month, mock_review, mock_date, mock_dow, sqlite_engine, db_session):
     # Given
     df_filtered = pd.DataFrame(columns=['Hotel', 'Price', 'Review', 'Location', 'Price/Review', 'City', 'Date', 'AsOf'])
 
@@ -58,3 +65,10 @@ def test_handle_empty_dataframe(sqlite_engine, db_session):
 
     result = db_session.query(HotelPrice).all()
     assert len(result) == 0
+
+    # Assert that all the aggregation functions were called
+    mock_dow.assert_called_once()
+    mock_date.assert_called_once()
+    mock_review.assert_called_once()
+    mock_month.assert_called_once()
+    mock_location.assert_called_once()
