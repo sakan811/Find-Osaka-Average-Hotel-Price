@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from dotenv import load_dotenv
-from sqlalchemy import create_engine, func, Engine
+from sqlalchemy import create_engine, func, Engine, extract, Date, String
 from sqlalchemy.orm import sessionmaker
 
 from japan_avg_hotel_price_finder.booking_details import BookingDetails
@@ -164,12 +164,17 @@ class MissingDateChecker:
 
             count_of_date_by_mth_as_of_today = (
                 session.query(
-                    func.strftime('%Y-%m', HotelPrice.Date).label('month'),
+                    func.concat(
+                        extract('year', func.cast(HotelPrice.Date, Date)).cast(String),
+                        '-',
+                        func.lpad(extract('month', func.cast(HotelPrice.Date, Date)).cast(String),
+                                  2, '0')
+                    ).label('month'),
                     func.count(func.distinct(HotelPrice.Date)).label('count')
                 )
                 .filter(HotelPrice.City == self.city)
-                .filter(func.date(HotelPrice.AsOf) == func.date('now'))
-                .group_by(func.strftime('%Y-%m', HotelPrice.Date))
+                .filter(func.cast(HotelPrice.AsOf, Date) == func.current_date())
+                .group_by('month')
                 .all()
             )
 
