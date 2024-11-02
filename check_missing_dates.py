@@ -138,6 +138,7 @@ class MissingDateChecker:
 
     Attributes:
         city (str): City where the hotels are located.
+        engine (Engine): SQLAlchemy engine.
     """
     city: str
 
