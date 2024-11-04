@@ -8,8 +8,9 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from dotenv import load_dotenv
-from sqlalchemy import create_engine, func, Engine, extract, Date, String
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine, func, Engine, extract, Date, String, Row, FunctionElement
+from sqlalchemy.dialects import postgresql, sqlite
+from sqlalchemy.orm import sessionmaker, Session
 
 from japan_avg_hotel_price_finder.booking_details import BookingDetails
 from japan_avg_hotel_price_finder.configure_logging import main_logger
@@ -55,7 +56,7 @@ def find_missing_dates(dates_in_db: set[str],
 
     # find missing dates of the given month
     for day in range(1, days_in_month + 1):
-        date_to_check: datetime = datetime.datetime(year, month, day).date()
+        date_to_check: date = datetime.datetime(year, month, day).date()
         date_to_check_str: str = format_date(date_to_check)
         if date_to_check < today_date_obj:
             main_logger.warning(f"{date_to_check_str} has passed. Skip this date.")
@@ -130,6 +131,48 @@ async def scrape_missing_dates(missing_dates_list: list[str] = None,
         main_logger.warning("Missing dates is None. No missing dates to scrape.")
 
 
+from datetime import datetime, date
+
+def get_date_count_by_month(session: Session, city: str, as_of: date = None) -> list[tuple[str, int]]:
+    """
+    Get a distinct date count of each month for today's scraped data, for a specific city.
+    :param session: SQLAlchemy session
+    :param city: City name.
+    :param as_of: The date to filter AsOf by.
+                    If None, use the current date.
+    :return: List of tuples containing (month, count)
+    """
+    dialect = session.bind.dialect
+
+    if isinstance(dialect, postgresql.dialect):
+        # PostgreSQL version
+        month_expr: FunctionElement = func.concat(
+            extract('year', func.cast(HotelPrice.Date, Date)).cast(String),
+            '-',
+            func.lpad(extract('month', func.cast(HotelPrice.Date, Date)).cast(String), 2, '0')
+        )
+    elif isinstance(dialect, sqlite.dialect):
+        # SQLite version
+        month_expr: FunctionElement = func.strftime('%Y-%m', func.date(HotelPrice.Date))
+    else:
+        raise NotImplementedError(f"Unsupported dialect: {dialect}")
+
+    query = (
+        session.query(
+            month_expr.label('month'),
+            func.count(func.distinct(HotelPrice.Date)).label('count')
+        )
+        .filter(HotelPrice.City == city)
+    )
+
+    if as_of is not None:
+        query = query.filter(func.date(HotelPrice.AsOf) == as_of)
+    else:
+        query = query.filter(func.date(HotelPrice.AsOf) == func.current_date())
+
+    return query.group_by('month').all()
+
+
 @dataclass
 class MissingDateChecker:
     """
@@ -163,21 +206,7 @@ class MissingDateChecker:
             main_logger.info(f'Get a distinct date count of each month for today scraped data, '
                              f'UTC time, for city {self.city}...')
 
-            count_of_date_by_mth_as_of_today = (
-                session.query(
-                    func.concat(
-                        extract('year', func.cast(HotelPrice.Date, Date)).cast(String),
-                        '-',
-                        func.lpad(extract('month', func.cast(HotelPrice.Date, Date)).cast(String),
-                                  2, '0')
-                    ).label('month'),
-                    func.count(func.distinct(HotelPrice.Date)).label('count')
-                )
-                .filter(HotelPrice.City == self.city)
-                .filter(func.cast(HotelPrice.AsOf, Date) == func.current_date())
-                .group_by('month')
-                .all()
-            )
+            count_of_date_by_mth_as_of_today = get_date_count_by_month(session, self.city)
 
             if not count_of_date_by_mth_as_of_today:
                 today = datetime.datetime.now(datetime.timezone.utc).date()
@@ -200,7 +229,7 @@ class MissingDateChecker:
                             count_of_date_by_mth_as_of_today_list: list[tuple],
                             current_month: str,
                             missing_date_list: list[str],
-                            today: datetime.datetime,
+                            today: datetime,
                             year: int) -> None:
         """
         Check missing dates of each month.
@@ -247,19 +276,47 @@ class MissingDateChecker:
 
         session = self.Session()
         try:
-            result = (
-                session.query(func.strftime('%Y-%m-%d', HotelPrice.Date).label('Date'))
-                .filter(HotelPrice.Date.between(start_date, end_date))
-                .filter(HotelPrice.City == self.city)
-                .filter(func.date(HotelPrice.AsOf) == func.date('now'))
-                .group_by(HotelPrice.Date)
-                .all()
-            )
-
+            result = get_dates_in_db(session=session, start_date=start_date, end_date=end_date, city=self.city)
             dates_in_db: set[str] = set(row.Date for row in result)
             return dates_in_db, end_date, start_date
         finally:
             session.close()
+
+
+def get_dates_in_db(session: Session, start_date: str, end_date: str, city: str, as_of: date = None) -> list[Row]:
+    """
+    Retrieve dates from the database for a specific date range and city.
+    :param session: SQLAlchemy session
+    :param start_date: Start date of the range (format: 'YYYY-MM-DD')
+    :param end_date: End date of the range (format: 'YYYY-MM-DD')
+    :param city: City name
+    :param as_of: The date to filter AsOf by.
+                    If None, use the current date.
+    :return: List of query results containing dates
+    """
+    dialect = session.bind.dialect
+
+    if isinstance(dialect, postgresql.dialect):
+        # PostgreSQL version
+        date_expr: FunctionElement = func.to_char(func.cast(HotelPrice.Date, Date), 'YYYY-MM-DD')
+    elif isinstance(dialect, sqlite.dialect):
+        # SQLite version
+        date_expr: FunctionElement = func.strftime('%Y-%m-%d', func.date(HotelPrice.Date))
+    else:
+        raise NotImplementedError(f"Unsupported dialect: {dialect}")
+
+    query = (
+        session.query(date_expr.label('Date'))
+        .filter(HotelPrice.Date.between(start_date, end_date))
+        .filter(HotelPrice.City == city)
+    )
+
+    if as_of is not None:
+        query = query.filter(func.date(HotelPrice.AsOf) == as_of)
+    else:
+        query = query.filter(func.date(HotelPrice.AsOf) == func.current_date())
+
+    return query.group_by(HotelPrice.Date).all()
 
 
 def parse_arguments() -> argparse.Namespace:
