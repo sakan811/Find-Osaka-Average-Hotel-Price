@@ -56,7 +56,7 @@ def find_missing_dates(dates_in_db: set[str],
 
     # find missing dates of the given month
     for day in range(1, days_in_month + 1):
-        date_to_check: date = datetime.datetime(year, month, day).date()
+        date_to_check: datetime.date = datetime.datetime(year, month, day).date()
         date_to_check_str: str = format_date(date_to_check)
         if date_to_check < today_date_obj:
             main_logger.warning(f"{date_to_check_str} has passed. Skip this date.")
@@ -131,9 +131,7 @@ async def scrape_missing_dates(missing_dates_list: list[str] = None,
         main_logger.warning("Missing dates is None. No missing dates to scrape.")
 
 
-from datetime import datetime, date
-
-def get_date_count_by_month(session: Session, city: str, as_of: date = None) -> list[tuple[str, int]]:
+def get_date_count_by_month(session: Session, city: str, as_of: datetime.date = None) -> list[tuple[str, int]]:
     """
     Get a distinct date count of each month for today's scraped data, for a specific city.
     :param session: SQLAlchemy session
@@ -283,7 +281,7 @@ class MissingDateChecker:
             session.close()
 
 
-def get_dates_in_db(session: Session, start_date: str, end_date: str, city: str, as_of: date = None) -> list[Row]:
+def get_dates_in_db(session: Session, start_date: str, end_date: str, city: str, as_of: datetime.date = None) -> list[Row]:
     """
     Retrieve dates from the database for a specific date range and city.
     :param session: SQLAlchemy session
