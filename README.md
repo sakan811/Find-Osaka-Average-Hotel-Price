@@ -178,7 +178,7 @@ Built on top of [Find the Hotel's Average Room Price in Osaka](#find-the-hotels-
 
 ## Find the missing dates in the database using Missing Date Checker
 To ensure that all dates of the month were scraped, a function in
-[check_missing_dates.py](check_missing_dates.py) will check in the given SQLite database to find the missing dates.
+[check_missing_dates.py](check_missing_dates.py) will check in the database to find the missing dates.
 
 > _**Made only for the [Find the Hotel's Average Room Price in Osaka](#find-the-hotels-average-room-price-in-osaka) project
   which saves scraped data in HotelPrice table.**_
