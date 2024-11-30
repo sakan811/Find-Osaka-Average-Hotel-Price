@@ -16,7 +16,7 @@ def session():
 def test_get_date_count_by_month_single_month(session):
     # Arrange
     city = "Tokyo"
-    today = datetime.now().date()
+    today = datetime(2024, 11, 15).date()  # Set a fixed date in the middle of the month
     today_str = today.strftime('%Y-%m-%d')
 
     session.add(HotelPrice(
@@ -54,18 +54,10 @@ def test_get_date_count_by_month_single_month(session):
     # Act
     result = get_date_count_by_month(session, city, as_of=today)
 
-    # Debug output
-    print(f"Today: {today}")
-    all_records = session.query(HotelPrice).all()
-    print("All records in the database:")
-    for record in all_records:
-        print(f"Record: {record.City}, {record.Date}, {record.AsOf}, {record.Hotel}")
-    print(f"Result from get_date_count_by_month: {result}")
-
     # Assert
     assert len(result) == 1
-    assert result[0][0] == today.strftime('%Y-%m')
-    assert result[0][1] == 2  # Distinct count of dates
+    assert result[0][0] == '2024-11'  # Check that the month is correct
+    assert result[0][1] == 2  # Check that the count is correct (2 distinct dates in November)
 
 
 def test_get_date_count_by_month_multiple_cities(session):
