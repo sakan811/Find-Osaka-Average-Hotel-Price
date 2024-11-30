@@ -66,6 +66,7 @@ Built on top of [Find the Hotel's Average Room Price in Osaka](#find-the-hotels-
 - Clone this repo: https://github.com/sakan811/Find-Osaka-Average-Hotel-Price.git
 - Create a virtual environment and activate it.
 - Install all dependencies listed in [requirements.txt](requirements.txt)
+- Run `playwright install`
 - Rename a `.env.example` to `.env`
 
 ### Setup a Database
