@@ -31,7 +31,7 @@ async def test_japan_scraper(tmp_path):
           Column('scrape_only_hotel', Boolean),
           Column('country', String),
           Column('city', String)
-          )
+        )
     metadata.create_all(engine)
 
     scraper = JapanScraper(
@@ -47,19 +47,23 @@ async def test_japan_scraper(tmp_path):
         scrape_only_hotel=True
     )
     scraper.japan_regions = {"Hokkaido": ["Hokkaido"]}
-    current_month = datetime.datetime.now().month
+    current_date = datetime.datetime.now().date()
+    current_month = current_date.month
+    current_year = current_date.year
     scraper.start_month = current_month
     scraper.end_month = current_month
 
-    # Create sample data
+    # Create sample data with dynamic dates
     sample_data = pd.DataFrame({
         'Region': ['Hokkaido', 'Hokkaido'],
         'Prefecture': ['Hokkaido', 'Hokkaido'],
         'hotel_name': ['Hotel A', 'Hotel B'],
         'price': [100, 200],
-        'date': [datetime.date(2023, current_month, 1), datetime.date(2023, current_month, 2)],
-        'check_in': ['2023-11-01', '2023-11-02'],
-        'check_out': ['2023-11-02', '2023-11-03'],
+        'date': [current_date, current_date + datetime.timedelta(days=1)],
+        'check_in': [current_date.strftime('%Y-%m-%d'),
+                     (current_date + datetime.timedelta(days=1)).strftime('%Y-%m-%d')],
+        'check_out': [(current_date + datetime.timedelta(days=1)).strftime('%Y-%m-%d'),
+                      (current_date + datetime.timedelta(days=2)).strftime('%Y-%m-%d')],
         'group_adults': [1, 1],
         'num_rooms': [1, 1],
         'group_children': [0, 0],
@@ -104,9 +108,11 @@ async def test_japan_scraper(tmp_path):
             assert row.Prefecture == 'Hokkaido', f"Row {i}: Prefecture mismatch"
             assert row.hotel_name == f'Hotel {"A" if i == 0 else "B"}', f"Row {i}: hotel_name mismatch"
             assert row.price == (100 if i == 0 else 200), f"Row {i}: price mismatch"
-            assert row.date == f'2023-11-0{i + 1}', f"Row {i}: date mismatch"
-            assert row.check_in == f'2023-11-0{i + 1}', f"Row {i}: check_in mismatch"
-            assert row.check_out == f'2023-11-0{i + 2}', f"Row {i}: check_out mismatch"
+            expected_date = (current_date + datetime.timedelta(days=i)).strftime('%Y-%m-%d')
+            assert row.date == expected_date, f"Row {i}: date mismatch. Expected {expected_date}, got {row.date}"
+            assert row.check_in == expected_date, f"Row {i}: check_in mismatch. Expected {expected_date}, got {row.check_in}"
+            expected_checkout = (current_date + datetime.timedelta(days=i + 1)).strftime('%Y-%m-%d')
+            assert row.check_out == expected_checkout, f"Row {i}: check_out mismatch. Expected {expected_checkout}, got {row.check_out}"
             assert row.group_adults == 1, f"Row {i}: group_adults mismatch"
             assert row.num_rooms == 1, f"Row {i}: num_rooms mismatch"
             assert row.group_children == 0, f"Row {i}: group_children mismatch"
