@@ -12,7 +12,7 @@ from japan_avg_hotel_price_finder.main_argparse import parse_arguments
 from japan_avg_hotel_price_finder.sql.save_to_db import save_scraped_data
 from japan_avg_hotel_price_finder.whole_mth_graphql_scraper import WholeMonthGraphQLScraper
 
-load_dotenv()
+load_dotenv(dotenv_path='.env', override=True)
 
 
 def validate_required_args(arguments: argparse.Namespace, required_args: list[str]) -> bool:
