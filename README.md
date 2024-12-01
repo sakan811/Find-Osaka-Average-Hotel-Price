@@ -67,7 +67,6 @@ Built on top of [Find the Hotel's Average Room Price in Osaka](#find-the-hotels-
 - Create a virtual environment and activate it.
 - Install all dependencies listed in [requirements.txt](requirements.txt)
 - Run `playwright install`
-- Rename a `.env.example` to `.env`
 
 ### Setup a Database
 - Download [Docker Desktop](https://www.docker.com/products/docker-desktop)
@@ -75,18 +74,10 @@ Built on top of [Find the Hotel's Average Room Price in Osaka](#find-the-hotels-
 - Run: `export POSTGRES_DATA_PATH='<your_container_volume_path>'` to set the container volume 
   to the directory path of your choice.
 - Run: `docker compose up -d`
-  
-### Find your **User Agent**:
-  - Go to https://www.whatismybrowser.com/detect/what-is-my-user-agent/
-  - Enter your User Agent into your **.env** file:
-    - User-Agent ➡ USER_AGENT
 
 ### Find the Necessary Headers
 - Run: `python get_auth_headers.py`
-  - It will print out the authentication headers from each request, which start with `X-`. 
-  - It will print out multiple ones, but just choose the ones you need.
-- Copy and paste the headers into your **.env** file:
-  - X_BOOKING_CONTEXT_ACTION_NAME, X_BOOKING_CONTEXT_AID, X_BOOKING_CSRF_TOKEN, X_BOOKING_ET_SERIALIZED_STATE, X_BOOKING_PAGEVIEW_ID, X_BOOKING_SITE_TYPE_ID, X_BOOKING_TOPIC
+  - It will write the headers to an `.env` file.
 
 ### General Guidelines for Using the Scraper
 - To scrape only hotel properties, use `--scrape_only_hotel` argument.

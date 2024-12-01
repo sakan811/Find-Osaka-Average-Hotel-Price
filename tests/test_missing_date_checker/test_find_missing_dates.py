@@ -7,13 +7,14 @@ from check_missing_dates import find_missing_dates
 
 def test_find_missing_dates():
     today = datetime.datetime.today()
-    month = today.month + 1
-    year = today.year
+    next_month = today.replace(day=1) + datetime.timedelta(days=32)
+    month = next_month.month
+    year = next_month.year
     days_in_month = monthrange(year, month)[1]
 
-    first_day_of_month = datetime.datetime(year, month, 1).strftime('%Y-%m-%d')
-    third_day_of_month = datetime.datetime(year, month, 3).strftime('%Y-%m-%d')
-    fifth_day_of_month = datetime.datetime(year, month, 5).strftime('%Y-%m-%d')
+    first_day_of_month = next_month.replace(day=1).strftime('%Y-%m-%d')
+    third_day_of_month = next_month.replace(day=3).strftime('%Y-%m-%d')
+    fifth_day_of_month = next_month.replace(day=5).strftime('%Y-%m-%d')
 
     dates_in_db = {first_day_of_month, third_day_of_month, fifth_day_of_month}
 
@@ -21,13 +22,12 @@ def test_find_missing_dates():
 
     expected_missing_dates = []
     for day in range(1, days_in_month + 1):
-        date_str = datetime.datetime(year, month, day).strftime('%Y-%m-%d')
+        date_str = next_month.replace(day=day).strftime('%Y-%m-%d')
         if date_str not in dates_in_db:
             expected_missing_dates.append(date_str)
 
     # The missing dates should be all dates of the given month that are not the dates of the given month in the database
     assert result == expected_missing_dates
-
 
 def test_find_missing_dates_of_different_months():
     result = []
