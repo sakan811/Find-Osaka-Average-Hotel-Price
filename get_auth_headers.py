@@ -6,7 +6,7 @@ from playwright.sync_api import sync_playwright
 # Global flag to track if we've intercepted a request
 intercepted = False
 
-ENV_FILENAME = '.env.local'
+ENV_FILENAME = '.env'
 
 
 def extract_x_headers() -> None:
