@@ -1,4 +1,5 @@
 import datetime
+import pytz
 
 import pytest
 
@@ -7,7 +8,7 @@ from japan_avg_hotel_price_finder.whole_mth_graphql_scraper import WholeMonthGra
 
 @pytest.mark.asyncio
 async def test_whole_month_graphql_scraper():
-    today = datetime.datetime.now()
+    today = datetime.datetime.now(pytz.UTC)
     current_mth = today.month
     current_year = today.year
 
@@ -24,7 +25,7 @@ async def test_whole_month_graphql_scraper():
 
 @pytest.mark.asyncio
 async def test_whole_month_graphql_scraper_past_date():
-    today = datetime.datetime.now()
+    today = datetime.datetime.now(pytz.UTC)
     past_mth = today.month - 1
     current_year = today.year
 
