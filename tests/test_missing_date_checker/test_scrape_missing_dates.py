@@ -1,4 +1,5 @@
 import datetime
+import pytz
 
 import pytest
 from sqlalchemy import func, create_engine
@@ -20,20 +21,17 @@ async def test_scrape_missing_dates(tmp_path) -> None:
     booking_details_param = BookingDetails(city='Osaka', group_adults=1, num_rooms=1, group_children=0,
                                            selected_currency='USD', scrape_only_hotel=True)
 
-    today = datetime.datetime.today()
-    if today.month == 12:
-        month = 1
-        year = today.year + 1
-    else:
-        month = today.month + 1
-        year = today.year
+    today = datetime.datetime.now(pytz.UTC)
+    next_month = (today.replace(day=1) + datetime.timedelta(days=32)).replace(day=1)
+    year, month = next_month.year, next_month.month
 
     month_str = str(month).zfill(2)
 
-    first_missing_date = f'{year}-{month_str}-01'
-    second_missing_date = f'{year}-{month_str}-11'
-    third_missing_date = f'{year}-{month_str}-20'
-    missing_dates = [first_missing_date, second_missing_date, third_missing_date]
+    missing_dates = [
+        f'{year}-{month_str}-01',
+        f'{year}-{month_str}-11',
+        f'{year}-{month_str}-20'
+    ]
 
     await scrape_missing_dates(missing_dates_list=missing_dates, booking_details_class=booking_details_param,
                                engine=engine)
