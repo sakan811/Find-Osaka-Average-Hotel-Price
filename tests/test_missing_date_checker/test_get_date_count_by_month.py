@@ -63,7 +63,7 @@ def test_get_date_count_by_month_single_month(session):
 def test_get_date_count_by_month_multiple_cities(session):
     # Arrange
     city1, city2 = "Tokyo", "Osaka"
-    today = datetime.today().date()
+    today = datetime(2024, 11, 15).date()  # Set a fixed date
     session.add(HotelPrice(
         City=city1,
         Date=today,
@@ -87,8 +87,8 @@ def test_get_date_count_by_month_multiple_cities(session):
     session.commit()
 
     # Act
-    result1 = get_date_count_by_month(session, city1)
-    result2 = get_date_count_by_month(session, city2)
+    result1 = get_date_count_by_month(session, city1, as_of=today)
+    result2 = get_date_count_by_month(session, city2, as_of=today)
 
     # Assert
     assert len(result1) == 1 and len(result2) == 1
@@ -109,11 +109,11 @@ def test_get_date_count_by_month_no_data(session):
 def test_get_date_count_by_month_multiple_months(session):
     # Arrange
     city = "Tokyo"
-    today = datetime.today().date()
-    next_month = today.replace(month=today.month % 12 + 1)
+    today = datetime(2024, 11, 15).date()  # Fixed date in November
+    next_month = datetime(2024, 12, 15).date()  # Fixed date in December
     session.add(HotelPrice(
         City=city,
-        Date=today,
+        Date=today.strftime('%Y-%m-%d'),  # Ensure consistent string format for Date
         AsOf=today,
         Hotel="Hotel1",
         Price=100.0,
@@ -123,7 +123,7 @@ def test_get_date_count_by_month_multiple_months(session):
     ))
     session.add(HotelPrice(
         City=city,
-        Date=next_month,
+        Date=next_month.strftime('%Y-%m-%d'),  # Similarly formatted Date for next month
         AsOf=today,
         Hotel="Hotel2",
         Price=150.0,
@@ -134,7 +134,7 @@ def test_get_date_count_by_month_multiple_months(session):
     session.commit()
 
     # Act
-    result = get_date_count_by_month(session, city)
+    result = get_date_count_by_month(session, city, as_of=today)  # Pass the fixed 'as_of' date
 
     # Assert
     assert len(result) == 2

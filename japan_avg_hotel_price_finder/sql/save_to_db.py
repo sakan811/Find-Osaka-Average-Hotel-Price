@@ -1,5 +1,8 @@
+from collections import defaultdict
+
+import numpy as np
 import pandas as pd
-from sqlalchemy import create_engine, MetaData, func, case, Engine, Float, extract, Integer, cast
+from sqlalchemy import func, case, Engine, extract, Integer, cast
 from sqlalchemy.dialects import sqlite, postgresql
 from sqlalchemy.orm import sessionmaker, Session
 
@@ -68,7 +71,8 @@ def migrate_data_to_database(df_filtered: pd.DataFrame, engine: Engine) -> None:
 
 def create_avg_hotel_room_price_by_date_table(session: Session) -> None:
     """
-    Create AverageHotelRoomPriceByDate table using SQLAlchemy ORM
+    Create AverageHotelRoomPriceByDate table using the median (instead of average).
+    Supports PostgreSQL and SQLite.
     :param session: SQLAlchemy session
     :return: None
     """
@@ -77,18 +81,53 @@ def create_avg_hotel_room_price_by_date_table(session: Session) -> None:
     # Clear existing data
     session.query(AverageRoomPriceByDate).delete()
 
-    # Insert new data
-    avg_prices = session.query(
-        HotelPrice.Date,
-        func.avg(HotelPrice.Price).label('AveragePrice'),
-        HotelPrice.City
-    ).group_by(HotelPrice.Date, HotelPrice.City).all()
+    # Detect database dialect
+    dialect = session.bind.dialect
 
+    if isinstance(dialect, postgresql.dialect):
+        # PostgreSQL specific median calculation using `percentile_cont`
+        median_subquery = session.query(
+            HotelPrice.Date,
+            HotelPrice.City,
+            func.percentile_cont(0.5).within_group(HotelPrice.Price).label('MedianPrice')
+        ).group_by(HotelPrice.Date, HotelPrice.City).subquery()
+
+        median_data = session.query(
+            median_subquery.c.Date,
+            median_subquery.c.MedianPrice,
+            median_subquery.c.City
+        ).all()
+
+    elif isinstance(dialect, sqlite.dialect):
+        # SQLite: Calculate median in Python by fetching grouped data
+        grouped_data = session.query(
+            HotelPrice.Date,
+            HotelPrice.City,
+            HotelPrice.Price
+        ).order_by(HotelPrice.Date, HotelPrice.City, HotelPrice.Price).all()
+
+        # Organize data into groups by (Date, City)
+        from collections import defaultdict
+        grouped_prices = defaultdict(list)
+        for date, city, price in grouped_data:
+            grouped_prices[(date, city)].append(price)
+
+        # Calculate median for each group
+        median_data = [
+            (date, np.median(prices), city)
+            for (date, city), prices in grouped_prices.items()
+        ]
+
+    else:
+        raise NotImplementedError("Median calculation is only implemented for PostgreSQL and SQLite.")
+
+    # Create new records
     new_records = [
-        AverageRoomPriceByDate(Date=date, AveragePrice=avg_price, City=city)
-        for date, avg_price, city in avg_prices
+        AverageRoomPriceByDate(Date=date, AveragePrice=median_price, City=city)
+        for date, median_price, city in median_data
     ]
 
+    # Bulk insert new records
     session.bulk_save_objects(new_records)
     session.commit()
 
@@ -173,7 +212,8 @@ def create_avg_hotel_price_by_dow_table(session: Session) -> None:
 
 def create_avg_hotel_price_by_month_table(session: Session) -> None:
     """
-    Create AverageHotelRoomPriceByMonth table using SQLAlchemy ORM.
+    Create AverageHotelRoomPriceByMonth table using the median instead of average.
+    Supports PostgreSQL and SQLite.
     :param session: SQLAlchemy session
     :return: None
     """
@@ -186,49 +226,67 @@ def create_avg_hotel_price_by_month_table(session: Session) -> None:
     dialect = session.bind.dialect
 
     if isinstance(dialect, postgresql.dialect):
-        # PostgreSQL specific date extraction
+        # PostgreSQL-specific date extraction
         month_func = extract('month', func.to_date(HotelPrice.Date, 'YYYY-MM-DD'))
+        quarter_case = case(
+            (month_func.in_([1, 2, 3]), 'Quarter1'),
+            (month_func.in_([4, 5, 6]), 'Quarter2'),
+            (month_func.in_([7, 8, 9]), 'Quarter3'),
+            (month_func.in_([10, 11, 12]), 'Quarter4'),
+        ).label('quarter')
+
+        # Query grouped by Month and Quarter with median calculation
+        median_subquery = session.query(
+            month_func.label('Month'),
+            quarter_case.label('Quarter'),
+            func.percentile_cont(0.5).within_group(HotelPrice.Price).label('MedianPrice')
+        ).group_by(month_func, quarter_case).subquery()
+
+        median_data = session.query(
+            median_subquery.c.Month,
+            median_subquery.c.MedianPrice,
+            median_subquery.c.Quarter
+        ).all()
+
     elif isinstance(dialect, sqlite.dialect):
-        # SQLite specific date extraction
+        # SQLite-specific date extraction
         month_func = cast(func.strftime('%m', HotelPrice.Date), Integer)
+
+        # Gather data for Python-based median calculation
+        grouped_data = session.query(
+            month_func.label('Month'),
+            HotelPrice.Price  # Include only the necessary columns
+        ).all()
+
+        # Organize it by Month
+        price_by_month = defaultdict(list)
+        for month, price in grouped_data:
+            price_by_month[month].append(price)
+
+        # Calculate the median price for each month
+        median_data = []
+        for month, prices in price_by_month.items():
+            median_price = np.median(prices)
+            quarter = 'Quarter1' if month in [1, 2, 3] else \
+                'Quarter2' if month in [4, 5, 6] else \
+                    'Quarter3' if month in [7, 8, 9] else \
+                        'Quarter4'
+            median_data.append((month, median_price, quarter))
+
     else:
         raise NotImplementedError(f"Unsupported dialect: {dialect}")
 
-    # Define the month case
-    month_case = case(
-        (month_func == 1, 'January'),
-        (month_func == 2, 'February'),
-        (month_func == 3, 'March'),
-        (month_func == 4, 'April'),
-        (month_func == 5, 'May'),
-        (month_func == 6, 'June'),
-        (month_func == 7, 'July'),
-        (month_func == 8, 'August'),
-        (month_func == 9, 'September'),
-        (month_func == 10, 'October'),
-        (month_func == 11, 'November'),
-        (month_func == 12, 'December'),
-    ).label('month')
-
-    # Define the quarter case
-    quarter_case = case(
-        (month_func.in_([1, 2, 3]), 'Quarter1'),
-        (month_func.in_([4, 5, 6]), 'Quarter2'),
-        (month_func.in_([7, 8, 9]), 'Quarter3'),
-        (month_func.in_([10, 11, 12]), 'Quarter4'),
-    ).label('quarter')
-
-    # Calculate average prices by month
-    avg_prices = session.query(
-        month_case,
-        func.avg(HotelPrice.Price).label('avg_price'),
-        quarter_case
-    ).group_by(month_case, quarter_case).all()
+    # Map numeric months to readable names
+    month_names = {
+        1: 'January', 2: 'February', 3: 'March', 4: 'April',
+        5: 'May', 6: 'June', 7: 'July', 8: 'August',
+        9: 'September', 10: 'October', 11: 'November', 12: 'December'
+    }
 
     # Create new records
     new_records = [
-        AverageHotelRoomPriceByMonth(Month=month, AveragePrice=avg_price, Quarter=quarter)
-        for month, avg_price, quarter in avg_prices
+        AverageHotelRoomPriceByMonth(Month=month_names[month], AveragePrice=median_price, Quarter=quarter)
+        for month, median_price, quarter in median_data
     ]
 
     # Bulk insert new records
