@@ -134,7 +134,8 @@ def create_avg_hotel_room_price_by_date_table(session: Session) -> None:
 
 def create_avg_room_price_by_review_table(session: Session) -> None:
     """
-    Create AverageHotelRoomPriceByReview table using SQLAlchemy ORM.
+    Create AverageHotelRoomPriceByReview table using the median (instead of average).
+    Supports PostgreSQL and SQLite.
     :param session: SQLAlchemy session
     :return: None
     """
@@ -143,16 +144,45 @@ def create_avg_room_price_by_review_table(session: Session) -> None:
     # Clear existing data
     session.query(AverageHotelRoomPriceByReview).delete()
 
-    # Calculate average prices by review, rounding review to nearest integer
-    avg_prices = session.query(
-        func.round(HotelPrice.Review),
-        func.avg(HotelPrice.Price).label('AveragePrice')
-    ).group_by(func.round(HotelPrice.Review)).all()
+    # Detect database dialect
+    dialect = session.bind.dialect
+
+    if isinstance(dialect, postgresql.dialect):
+        # PostgreSQL-specific median calculation using percentile_cont
+        median_subquery = session.query(
+            func.round(HotelPrice.Review).label("Review"),
+            func.percentile_cont(0.5).within_group(HotelPrice.Price).label("MedianPrice")
+        ).group_by(func.round(HotelPrice.Review)).subquery()
+
+        median_data = session.query(
+            median_subquery.c.Review,
+            median_subquery.c.MedianPrice
+        ).all()
+
+    elif isinstance(dialect, sqlite.dialect):
+        # SQLite: Calculate median manually using Python
+        grouped_data = session.query(
+            func.round(HotelPrice.Review).label("Review"),
+            HotelPrice.Price
+        ).order_by(func.round(HotelPrice.Review), HotelPrice.Price).all()
+
+        # Organize data into groups by rounded Review
+        from collections import defaultdict
+        grouped_prices = defaultdict(list)
+        for review, price in grouped_data:
+            grouped_prices[review].append(price)
+
+        # Calculate the median for each group
+        median_data = [
+            (review, np.median(prices)) for review, prices in grouped_prices.items()
+        ]
+    else:
+        raise NotImplementedError("Median calculation is only implemented for PostgreSQL and SQLite.")
 
     # Create new records
     new_records = [
-        AverageHotelRoomPriceByReview(Review=review, AveragePrice=avg_price)
-        for review, avg_price in avg_prices
+        AverageHotelRoomPriceByReview(Review=review, AveragePrice=median_price)
+        for review, median_price in median_data
     ]
 
     # Bulk insert new records
@@ -162,7 +192,8 @@ def create_avg_room_price_by_review_table(session: Session) -> None:
 
 def create_avg_hotel_price_by_dow_table(session: Session) -> None:
     """
-    Create AverageHotelRoomPriceByDayOfWeek table using SQLAlchemy ORM.
+    Create AverageHotelRoomPriceByDayOfWeek table using the median (instead of average).
+    Supports PostgreSQL and SQLite.
     :param session: SQLAlchemy session
     :return: None
     """
@@ -177,32 +208,51 @@ def create_avg_hotel_price_by_dow_table(session: Session) -> None:
     if isinstance(dialect, postgresql.dialect):
         # PostgreSQL specific date extraction
         dow_func = extract('dow', func.to_date(HotelPrice.Date, 'YYYY-MM-DD'))
+
+        # Median calculation using percentile_cont
+        median_subquery = session.query(
+            dow_func.label("day_of_week"),
+            func.percentile_cont(0.5).within_group(HotelPrice.Price).label("MedianPrice")
+        ).group_by(dow_func).subquery()
+
+        median_data = session.query(
+            median_subquery.c.day_of_week,
+            median_subquery.c.MedianPrice
+        ).all()
+
     elif isinstance(dialect, sqlite.dialect):
-        # SQLite specific date extraction
+        # SQLite-specific date extraction
         dow_func = func.cast(func.strftime('%w', func.date(HotelPrice.Date)), Integer)
+
+        # Retrieve grouped data
+        grouped_data = session.query(
+            dow_func.label("day_of_week"),
+            HotelPrice.Price
+        ).order_by(dow_func, HotelPrice.Price).all()
+
+        # Organize data into Python groups by day_of_week
+        from collections import defaultdict
+        grouped_prices = defaultdict(list)
+        for dow, price in grouped_data:
+            grouped_prices[dow].append(price)
+
+        # Calculate the median for each day_of_week
+        median_data = [
+            (dow, np.median(prices)) for dow, prices in grouped_prices.items()
+        ]
     else:
-        raise NotImplementedError(f"Unsupported dialect: {dialect}")
+        raise NotImplementedError(f"Median calculation is only implemented for PostgreSQL and SQLite.")
 
-    # Calculate average prices by day of week
-    day_of_week_case = case(
-        (dow_func == 0, 'Sunday'),
-        (dow_func == 1, 'Monday'),
-        (dow_func == 2, 'Tuesday'),
-        (dow_func == 3, 'Wednesday'),
-        (dow_func == 4, 'Thursday'),
-        (dow_func == 5, 'Friday'),
-        (dow_func == 6, 'Saturday'),
-    ).label('day_of_week')
-
-    avg_prices = session.query(
-        day_of_week_case,
-        func.avg(HotelPrice.Price).label('avg_price')
-    ).group_by(day_of_week_case).all()
+    # Map numeric days to readable names
+    dow_mapping = {
+        0: 'Sunday', 1: 'Monday', 2: 'Tuesday', 3: 'Wednesday',
+        4: 'Thursday', 5: 'Friday', 6: 'Saturday'
+    }
 
     # Create new records
     new_records = [
-        AverageHotelRoomPriceByDayOfWeek(DayOfWeek=day_of_week, AveragePrice=avg_price)
-        for day_of_week, avg_price in avg_prices
+        AverageHotelRoomPriceByDayOfWeek(DayOfWeek=dow_mapping[dow], AveragePrice=median_price)
+        for dow, median_price in median_data
     ]
 
     # Bulk insert new records
