@@ -189,3 +189,4 @@ cython_debug/
 **/*.pbix
 **/*.pdf
 /back_jp_hotel_data_2025/
+/load_to_sqlite.py~
