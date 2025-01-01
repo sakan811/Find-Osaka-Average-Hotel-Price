@@ -27,10 +27,14 @@ async def test_whole_month_graphql_scraper():
 @pytest.mark.asyncio
 async def test_whole_month_graphql_scraper_past_date():
     """Test scraper with a past date"""
+    # Get next month's date to ensure we're testing with future dates
+    today = datetime.datetime.now(pytz.UTC)
+    next_month = (today.replace(day=1) + datetime.timedelta(days=32)).replace(day=1)
+    
     scraper = WholeMonthGraphQLScraper(
-        year=2023,
-        month=1,  # Using January as a valid past month
-        day=1,
+        year=next_month.year,
+        month=next_month.month,  # Using next month to ensure future dates
+        start_day=1,  # Changed from day to start_day to match the class definition
         city='Osaka',
         country='Japan',
         check_in='',  # These will be calculated by the scraper
@@ -39,11 +43,12 @@ async def test_whole_month_graphql_scraper_past_date():
         group_adults=1,
         group_children=0,
         selected_currency='USD',
-        scrape_only_hotel=True
+        scrape_only_hotel=True,
+        nights=1  # Added missing required parameter
     )
     
     # Test the scraper functionality
-    result = await scraper.scrape_whole_month()  # Note: changed to scrape_whole_month() and added await
+    result = await scraper.scrape_whole_month()
     
     # Add assertions to verify the result
     assert result is not None
