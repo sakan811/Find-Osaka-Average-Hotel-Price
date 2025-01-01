@@ -27,20 +27,28 @@ async def test_whole_month_graphql_scraper():
 @pytest.mark.asyncio
 async def test_whole_month_graphql_scraper_past_date():
     """Test scraper with a past date"""
-    # Instead of using month=0, let's use a valid past month
     scraper = WholeMonthGraphQLScraper(
         year=2023,
         month=1,  # Using January as a valid past month
-        day=1
+        day=1,
+        city='Osaka',
+        country='Japan',
+        check_in='',  # These will be calculated by the scraper
+        check_out='',
+        num_rooms=1,
+        group_adults=1,
+        group_children=0,
+        selected_currency='USD',
+        scrape_only_hotel=True
     )
     
     # Test the scraper functionality
-    result = scraper.scrape()
+    result = await scraper.scrape_whole_month()  # Note: changed to scrape_whole_month() and added await
     
     # Add assertions to verify the result
     assert result is not None
-    assert isinstance(result, list)
-    # Add more specific assertions based on expected data structure
+    assert not result.empty  # Changed to check DataFrame is not empty
+    assert result.shape[1] == 8  # Verify expected number of columns
 
 
 def test_whole_month_graphql_scraper_invalid_month():
@@ -49,7 +57,16 @@ def test_whole_month_graphql_scraper_invalid_month():
         WholeMonthGraphQLScraper(
             year=2023,
             month=0,  # This should raise ValidationError
-            day=1
+            day=1,
+            city='Osaka',
+            country='Japan',
+            check_in='',
+            check_out='',
+            num_rooms=1,
+            group_adults=1,
+            group_children=0,
+            selected_currency='USD',
+            scrape_only_hotel=True
         )
     
     # Verify the error message
