@@ -56,9 +56,9 @@ jobs:
       #
       #      - name: Run Scraper For September
       #        run: python automated_scraper.py --month=9
-
-      - name: Run Scraper For October
-        run: python automated_scraper.py --month=10
+      #
+      #      - name: Run Scraper For October
+      #        run: python automated_scraper.py --month=10
 
       - name: Run Scraper For November
         run: python automated_scraper.py --month=11
