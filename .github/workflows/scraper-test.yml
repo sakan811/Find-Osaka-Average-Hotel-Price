@@ -12,18 +12,33 @@ permissions:
   contents: read
 
 jobs:
-  build:
-
+  prep-testbed:
     runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - id: set-matrix
+      run: |
+        # Get all test paths and convert to JSON array
+        echo "::set-output name=matrix::$(find tests/ -type d -not -path '*/\.*' | jq -R . | jq -cs .)"
+
+  test:
+    needs: prep-testbed
+    runs-on: ubuntu-latest
+    
     strategy:
+      fail-fast: false  # Continue running other tests even if one fails
       matrix:
-        python-version: [ "3.11", "3.12", "3.13" ]
+        python-version: ["3.12", "3.13"]
+        test-path: ${{fromJson(needs.prep-testbed.outputs.matrix)}}
 
     steps:
     - uses: actions/checkout@v4
 
     - name: Cache pip dependencies
-      id: cache
       uses: actions/cache@v4
       with:
         path: ~/.cache/pip
@@ -52,4 +67,4 @@ jobs:
         X_BOOKING_SITE_TYPE_ID: ${{ secrets.X_BOOKING_SITE_TYPE_ID }}
         X_BOOKING_TOPIC: ${{ secrets.X_BOOKING_TOPIC }}
       run: |
-        python -m pytest tests/
+        python -m pytest ${{ matrix.test-path }}
