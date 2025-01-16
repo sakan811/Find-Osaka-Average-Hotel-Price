@@ -23,15 +23,15 @@ class JapanScraper(WholeMonthGraphQLScraper):
         selected_currency (str): Currency of the room price, default is USD.
         scrape_only_hotel (bool): Whether to scrape only the hotel property data, default is True
         start_day (int): Day to start scraping, default is 1.
-        month (int): Month to start scraping, default is the current month.
+        month (int): Month to start scraping, default is January.
         year (int): Year to start scraping, default is the current year.
         nights (int): Number of nights (Length of stay) which defines the room price.
                     For example, nights = 1 means scraping the hotel with room price for 1 night.
                     Default is 1.
         japan_regions (dict[str, list[str]]): Dictionary of Japan regions and their prefectures.
         region (str): The current region being scraped.
-        start_month (int): Month to start scraping (1-12).
-        end_month (int): Last month to scrape (1-12).
+        start_month (int): Month to start scraping (1-12), default is 1.
+        end_month (int): Last month to scrape (1-12), default is 12.
         engine (Engine): SQLAlchemy engine.
     """
     engine: Engine
@@ -127,7 +127,7 @@ class JapanScraper(WholeMonthGraphQLScraper):
         :param prefecture_hotel_data: DataFrame with the whole-year hotel data of the given prefecture.
         :return: None
         """
-        main_logger.info(f"Loading hotel data to database...")
+        main_logger.info("Loading hotel data to database...")
 
         # Rename 'City' column to 'Prefecture'
         prefecture_hotel_data = prefecture_hotel_data.rename(columns={'City': 'Prefecture'})
