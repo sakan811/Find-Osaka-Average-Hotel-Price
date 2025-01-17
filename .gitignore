@@ -190,3 +190,6 @@ cython_debug/
 **/*.pdf
 /back_jp_hotel_data_2025/
 /load_to_sqlite.py~
+/japan-scraper.pgsql
+/backup_japan_hotel.py
+/post-template.txt
