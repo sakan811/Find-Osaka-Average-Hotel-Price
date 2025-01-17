@@ -64,9 +64,9 @@ def run_japan_hotel_scraper(arguments: argparse.Namespace, engine: Engine) -> No
 
     year: int = datetime.now().year
     
-    # Get start and end months from arguments
-    start_month = arguments.start_month
-    end_month = arguments.end_month
+    # Get start and end months from arguments, use defaults if not provided
+    start_month = arguments.start_month if arguments.start_month is not None else 1
+    end_month = arguments.end_month if arguments.end_month is not None else 12
     
     # Set default currency to USD if not provided
     selected_currency = arguments.selected_currency if arguments.selected_currency else 'USD'
