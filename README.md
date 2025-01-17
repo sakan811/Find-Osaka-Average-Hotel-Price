@@ -58,11 +58,7 @@ Built on top of [Find the Hotel's Average Room Price in Osaka](#find-the-hotels-
 
 ### Average Room Price for all Prefectures in Japan
 
-- [Power BI](https://app.powerbi.com/view?r=eyJrIjoiZjIwNWExZTktZTFmYi00YmY2LWE1NmQtYWQ5NWFhMjhmNzM0IiwidCI6ImZlMzViMTA3LTdjMmYtNGNjMy1hZDYzLTA2NTY0MzcyMDg3OCIsImMiOjEwfQ%3D%3D)  
-
-- [Instagram](https://www.instagram.com/p/C_nnLTmuB8b/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==)  
-
-- [Facebook](https://www.facebook.com/share/p/vAER9MMiZm6anSd2/)
+[Click here](docs/VISUALS.md) for visualizations of this project.
 
 ## Project Details
 
@@ -72,7 +68,7 @@ Built on top of [Find the Hotel's Average Room Price in Osaka](#find-the-hotels-
 
 - Data **collecting period** for Year 2025: 4 Sep 2024—Present
 
-- Consists of room price from 4 Sep 2024—Present
+- Consists of room price from 1 Jan 2025—31 Dec 2025
 
 - Data was collected daily using GitHub action.
 
@@ -84,9 +80,9 @@ Built on top of [Find the Hotel's Average Room Price in Osaka](#find-the-hotels-
 
 - Collect **Japan hotel** property data for all **Prefectures** from Booking.com
 
-- Data collecting dates: 23 Aug 2024.
+- Data collecting dates for Year 2025: 17 Jan 2025.
 
-- Consists of room price from 23 Aug 2024—31 Dec 2024.
+- Consists of room price from 17 Jan 2025—31 Dec 2025.
 
 - Use **Japan GraphQL** scraper to scrape data.
 
@@ -105,6 +101,7 @@ Built on top of [Find the Hotel's Average Room Price in Osaka](#find-the-hotels-
 ### Setup Project
 
 - Clone this repo: <https://github.com/sakan811/Find-Osaka-Average-Hotel-Price.git>
+- Install [Git LFS](https://git-lfs.github.com/)
 - Create a virtual environment and activate it.
 - Install all dependencies listed in [requirements.txt](requirements.txt)
 - Run `playwright install`
