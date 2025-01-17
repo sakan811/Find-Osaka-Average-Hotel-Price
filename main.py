@@ -1,5 +1,6 @@
 import argparse
 import asyncio
+from datetime import datetime
 import os
 
 from dotenv import load_dotenv
@@ -61,13 +62,21 @@ def run_japan_hotel_scraper(arguments: argparse.Namespace, engine: Engine) -> No
     else:
         city = ''
 
-    year: int = 2024
-    month: int = 1
+    year: int = datetime.now().year
+    
+    # Get start and end months from arguments, use defaults if not provided
+    start_month = arguments.start_month if arguments.start_month is not None else 1
+    end_month = arguments.end_month if arguments.end_month is not None else 12
+    
+    # Set default currency to USD if not provided
+    selected_currency = arguments.selected_currency if arguments.selected_currency else 'USD'
+    
     scraper = JapanScraper(
-        city=city, year=year, month=month, start_day=arguments.start_day, nights=arguments.nights,
-        scrape_only_hotel=arguments.scrape_only_hotel, selected_currency=arguments.selected_currency,
+        city=city, year=year, month=start_month, start_day=arguments.start_day, nights=arguments.nights,
+        scrape_only_hotel=arguments.scrape_only_hotel, selected_currency=selected_currency,
         group_adults=arguments.group_adults, num_rooms=arguments.num_rooms, group_children=arguments.group_children,
-        check_in='', check_out='', country=arguments.country, engine=engine
+        check_in='', check_out='', country=arguments.country, engine=engine,
+        start_month=start_month, end_month=end_month
     )
     asyncio.run(scraper.scrape_japan_hotels())
 

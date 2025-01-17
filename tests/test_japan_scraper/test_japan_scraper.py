@@ -49,7 +49,6 @@ async def test_japan_scraper(tmp_path):
     scraper.japan_regions = {"Hokkaido": ["Hokkaido"]}
     current_date = datetime.datetime.now().date()
     current_month = current_date.month
-    current_year = current_date.year
     scraper.start_month = current_month
     scraper.end_month = current_month
 

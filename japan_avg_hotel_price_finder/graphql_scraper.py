@@ -651,6 +651,10 @@ class BasicGraphQLScraper(BaseModel):
             country_data = self._check_country_data()
             selected_currency_data = self._check_currency_data()
             scrape_only_hotel = self._check_hotel_filter_data()
+            
+            if selected_currency_data is None:
+                main_logger.warning('Selected currency data is None, adding default currency USD')
+                selected_currency_data = 'USD'
 
             booking_details = BookingDetails(
                 city=city_data,
@@ -663,6 +667,7 @@ class BasicGraphQLScraper(BaseModel):
                 selected_currency=selected_currency_data,
                 scrape_only_hotel=scrape_only_hotel
             )
+
 
             log_booking_details(booking_details)
 

@@ -52,6 +52,10 @@ def add_japan_arguments(parser: argparse.ArgumentParser) -> None:
     :return: None
     """
     parser.add_argument('--prefecture', type=str, nargs='+', help='Prefecture(s) to scrape data for')
+    parser.add_argument('--start_month', type=int, default=1, 
+                       help='Month to start scraping (1-12), default is 1')
+    parser.add_argument('--end_month', type=int, default=12,
+                       help='Last month to scrape (1-12), default is 12')
 
 
 def validate_japan_arguments(args: argparse.Namespace) -> None:

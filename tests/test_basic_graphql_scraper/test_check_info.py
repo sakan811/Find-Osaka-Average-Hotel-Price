@@ -151,13 +151,14 @@ async def test_handles_response_with_currency_is_none():
     entered_num_room = 1
     entered_hotel_filter = True
 
-    with pytest.raises(pydantic.ValidationError):
-        scraper = BasicGraphQLScraper(city=entered_city, check_in=entered_check_in, check_out=entered_check_out,
-                                      selected_currency=entered_selected_currency, group_adults=entered_num_adult,
-                                      group_children=entered_num_children, num_rooms=entered_num_room,
-                                      scrape_only_hotel=entered_hotel_filter, country=entered_country, sqlite_name='')
-        scraper.data = data
-        await scraper.check_info()
+    scraper = BasicGraphQLScraper(city=entered_city, check_in=entered_check_in, check_out=entered_check_out,
+                                  selected_currency=entered_selected_currency, group_adults=entered_num_adult,
+                                  group_children=entered_num_children, num_rooms=entered_num_room,
+                                  scrape_only_hotel=entered_hotel_filter, country=entered_country, sqlite_name='')
+    scraper.data = data
+    # When currency is None, it should use default USD and not raise an error
+    result = await scraper.check_info()
+    assert result == 1
 
 
 @pytest.mark.asyncio

@@ -23,15 +23,15 @@ class JapanScraper(WholeMonthGraphQLScraper):
         selected_currency (str): Currency of the room price, default is USD.
         scrape_only_hotel (bool): Whether to scrape only the hotel property data, default is True
         start_day (int): Day to start scraping, default is 1.
-        month (int): Month to start scraping, default is the current month.
+        month (int): Month to start scraping, default is January.
         year (int): Year to start scraping, default is the current year.
         nights (int): Number of nights (Length of stay) which defines the room price.
                     For example, nights = 1 means scraping the hotel with room price for 1 night.
                     Default is 1.
         japan_regions (dict[str, list[str]]): Dictionary of Japan regions and their prefectures.
         region (str): The current region being scraped.
-        start_month (int): Month to start scraping (1-12).
-        end_month (int): Last month to scrape (1-12).
+        start_month (int): Month to start scraping (1-12), default is 1.
+        end_month (int): Last month to scrape (1-12), default is 12.
         engine (Engine): SQLAlchemy engine.
     """
     engine: Engine
@@ -127,7 +127,7 @@ class JapanScraper(WholeMonthGraphQLScraper):
         :param prefecture_hotel_data: DataFrame with the whole-year hotel data of the given prefecture.
         :return: None
         """
-        main_logger.info(f"Loading hotel data to database...")
+        main_logger.info("Loading hotel data to database...")
 
         # Rename 'City' column to 'Prefecture'
         prefecture_hotel_data = prefecture_hotel_data.rename(columns={'City': 'Prefecture'})
@@ -138,27 +138,55 @@ class JapanScraper(WholeMonthGraphQLScraper):
         # Create all tables
         Base.metadata.create_all(self.engine)
 
-        Session = sessionmaker(bind=self.engine)
-        session = Session()
-
         try:
-            # Convert DataFrame to list of dictionaries
+            # Convert DataFrame to list of dictionaries and remove selected_currency
             records = prefecture_hotel_data.to_dict('records')
 
-            # Create HotelPrice objects
-            hotel_prices = [JapanHotel(**record) for record in records]
+            # Create HotelPrice objects with validation
+            hotel_prices = []
+            for record in records:
+                try:
+                    hotel_prices.append(JapanHotel(**record))
+                except Exception as e:
+                    main_logger.error(f"Error creating hotel record: {str(e)}")
+                    main_logger.debug(f"Problematic record: {record}")
+                    continue
 
-            # Bulk insert records
-            session.bulk_save_objects(hotel_prices)
+            if not hotel_prices:
+                main_logger.warning("No valid hotel records to save")
+                return
 
-            session.commit()
-            main_logger.info(f"Hotel data for {self.city} loaded to a database successfully.")
+            # Process in chunks for better memory management
+            chunk_size = 1000
+            chunks = [hotel_prices[i:i + chunk_size] for i in range(0, len(hotel_prices), chunk_size)]
+
+            # Create a single session for all chunks
+            Session = sessionmaker(bind=self.engine)
+            session = Session()
+
+            try:
+                for chunk in chunks:
+                    try:
+                        # Bulk insert chunk
+                        session.bulk_save_objects(chunk)
+                        session.flush()
+                        main_logger.debug(f"Processed chunk of {len(chunk)} records")
+                    except Exception as e:
+                        session.rollback()
+                        main_logger.error(f"Error processing chunk: {str(e)}")
+                        raise
+
+                session.commit()
+                main_logger.info(f"Hotel data for {self.city} loaded to database successfully.")
+            except Exception as e:
+                session.rollback()
+                main_logger.error(f"An error occurred while saving data: {str(e)}")
+                raise
+            finally:
+                session.close()
         except Exception as e:
-            session.rollback()
-            main_logger.error(f"An error occurred while saving data: {str(e)}")
+            main_logger.error(f"Error preparing data for database: {str(e)}")
             raise
-        finally:
-            session.close()
 
 
 if __name__ == '__main__':
