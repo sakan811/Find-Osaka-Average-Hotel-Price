@@ -199,3 +199,78 @@ def test_japan_arguments(monkeypatch):
     assert args.group_children == 0
     assert args.selected_currency == "USD"
     assert args.scrape_only_hotel is True
+
+
+def test_japan_arguments_with_default_currency(monkeypatch):
+    # Test case for add_japan_arguments with default currency
+    test_args = [
+        "main.py",
+        "--japan_hotel",
+        "--prefecture", "Tokyo", "Osaka",
+        "--city", "Tokyo",
+        "--country", "Japan",
+        "--check_in", "2024-01-01",
+        "--check_out", "2024-01-02",
+        "--group_adults", "2",
+        "--num_rooms", "1",
+        "--group_children", "0",
+        "--scrape_only_hotel",
+    ]
+
+    monkeypatch.setattr(sys, 'argv', test_args)
+    args = parse_arguments()
+
+    # Test that add_japan_arguments worked correctly
+    assert args.prefecture == ["Tokyo", "Osaka"]
+    assert args.japan_hotel is True
+
+    # Test that selected_currency gets default value when not provided
+    assert args.selected_currency == "USD"
+
+    # Test other arguments to ensure everything else is still correct
+    assert args.city == "Tokyo"
+    assert args.country == "Japan"
+    assert args.check_in == "2024-01-01"
+    assert args.check_out == "2024-01-02"
+    assert args.group_adults == 2
+    assert args.num_rooms == 1
+    assert args.group_children == 0
+    assert args.scrape_only_hotel is True
+
+
+def test_japan_arguments_with_months(monkeypatch):
+    # Test case for add_japan_arguments with month controls
+    test_args = [
+        "main.py",
+        "--japan_hotel",
+        "--prefecture", "Tokyo", "Osaka",
+        "--start_month", "3",
+        "--end_month", "6",
+        "--city", "Tokyo",
+        "--country", "Japan",
+        "--check_in", "2024-01-01",
+        "--check_out", "2024-01-02",
+        "--group_adults", "2",
+        "--num_rooms", "1",
+        "--group_children", "0",
+        "--scrape_only_hotel",
+    ]
+
+    monkeypatch.setattr(sys, 'argv', test_args)
+    args = parse_arguments()
+
+    # Test that month arguments work correctly
+    assert args.start_month == 3
+    assert args.end_month == 6
+    assert args.prefecture == ["Tokyo", "Osaka"]
+    assert args.japan_hotel is True
+
+    # Test other arguments to ensure everything else is still correct
+    assert args.city == "Tokyo"
+    assert args.country == "Japan"
+    assert args.check_in == "2024-01-01"
+    assert args.check_out == "2024-01-02"
+    assert args.group_adults == 2
+    assert args.num_rooms == 1
+    assert args.group_children == 0
+    assert args.scrape_only_hotel is True
