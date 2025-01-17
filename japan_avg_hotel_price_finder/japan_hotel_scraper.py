@@ -138,27 +138,55 @@ class JapanScraper(WholeMonthGraphQLScraper):
         # Create all tables
         Base.metadata.create_all(self.engine)
 
-        Session = sessionmaker(bind=self.engine)
-        session = Session()
-
         try:
-            # Convert DataFrame to list of dictionaries
+            # Convert DataFrame to list of dictionaries and remove selected_currency
             records = prefecture_hotel_data.to_dict('records')
 
-            # Create HotelPrice objects
-            hotel_prices = [JapanHotel(**record) for record in records]
+            # Create HotelPrice objects with validation
+            hotel_prices = []
+            for record in records:
+                try:
+                    hotel_prices.append(JapanHotel(**record))
+                except Exception as e:
+                    main_logger.error(f"Error creating hotel record: {str(e)}")
+                    main_logger.debug(f"Problematic record: {record}")
+                    continue
 
-            # Bulk insert records
-            session.bulk_save_objects(hotel_prices)
+            if not hotel_prices:
+                main_logger.warning("No valid hotel records to save")
+                return
 
-            session.commit()
-            main_logger.info(f"Hotel data for {self.city} loaded to a database successfully.")
+            # Process in chunks for better memory management
+            chunk_size = 1000
+            chunks = [hotel_prices[i:i + chunk_size] for i in range(0, len(hotel_prices), chunk_size)]
+
+            # Create a single session for all chunks
+            Session = sessionmaker(bind=self.engine)
+            session = Session()
+
+            try:
+                for chunk in chunks:
+                    try:
+                        # Bulk insert chunk
+                        session.bulk_save_objects(chunk)
+                        session.flush()
+                        main_logger.debug(f"Processed chunk of {len(chunk)} records")
+                    except Exception as e:
+                        session.rollback()
+                        main_logger.error(f"Error processing chunk: {str(e)}")
+                        raise
+
+                session.commit()
+                main_logger.info(f"Hotel data for {self.city} loaded to database successfully.")
+            except Exception as e:
+                session.rollback()
+                main_logger.error(f"An error occurred while saving data: {str(e)}")
+                raise
+            finally:
+                session.close()
         except Exception as e:
-            session.rollback()
-            main_logger.error(f"An error occurred while saving data: {str(e)}")
+            main_logger.error(f"Error preparing data for database: {str(e)}")
             raise
-        finally:
-            session.close()
 
 
 if __name__ == '__main__':
