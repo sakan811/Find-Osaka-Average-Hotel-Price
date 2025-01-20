@@ -21,7 +21,7 @@ def save_scraped_data(dataframe: pd.DataFrame, engine: Engine) -> None:
     """
     main_logger.info("Saving scraped data...")
     if not dataframe.empty:
-        main_logger.info(f'Save data to a database')
+        main_logger.info('Save data to a database')
         migrate_data_to_database(dataframe, engine)
     else:
         main_logger.warning('The dataframe is empty. No data to save')
@@ -59,7 +59,7 @@ def migrate_data_to_database(df_filtered: pd.DataFrame, engine: Engine) -> None:
         create_avg_room_price_by_location(session)
 
         session.commit()
-        main_logger.info(f'Data has been saved to a database successfully.')
+        main_logger.info('Data has been saved to a database successfully.')
     except Exception as e:
         session.rollback()
         main_logger.error(f"An unexpected error occurred: {str(e)}")
@@ -107,7 +107,6 @@ def create_avg_hotel_room_price_by_date_table(session: Session) -> None:
         ).order_by(HotelPrice.Date, HotelPrice.City, HotelPrice.Price).all()
 
         # Organize data into groups by (Date, City)
-        from collections import defaultdict
         grouped_prices = defaultdict(list)
         for date, city, price in grouped_data:
             grouped_prices[(date, city)].append(price)
@@ -167,7 +166,6 @@ def create_avg_room_price_by_review_table(session: Session) -> None:
         ).order_by(func.round(HotelPrice.Review), HotelPrice.Price).all()
 
         # Organize data into groups by rounded Review
-        from collections import defaultdict
         grouped_prices = defaultdict(list)
         for review, price in grouped_data:
             grouped_prices[review].append(price)
@@ -231,7 +229,6 @@ def create_avg_hotel_price_by_dow_table(session: Session) -> None:
         ).order_by(dow_func, HotelPrice.Price).all()
 
         # Organize data into Python groups by day_of_week
-        from collections import defaultdict
         grouped_prices = defaultdict(list)
         for dow, price in grouped_data:
             grouped_prices[dow].append(price)
@@ -241,7 +238,7 @@ def create_avg_hotel_price_by_dow_table(session: Session) -> None:
             (dow, np.median(prices)) for dow, prices in grouped_prices.items()
         ]
     else:
-        raise NotImplementedError(f"Median calculation is only implemented for PostgreSQL and SQLite.")
+        raise NotImplementedError("Median calculation is only implemented for PostgreSQL and SQLite.")
 
     # Map numeric days to readable names
     dow_mapping = {
@@ -346,7 +343,8 @@ def create_avg_hotel_price_by_month_table(session: Session) -> None:
 
 def create_avg_room_price_by_location(session: Session) -> None:
     """
-    Create AverageHotelRoomPriceByLocation table using SQLAlchemy ORM.
+    Create AverageHotelRoomPriceByLocation table using median instead of average.
+    Supports PostgreSQL and SQLite.
     :param session: SQLAlchemy session
     :return: None
     """
@@ -355,23 +353,62 @@ def create_avg_room_price_by_location(session: Session) -> None:
     # Clear existing data
     session.query(AverageHotelRoomPriceByLocation).delete()
 
-    # Calculate average prices, ratings, and price per review by location
-    avg_data = session.query(
-        HotelPrice.Location,
-        func.avg(HotelPrice.Price).label('AveragePrice'),
-        func.avg(HotelPrice.Review).label('AverageRating'),
-        func.avg(HotelPrice.PriceReview).label('AveragePricePerReview')
-    ).group_by(HotelPrice.Location).all()
+    # Detect database dialect
+    dialect = session.bind.dialect
+
+    if isinstance(dialect, postgresql.dialect):
+        # PostgreSQL specific median calculation using percentile_cont
+        median_subquery = session.query(
+            HotelPrice.Location,
+            func.percentile_cont(0.5).within_group(HotelPrice.Price).label('MedianPrice'),
+            func.percentile_cont(0.5).within_group(HotelPrice.Review).label('MedianRating'),
+            func.percentile_cont(0.5).within_group(HotelPrice.PriceReview).label('MedianPricePerReview')
+        ).group_by(HotelPrice.Location).subquery()
+
+        median_data = session.query(
+            median_subquery.c.Location,
+            median_subquery.c.MedianPrice,
+            median_subquery.c.MedianRating,
+            median_subquery.c.MedianPricePerReview
+        ).all()
+
+    elif isinstance(dialect, sqlite.dialect):
+        # SQLite: Calculate median in Python by fetching grouped data
+        grouped_data = session.query(
+            HotelPrice.Location,
+            HotelPrice.Price,
+            HotelPrice.Review,
+            HotelPrice.PriceReview
+        ).order_by(HotelPrice.Location).all()
+
+        # Organize data into groups by Location
+        grouped_metrics = defaultdict(lambda: {'prices': [], 'ratings': [], 'price_per_reviews': []})
+        for location, price, rating, price_per_review in grouped_data:
+            grouped_metrics[location]['prices'].append(price)
+            grouped_metrics[location]['ratings'].append(rating)
+            grouped_metrics[location]['price_per_reviews'].append(price_per_review)
+
+        # Calculate median for each group and metric
+        median_data = [
+            (location,
+             np.median(metrics['prices']),
+             np.median(metrics['ratings']),
+             np.median(metrics['price_per_reviews']))
+            for location, metrics in grouped_metrics.items()
+        ]
+
+    else:
+        raise NotImplementedError("Median calculation is only implemented for PostgreSQL and SQLite.")
 
     # Create new records
     new_records = [
         AverageHotelRoomPriceByLocation(
             Location=location,
-            AveragePrice=avg_price,
-            AverageRating=avg_rating,
-            AveragePricePerReview=avg_price_per_review
+            AveragePrice=median_price,
+            AverageRating=median_rating,
+            AveragePricePerReview=median_price_per_review
         )
-        for location, avg_price, avg_rating, avg_price_per_review in avg_data
+        for location, median_price, median_rating, median_price_per_review in median_data
     ]
 
     # Bulk insert new records
