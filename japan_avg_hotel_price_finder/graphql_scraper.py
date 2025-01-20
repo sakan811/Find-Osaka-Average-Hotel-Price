@@ -40,8 +40,8 @@ class BasicGraphQLScraper(BaseModel):
         scrape_only_hotel (bool): Whether to scrape only the hotel property data, default is True
     """
     # Set booking details.
-    city: str
-    country: str
+    city: str = Field(..., min_length=1)
+    country: str = Field(..., min_length=1)
     check_in: str
     check_out: str
     group_adults: int = Field(1, gt=0)
