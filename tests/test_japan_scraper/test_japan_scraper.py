@@ -1,7 +1,7 @@
 import datetime
-from unittest.mock import patch, AsyncMock
+from unittest.mock import patch
 import pytest
-from sqlalchemy import create_engine, text, Table, Column, Integer, String, Date, Boolean, Float, TIMESTAMP, MetaData
+from sqlalchemy import create_engine, text, Table, Column, Integer, String, Float, TIMESTAMP, MetaData
 import pandas as pd
 
 from japan_avg_hotel_price_finder.japan_hotel_scraper import JapanScraper
