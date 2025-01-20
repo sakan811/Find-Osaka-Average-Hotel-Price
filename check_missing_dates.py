@@ -196,7 +196,7 @@ class MissingDateChecker:
         :param year: Year of the dates to check whether they are missing.
         :return: List of missing dates.
         """
-        main_logger.info(f"Checking if all dates were scraped in a database...")
+        main_logger.info("Checking if all dates were scraped in a database...")
         missing_date_list: list[str] = []
 
         session = self.Session()

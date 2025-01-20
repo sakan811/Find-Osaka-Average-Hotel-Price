@@ -11,7 +11,7 @@ def mock_playwright():
     with patch('get_auth_headers.sync_playwright') as mock_playwright:
         mock_browser = Mock(spec=Browser)
         mock_page = Mock(spec=Page)
-        mock_context = Mock(spec=BrowserContext)
+        Mock(spec=BrowserContext)
 
         mock_playwright.return_value.__enter__.return_value.chromium.launch.return_value = mock_browser
         mock_browser.new_page.return_value = mock_page

@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.dialects import sqlite
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.orm import Session
 
 from check_missing_dates import MissingDateChecker
 
@@ -152,4 +152,3 @@ def test_find_missing_dates_in_db_special_dates(missing_date_checker, mock_sessi
 
     with patch('check_missing_dates.MissingDateChecker.check_missing_dates') as mock_check:
         mock_check.side_effect = lambda *args, **kwargs: args[2].append(mock_today.strftime('%Y-%m-%d'))
-        result = missing_date_checker.find_missing_dates_in_db
