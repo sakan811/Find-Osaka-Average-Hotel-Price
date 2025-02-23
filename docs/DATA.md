@@ -35,15 +35,15 @@ Consists of room price from **4 Sep 2024** to **31 Dec 2024**.
 
 ### Average Room Price in Osaka
 
-Data **collecting period**: 4 Sep 2024 - Present
+Data **collecting period**: 4 Sep 2024 - 23 Feb 2025
 
 Consists of room price from **1 Jan 2025** to **31 Dec 2025**.
 
-[Osaka Hotel Room Price Record](data/2025/hotel_price_table_2025_as_of_2025-01-17.parquet)
+[Osaka Hotel Room Price Record](data/2025/hotel_price_table_2025_as_of_2025_02_23.parquet)
 
 - 5,694,692 rows
 
-[Osaka Average Nightly Room Price by Date](data/2025/avg_osaka_hotel_price_2025_as_of_2025-01-17.csv)
+[Osaka Average Nightly Room Price by Date](data/2025/avg_osaka_hotel_price_2025_as_of_2025-02-23.csv)
 
 - 365 rows
 
