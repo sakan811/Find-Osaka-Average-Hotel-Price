@@ -68,12 +68,15 @@ class WholeMonthGraphQLScraper(BasicGraphQLScraper):
                 main_logger.debug(f'Nights: {self.nights}')
 
                 df = await self.scrape_graphql()
-                df_list.append(df)
+                if not df.empty:
+                    df_list.append(df)
 
         if df_list:
-            return pd.concat(df_list)
-        else:
-            return pd.DataFrame()
+            # Ensure all DataFrames have the same columns
+            columns = df_list[0].columns
+            df_list = [df[columns] for df in df_list]
+            return pd.concat(df_list, ignore_index=True, join='inner')
+        return pd.DataFrame()
 
     async def _find_last_day_of_the_month(self) -> int:
         """

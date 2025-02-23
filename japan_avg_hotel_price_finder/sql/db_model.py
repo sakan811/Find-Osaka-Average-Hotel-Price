@@ -1,5 +1,19 @@
-from sqlalchemy import Column, Integer, String, Float, TIMESTAMP
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, Integer, String, Float, TIMESTAMP, event
+from sqlalchemy.orm import declarative_base
+import sqlite3
+from datetime import datetime
+
+def adapt_datetime(val):
+    """Adapt datetime to SQLite format"""
+    return val.isoformat()
+
+def convert_datetime(val):
+    """Convert SQLite value to datetime"""
+    return datetime.fromisoformat(val.decode())
+
+# Register adapters for SQLite
+sqlite3.register_adapter(datetime, adapt_datetime)
+sqlite3.register_converter("datetime", convert_datetime)
 
 Base = declarative_base()
 

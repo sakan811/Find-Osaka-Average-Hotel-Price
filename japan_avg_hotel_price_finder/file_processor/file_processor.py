@@ -34,7 +34,12 @@ def convert_csv_to_df(csv_files: list) -> pd.DataFrame:
     for csv_file in csv_files:
         main_logger.info(f'Convert CSV: {csv_file} to DataFrame.')
         df = pd.read_csv(csv_file)
-        df_list.append(df)
+        if not df.empty:
+            df_list.append(df)
 
     if df_list:
-        return pd.concat(df_list)
+        # Ensure all DataFrames have the same columns
+        columns = df_list[0].columns
+        df_list = [df[columns] for df in df_list]
+        return pd.concat(df_list, ignore_index=True, join='inner')
+    return pd.DataFrame()

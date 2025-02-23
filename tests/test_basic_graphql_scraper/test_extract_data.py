@@ -72,20 +72,30 @@ def test_extract_hotel_data_missing_values():
     # Assertions
     assert len(df_list) == 2
 
+    # Ensure all DataFrames have consistent dtypes before concatenation
+    expected_dtypes = {
+        'Hotel': 'object',
+        'Review': 'float64',
+        'Price': 'float64',
+        'Location': 'object'
+    }
+    
+    for df in df_list:
+        for col, dtype in expected_dtypes.items():
+            assert df[col].dtype == dtype, f"Column {col} has wrong dtype: {df[col].dtype} != {dtype}"
+
+    # Concatenate with consistent dtypes
     df = pd.concat(df_list, ignore_index=True)
+
     assert df.shape == (2, 4)
     assert df['Hotel'].tolist() == [None, 'Hotel B']
     assert df['Location'].tolist() == ['Osaka', None]
 
-    # Convert columns to numeric, coercing errors to NaN
-    df['Review'] = pd.to_numeric(df['Review'], errors='coerce')
-    df['Price'] = pd.to_numeric(df['Price'], errors='coerce')
-
-    # Check for NaN values
-    assert df['Review'][0] == 4.5
-    assert np.isnan(df['Review'][1])
-    assert df['Price'][0] == 150
-    assert np.isnan(df['Price'][1])
+    # No need to convert to numeric since dtypes are already correct
+    assert df['Review'].iloc[0] == 4.5
+    assert np.isnan(df['Review'].iloc[1])
+    assert df['Price'].iloc[0] == 150.0
+    assert np.isnan(df['Price'].iloc[1])
 
 
 def test_extract_hotel_data_empty_list():
@@ -126,9 +136,24 @@ def test_extract_hotel_data_basic():
 
     # Assertions
     assert len(df_list) == 2
+
+    # Ensure all DataFrames have consistent dtypes before concatenation
+    expected_dtypes = {
+        'Hotel': 'object',
+        'Review': 'float64',
+        'Price': 'float64',
+        'Location': 'object'
+    }
+    
+    for df in df_list:
+        for col, dtype in expected_dtypes.items():
+            assert df[col].dtype == dtype, f"Column {col} has wrong dtype: {df[col].dtype} != {dtype}"
+
+    # Concatenate with consistent dtypes
     df = pd.concat(df_list, ignore_index=True)
+    
     assert df.shape == (2, 4)
     assert df['Hotel'].tolist() == ['Hotel A', 'Hotel B']
     assert df['Review'].tolist() == [4.5, 4.0]
-    assert df['Price'].tolist() == [150, 200]
+    assert df['Price'].tolist() == [150.0, 200.0]
     assert df['Location'].tolist() == ['Osaka', 'Tokyo']
