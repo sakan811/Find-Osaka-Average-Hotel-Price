@@ -122,7 +122,7 @@ For example:
 
 ```bash
 # Keep existing environment variables (don't override with .env values)
-python main.py --city=Tokyo --no_override_env
+python main.py --city=Osaka --check_in=2024-12-25 --check_out=2024-12-26 --scraper --no_override_env
 ```
 
 ### Find the Necessary Headers
