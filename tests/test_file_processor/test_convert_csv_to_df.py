@@ -43,7 +43,10 @@ def test_convert_csv_to_df_empty(mock_read_csv):
     result = convert_csv_to_df(csv_files)
 
     # Assertions
-    assert result is None
+    assert isinstance(result, pd.DataFrame)
+    assert result.empty
+    assert len(result.columns) == 0
+    assert len(result.index) == 0
 
     # Verify that read_csv was not called
     mock_read_csv.assert_not_called()

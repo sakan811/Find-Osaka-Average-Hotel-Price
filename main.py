@@ -13,9 +13,6 @@ from japan_avg_hotel_price_finder.main_argparse import parse_arguments
 from japan_avg_hotel_price_finder.sql.save_to_db import save_scraped_data
 from japan_avg_hotel_price_finder.whole_mth_graphql_scraper import WholeMonthGraphQLScraper
 
-load_dotenv(dotenv_path='.env', override=True)
-
-
 def validate_required_args(arguments: argparse.Namespace, required_args: list[str]) -> bool:
     """
     Validate the required arguments.
@@ -106,6 +103,10 @@ def main() -> None:
     :return: None
     """
     arguments = parse_arguments()
+    
+    # Load environment variables from .env file, override by default unless --no_override_env is set
+    load_dotenv(dotenv_path='.env', override=not arguments.no_override_env)
+    
     postgres_url = (f"postgresql://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}"
                     f"@{os.getenv('POSTGRES_HOST')}:{os.getenv('POSTGRES_PORT')}/{os.getenv('POSTGRES_DB')}")
     engine = create_engine(postgres_url)

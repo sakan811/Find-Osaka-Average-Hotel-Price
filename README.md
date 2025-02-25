@@ -114,6 +114,17 @@ Built on top of [Find the Hotel's Average Room Price in Osaka](#find-the-hotels-
   to the directory path of your choice.
 - Run: `docker compose up -d`
 
+### Environment Variables
+
+By default, values from the `.env` file will override any existing environment variables. To prevent this behavior and keep existing environment variables, use the `--no_override_env` flag when running the scraper.
+
+For example:
+
+```bash
+# Keep existing environment variables (don't override with .env values)
+python main.py --city=Osaka --check_in=2024-12-25 --check_out=2024-12-26 --scraper --no_override_env
+```
+
 ### Find the Necessary Headers
 
 - Run: `python get_auth_headers.py`

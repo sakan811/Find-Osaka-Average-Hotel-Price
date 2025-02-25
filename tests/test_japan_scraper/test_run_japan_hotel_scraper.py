@@ -128,7 +128,14 @@ class TestJapanHotelScraper(TestCase):
         # Create scraper with custom values
         custom_values = {
             'city': 'Tokyo,Osaka',
-            'selected_currency': 'JPY'
+            'selected_currency': 'JPY',
+            'group_adults': 2,
+            'num_rooms': 2,
+            'group_children': 1,
+            'start_month': 1,
+            'end_month': 12,
+            'start_day': 15,
+            'nights': 3
         }
         scraper = self.create_scraper(**custom_values)
         self.mock_scraper_class.return_value = scraper
@@ -140,11 +147,22 @@ class TestJapanHotelScraper(TestCase):
         self.mock_scraper_class.assert_called_once()
         args = self.mock_scraper_class.call_args[1]
         
-        # Verify custom values
+        # Verify custom values while keeping default values for unspecified parameters
         expected_values = {
             'city': 'Tokyo,Osaka',
-            'start_month': self.current_month,
-            'end_month': self.current_month,
-            'selected_currency': 'JPY'
+            'year': self.current_year,
+            'start_month': 1,
+            'end_month': 12,
+            'selected_currency': 'JPY',
+            'start_day': 15,
+            'nights': 3,
+            'scrape_only_hotel': True,
+            'group_adults': 2,
+            'num_rooms': 2,
+            'group_children': 1,
+            'country': 'Japan',
+            'check_in': '',
+            'check_out': '',
+            'engine': self.engine
         }
         self.verify_scraper_args(args, expected_values) 

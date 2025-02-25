@@ -12,7 +12,12 @@ def concat_df_list(df_list: list[pd.DataFrame]) -> pd.DataFrame:
     main_logger.info("Concatenate a list of Pandas Dataframes")
     if df_list:
         df_list = filter_empty_df(df_list)
-        df_main = pd.concat(df_list, ignore_index=True)
+        if not df_list:
+            return pd.DataFrame()
+        # Ensure all DataFrames have the same columns
+        columns = df_list[0].columns
+        df_list = [df[columns] for df in df_list]
+        df_main = pd.concat(df_list, ignore_index=True, join='inner')
         return df_main
     else:
         main_logger.warning("No data was scraped.")

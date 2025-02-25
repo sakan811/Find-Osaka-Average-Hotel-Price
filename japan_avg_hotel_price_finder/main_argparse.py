@@ -89,10 +89,15 @@ def validate_booking_details_arguments(args: argparse.Namespace) -> None:
 
 def parse_arguments() -> argparse.Namespace:
     """
-    Parse the command line arguments.
-    :return: argparse.Namespace
+    Parse command line arguments.
+    :return: Parsed arguments.
     """
-    parser = argparse.ArgumentParser(description='Parser that controls which kind of scraper to use.')
+    parser = argparse.ArgumentParser(description='Parser that control which kind of scraper to use.')
+
+    # Add argument to control environment variable overriding
+    parser.add_argument('--no_override_env', action='store_true',
+                       help='Do not override existing environment variables with values from .env file')
+
     add_scraper_arguments(parser)
     add_booking_details_arguments(parser)
     add_date_arguments(parser)
