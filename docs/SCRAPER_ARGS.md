@@ -1,5 +1,11 @@
 ## Scraper's Arguments
 
+### `--no_override_env`
+
+- **Type**: `bool`
+- **Default**: `False`
+- **Description**: If set to `True`, environment variables from the `.env` file will not override existing environment variables. By default, `.env` file values override existing environment variables.
+
 ### `--scraper`
 
 - **Type**: `bool`
