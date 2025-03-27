@@ -4,6 +4,8 @@
 
 ### Year 2025
 
+Median is used instead of Mean for average
+
 * [Power BI](https://app.powerbi.com/view?r=eyJrIjoiYjJlY2JjMTItZmU0OC00MzdmLWI0OWQtZDAyZDhlY2U0YzhiIiwidCI6ImZlMzViMTA3LTdjMmYtNGNjMy1hZDYzLTA2NTY0MzcyMDg3OCIsImMiOjEwfQ%3D%3D)
   
 * [Instagram](https://www.instagram.com/p/DGaiBeJPh7i/?utm_source=ig_web_copy_link)  
@@ -21,6 +23,8 @@
 ## Average Room Price in Japan
 
 ### Year 2025
+
+Median is used instead of Mean for average
 
 * [Power BI](https://app.powerbi.com/view?r=eyJrIjoiOTkxNDJjNWEtN2ExYi00NTViLWE0ZDMtMWFhM2Q3OWVlYzllIiwidCI6ImZlMzViMTA3LTdjMmYtNGNjMy1hZDYzLTA2NTY0MzcyMDg3OCIsImMiOjEwfQ%3D%3D)
 
