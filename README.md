@@ -100,7 +100,7 @@ Built on top of [Find the Hotel's Average Room Price in Osaka](#find-the-hotels-
 
 ### Setup Project
 
-- Clone this repo: <https://github.com/sakan811/Find-Osaka-Average-Hotel-Price.git>
+- Clone this repo: <https://github.com/sakan811/Find-Osaka-And-Japan-Average-Hotel-Price.git>
 - Install [Git LFS](https://git-lfs.github.com/)
 - Create a virtual environment and activate it.
 - Install all dependencies listed in [requirements.txt](requirements.txt)

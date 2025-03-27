@@ -4,7 +4,11 @@
 
 ### Year 2025
 
-* [Power BI](https://app.powerbi.com/view?r=eyJrIjoiYjJlY2JjMTItZmU0OC00MzdmLWI0OWQtZDAyZDhlY2U0YzhiIiwidCI6ImZlMzViMTA3LTdjMmYtNGNjMy1hZDYzLTA2NTY0MzcyMDg3OCIsImMiOjEwfQ%3D%3D)  
+* [Power BI](https://app.powerbi.com/view?r=eyJrIjoiYjJlY2JjMTItZmU0OC00MzdmLWI0OWQtZDAyZDhlY2U0YzhiIiwidCI6ImZlMzViMTA3LTdjMmYtNGNjMy1hZDYzLTA2NTY0MzcyMDg3OCIsImMiOjEwfQ%3D%3D)
+  
+* [Instagram](https://www.instagram.com/p/DGaiBeJPh7i/?utm_source=ig_web_copy_link)  
+
+* [Facebook](https://www.facebook.com/share/p/1Mdog36t4U/)
 
 ### Year 2024
 
@@ -22,7 +26,7 @@
 
 * [Instagram](https://www.instagram.com/p/DE7248Cvs1M/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==)
 
-* [Facebook](https://www.facebook.com/share/19p3kDqWGh/)
+* [Facebook](https://www.facebook.com/share/p/16Dr8D4fUU/)
 
 ### Year 2024
 
