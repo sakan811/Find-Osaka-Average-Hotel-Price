@@ -1,6 +1,6 @@
 pandas~=2.2.3
 pytest~=8.3.5
-pytz~=2025.1
+pytz~=2025.2
 requests~=2.32.3
 numpy~=2.2.4
 aiohttp~=3.11.14
